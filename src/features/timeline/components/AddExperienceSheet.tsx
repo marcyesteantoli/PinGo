@@ -3,9 +3,10 @@ import { Controller, useForm } from 'react-hook-form'
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
+import { DatePickerInput } from '@components/ui/DatePickerInput'
 import { Input } from '@components/ui/Input'
 import { ExperienceTypePicker } from './ExperienceTypePicker'
-import { TimeSlotPicker } from './TimeSlotPicker'
+import { TimeRangePicker } from './TimeRangePicker'
 import { createExperienceSchema, type CreateExperienceFormData } from '../types'
 
 interface AddExperienceSheetProps {
@@ -23,7 +24,7 @@ export function AddExperienceSheet({
   isLoading,
   error,
 }: AddExperienceSheetProps) {
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<CreateExperienceFormData>({
+  const { control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<CreateExperienceFormData>({
     resolver: zodResolver(createExperienceSchema),
     defaultValues: { type: 'activity' },
   })
@@ -73,24 +74,22 @@ export function AddExperienceSheet({
               control={control}
               name="date"
               render={({ field: { onChange, value } }) => (
-                <Input
+                <DatePickerInput
                   label="Fecha"
-                  placeholder="AAAA-MM-DD"
                   value={value}
-                  onChangeText={onChange}
-                  keyboardType="numbers-and-punctuation"
-                  maxLength={10}
+                  onChange={onChange}
                   error={errors.date?.message}
                 />
               )}
             />
 
-            <Controller
-              control={control}
-              name="time_slot"
-              render={({ field: { onChange, value } }) => (
-                <TimeSlotPicker value={value} onChange={onChange} />
-              )}
+            <TimeRangePicker
+              startTime={watch('start_time')}
+              endTime={watch('end_time')}
+              onStartTimeChange={(v) => setValue('start_time', v, { shouldValidate: true })}
+              onEndTimeChange={(v) => setValue('end_time', v, { shouldValidate: true })}
+              startTimeError={errors.start_time?.message}
+              endTimeError={errors.end_time?.message}
             />
 
             <Controller

@@ -4,6 +4,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button } from '@components/ui/Button'
+import { DatePickerInput } from '@components/ui/DatePickerInput'
 import { Input } from '@components/ui/Input'
 import { useCreateTrip } from '@features/trips/hooks/useCreateTrip'
 import { createTripSchema, type CreateTripFormData } from '@features/trips/types'
@@ -62,13 +63,10 @@ export default function NewTripScreen() {
             control={control}
             name="start_date"
             render={({ field: { onChange, value } }) => (
-              <Input
+              <DatePickerInput
                 label="Fecha de inicio"
-                placeholder="AAAA-MM-DD"
                 value={value}
-                onChangeText={onChange}
-                keyboardType="numbers-and-punctuation"
-                maxLength={10}
+                onChange={onChange}
                 error={errors.start_date?.message}
               />
             )}
@@ -78,13 +76,10 @@ export default function NewTripScreen() {
             control={control}
             name="end_date"
             render={({ field: { onChange, value } }) => (
-              <Input
+              <DatePickerInput
                 label="Fecha de fin"
-                placeholder="AAAA-MM-DD"
                 value={value}
-                onChangeText={onChange}
-                keyboardType="numbers-and-punctuation"
-                maxLength={10}
+                onChange={onChange}
                 error={errors.end_date?.message}
               />
             )}

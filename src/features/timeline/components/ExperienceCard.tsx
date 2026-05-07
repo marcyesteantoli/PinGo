@@ -1,19 +1,11 @@
 import { Ionicons } from '@expo/vector-icons'
-import { GestureDetector, Gesture, TouchableOpacity } from 'react-native-gesture-handler'
+import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated'
-import { Text, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { Badge } from '@components/ui/Badge'
 import type { BadgeVariant } from '@components/ui/Badge'
-import { EXPERIENCE_TYPE_LABELS, TIME_SLOT_LABELS } from '../types'
+import { EXPERIENCE_TYPE_LABELS, formatTimeRange } from '../types'
 import type { Experience } from '@types/index'
-
-const TYPE_ICONS: Record<Experience['type'], React.ComponentProps<typeof Ionicons>['name']> = {
-  transport: 'airplane-outline',
-  accommodation: 'bed-outline',
-  activity: 'compass-outline',
-  restaurant: 'restaurant-outline',
-  other: 'ellipse-outline',
-}
 
 const TYPE_BADGE_VARIANT: Record<Experience['type'], BadgeVariant> = {
   transport: 'transport',
@@ -21,22 +13,6 @@ const TYPE_BADGE_VARIANT: Record<Experience['type'], BadgeVariant> = {
   activity: 'activity',
   restaurant: 'restaurant',
   other: 'other',
-}
-
-const TYPE_ICON_BG: Record<Experience['type'], string> = {
-  transport: 'bg-sky-100',
-  accommodation: 'bg-purple-100',
-  activity: 'bg-primary-100',
-  restaurant: 'bg-amber-100',
-  other: 'bg-neutral-100',
-}
-
-const TYPE_ICON_COLOR: Record<Experience['type'], string> = {
-  transport: '#0284c7',
-  accommodation: '#7c3aed',
-  activity: '#ea580c',
-  restaurant: '#d97706',
-  other: '#737373',
 }
 
 const DELETE_WIDTH = 76
@@ -50,6 +26,8 @@ interface ExperienceCardProps {
 
 export function ExperienceCard({ experience, canDelete, onDelete, onPress }: ExperienceCardProps) {
   const translateX = useSharedValue(0)
+  const location = experience.location as { name?: string } | null
+  const timeRange = formatTimeRange(experience.start_time, experience.end_time)
 
   const pan = Gesture.Pan()
     .activeOffsetX([-10, 10])
@@ -76,57 +54,82 @@ export function ExperienceCard({ experience, canDelete, onDelete, onPress }: Exp
     onDelete?.()
   }
 
+  const hasBottomRow = !!(timeRange || experience.confirmation_code)
+
   return (
-    <View className="overflow-hidden rounded-2xl">
-      {canDelete && (
-        <View className="absolute right-0 top-0 bottom-0 w-[76px] bg-error rounded-2xl items-center justify-center">
-          <TouchableOpacity onPress={handleDeletePress} className="items-center justify-center p-4">
-            <Ionicons name="trash-outline" size={20} color="#ffffff" />
-          </TouchableOpacity>
-        </View>
-      )}
+    <View
+      className="rounded-2xl"
+      style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 }}
+    >
+      <View className="overflow-hidden rounded-2xl">
+        {canDelete && (
+          <View className="absolute right-0 top-0 bottom-0 w-[76px] bg-error items-center justify-center">
+            <TouchableOpacity onPress={handleDeletePress} className="items-center justify-center p-4">
+              <Ionicons name="trash-outline" size={20} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        )}
 
-      <GestureDetector gesture={pan}>
-        <Animated.View
-          style={cardStyle}
-          className="bg-white rounded-2xl p-4 shadow-sm flex-row gap-3 items-start"
-        >
-          <TouchableOpacity onPress={onPress} className="flex-row gap-3 flex-1 items-start" activeOpacity={0.7}>
-            <View className={`w-10 h-10 rounded-xl items-center justify-center ${TYPE_ICON_BG[experience.type]}`}>
-              <Ionicons
-                name={TYPE_ICONS[experience.type]}
-                size={18}
-                color={TYPE_ICON_COLOR[experience.type]}
-              />
-            </View>
-
-            <View className="flex-1 gap-1">
-              <Text className="text-base font-semibold text-neutral-900" numberOfLines={2}>
-                {experience.title}
-              </Text>
-
-              <View className="flex-row gap-2 flex-wrap">
+        <GestureDetector gesture={pan}>
+          <Animated.View style={cardStyle}>
+            <TouchableOpacity
+              onPress={onPress}
+              className="bg-white px-4 pt-3 pb-3 rounded-2xl"
+              activeOpacity={0.7}
+            >
+              {/* Badge row */}
+              <View className="flex-row gap-1.5 mb-2">
                 <Badge
                   label={EXPERIENCE_TYPE_LABELS[experience.type]}
                   variant={TYPE_BADGE_VARIANT[experience.type]}
                 />
-                {experience.time_slot && (
-                  <Badge
-                    label={TIME_SLOT_LABELS[experience.time_slot]}
-                    variant="neutral"
-                  />
+                {experience.type === 'accommodation' && experience.confirmation_code && (
+                  <Badge label="Check-in" variant="neutral" />
                 )}
               </View>
 
-              {experience.confirmation_code && (
-                <Text className="text-xs text-neutral-400 font-mono">
-                  Ref: {experience.confirmation_code}
-                </Text>
+              {/* Title */}
+              <Text className="text-base font-semibold text-neutral-900 mb-0.5" numberOfLines={2}>
+                {experience.title}
+              </Text>
+
+              {/* Location subtitle */}
+              {location?.name && (
+                <View className="flex-row items-center gap-1 mt-0.5">
+                  <Ionicons name="location-outline" size={12} color="#94a3b8" />
+                  <Text className="text-xs text-neutral-400 flex-1" numberOfLines={1}>
+                    {location.name}
+                  </Text>
+                </View>
               )}
-            </View>
-          </TouchableOpacity>
-        </Animated.View>
-      </GestureDetector>
+
+              {/* Bottom row: time range + confirmation code */}
+              {hasBottomRow && (
+                <View className="flex-row items-center gap-2 mt-2.5 pt-2.5 border-t border-neutral-100">
+                  {timeRange && (
+                    <View className="flex-row items-center gap-1">
+                      <Ionicons name="time-outline" size={12} color="#525252" />
+                      <Text className="text-sm font-semibold text-neutral-700">
+                        {timeRange}
+                      </Text>
+                    </View>
+                  )}
+                  {experience.confirmation_code && (
+                    <>
+                      {timeRange && (
+                        <Text className="text-neutral-300 text-sm">•</Text>
+                      )}
+                      <Text className="text-xs text-neutral-400">
+                        + Reserva {experience.confirmation_code}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
+        </GestureDetector>
+      </View>
     </View>
   )
 }

@@ -3,28 +3,41 @@ import { useRouter } from 'expo-router'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTripContext } from '../TripProvider'
-import { formatDateRange } from '@utils/date'
+import { formatShortDate } from '@utils/date'
 
 export function TripHeader() {
+  const { trip, collaborators } = useTripContext()
   const router = useRouter()
-  const { trip } = useTripContext()
+
+  const dateRange = `${formatShortDate(trip.start_date)} - ${formatShortDate(trip.end_date)}`
+  const travelerCount = collaborators.length
 
   return (
-    <SafeAreaView className="bg-white border-b border-neutral-100" edges={['top']}>
-      <View className="flex-row items-center px-4 py-3 gap-3">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-8 h-8 rounded-lg items-center justify-center"
-        >
-          <Ionicons name="arrow-back" size={22} color="#404040" />
-        </TouchableOpacity>
+    <SafeAreaView className="bg-white" edges={['top']}>
+      <View className="px-5 pt-2 pb-5">
+        <View className="flex-row items-center justify-between mb-3">
+          <View className="flex-row items-center gap-2">
+            <TouchableOpacity
+              onPress={() => router.push('/')}
+              className="w-8 h-8 rounded-full bg-neutral-100 items-center justify-center"
+            >
+              <Ionicons name="arrow-back" size={16} color="#64748b" />
+            </TouchableOpacity>
+            <Text className="text-base font-bold text-neutral-900 tracking-tight">TripSync</Text>
+          </View>
+          <View className="w-8 h-8 rounded-full bg-neutral-100 items-center justify-center">
+            <Ionicons name="person" size={16} color="#64748b" />
+          </View>
+        </View>
 
-        <View className="flex-1">
-          <Text className="text-base font-semibold text-neutral-900" numberOfLines={1}>
-            {trip.title}
-          </Text>
-          <Text className="text-xs text-neutral-500">
-            {formatDateRange(trip.start_date, trip.end_date)}
+        <Text className="text-[26px] font-bold text-neutral-900 leading-tight mb-1" numberOfLines={3}>
+          {trip.title}
+        </Text>
+
+        <View className="flex-row items-center flex-wrap">
+          <Text className="text-sm font-medium text-primary-500">{dateRange}</Text>
+          <Text className="text-sm text-neutral-400">
+            {' '}• {travelerCount} {travelerCount === 1 ? 'Viajero' : 'Viajeros'}
           </Text>
         </View>
       </View>

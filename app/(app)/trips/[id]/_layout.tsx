@@ -10,7 +10,7 @@ export default function TripLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#f97316',
+          tabBarActiveTintColor: '#06b6d4',
         }}
       >
         <Tabs.Screen

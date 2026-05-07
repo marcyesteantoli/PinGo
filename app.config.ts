@@ -32,6 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-image-picker',
       { photosPermission: 'La app necesita acceso a tus fotos para añadir recuerdos.' },
     ],
+    '@react-native-community/datetimepicker',
   ],
   experiments: {
     typedRoutes: true,

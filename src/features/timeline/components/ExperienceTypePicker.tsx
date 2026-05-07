@@ -42,7 +42,7 @@ export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypeP
                 <Ionicons
                   name={TYPE_ICONS[type]}
                   size={16}
-                  color={isSelected ? '#ffffff' : '#737373'}
+                  color={isSelected ? '#ffffff' : '#8d99ae'}
                 />
                 <Text
                   className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-neutral-600'}`}

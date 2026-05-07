@@ -20,7 +20,7 @@ export function TripCard({ trip, onPress }: TripCardProps) {
   return (
     <Card onPress={onPress} className="flex-row items-center gap-3">
       <View className="w-12 h-12 rounded-xl bg-primary-100 items-center justify-center">
-        <Ionicons name="airplane-outline" size={22} color="#ea580c" />
+        <Ionicons name="airplane-outline" size={22} color="#0096c7" />
       </View>
 
       <View className="flex-1 gap-0.5">
@@ -35,7 +35,7 @@ export function TripCard({ trip, onPress }: TripCardProps) {
         </Text>
       </View>
 
-      <Ionicons name="chevron-forward" size={18} color="#e5e5e5" />
+      <Ionicons name="chevron-forward" size={18} color="#c5ced8" />
     </Card>
   )
 }

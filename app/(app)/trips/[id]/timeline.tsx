@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { SectionList, Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
@@ -51,7 +50,7 @@ export default function TimelineScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <View className="flex-1 bg-neutral-50">
       <TripHeader />
 
       {isLoading ? (
@@ -69,12 +68,12 @@ export default function TimelineScreen() {
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
-          contentContainerClassName="px-5 pb-24"
+          contentContainerClassName="pt-2 pb-24"
           renderSectionHeader={({ section }) => (
             <DaySection date={section.title} count={section.data.length} />
           )}
           renderItem={({ item }) => (
-            <View className="mb-3">
+            <View className="mb-4 pl-10 pr-5">
               <ExperienceCard
                 experience={item}
                 canDelete={isOwner}
@@ -115,6 +114,6 @@ export default function TimelineScreen() {
         isLoading={createExperience.isPending}
         error={createExperience.error?.message}
       />
-    </SafeAreaView>
+    </View>
   )
 }

@@ -13,7 +13,7 @@ export function Input({ label, error, className = '', ...props }: InputProps & {
       )}
       <TextInput
         className={`border rounded-xl px-4 py-3 text-base text-neutral-900 bg-white ${error ? 'border-error' : 'border-neutral-200'} ${className}`}
-        placeholderTextColor="#737373"
+        placeholderTextColor="#8d99ae"
         {...props}
       />
       {error && (

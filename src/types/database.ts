@@ -73,7 +73,8 @@ export interface Database {
           title: string
           location: Json | null
           confirmation_code: string | null
-          time_slot: 'morning' | 'afternoon' | 'evening' | 'night' | null
+          start_time: string | null
+          end_time: string | null
           date: string | null
           created_by: string
           updated_at: string
@@ -85,7 +86,8 @@ export interface Database {
           title: string
           location?: Json | null
           confirmation_code?: string | null
-          time_slot?: 'morning' | 'afternoon' | 'evening' | 'night' | null
+          start_time?: string | null
+          end_time?: string | null
           date?: string | null
           created_by: string
           updated_at?: string
@@ -95,7 +97,8 @@ export interface Database {
           title?: string
           location?: Json | null
           confirmation_code?: string | null
-          time_slot?: 'morning' | 'afternoon' | 'evening' | 'night' | null
+          start_time?: string | null
+          end_time?: string | null
           date?: string | null
           updated_at?: string
         }

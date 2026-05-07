@@ -109,7 +109,8 @@ const experienceSchema = z.object({
   title: z.string().min(1, 'El título es obligatorio'),
   type: z.enum(['transport', 'accommodation', 'activity', 'restaurant', 'other']),
   date: z.string().min(1, 'La fecha es obligatoria'),
-  time_slot: z.enum(['morning', 'afternoon', 'evening', 'night']).optional(),
+  start_time: z.string().refine((v) => !v || /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(v), 'Formato HH:MM').optional(),
+  end_time: z.string().refine((v) => !v || /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(v), 'Formato HH:MM').optional(),
 })
 
 type ExperienceFormData = z.infer<typeof experienceSchema>

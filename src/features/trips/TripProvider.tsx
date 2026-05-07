@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { DEV_MODE, DEMO_USER_ID, mockTrips, mockCollaborators } from '@/dev/mockData'
 import type { Collaborator, Trip } from '@types/index'
 
 type TripContextValue = {
@@ -27,6 +28,12 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.collaborators.byTrip(tripId),
     queryFn: async () => {
+      if (DEV_MODE) {
+        const trip = mockTrips.find((t) => t.id === tripId) ?? null
+        const collaborators = mockCollaborators[tripId] ?? []
+        return { trip, collaborators: collaborators.map((c) => ({ ...c, profiles: { name: c.name, avatar_url: c.avatar_url } })), userId: DEMO_USER_ID }
+      }
+
       const [
         { data: trip },
         { data: collaborators },
@@ -47,7 +54,7 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#f97316" />
+        <ActivityIndicator size="large" color="#00b4d8" />
       </View>
     )
   }

@@ -4,6 +4,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { compressImage } from '@utils/image'
 import { LIMITS } from '@/config/limits'
+import { DEV_MODE, DEMO_USER_ID, mockMemories } from '@/dev/mockData'
 import type { Memory } from '@types/index'
 
 type AddMemoryParams = {
@@ -106,6 +107,22 @@ export function useAddMemory() {
 
   return useMutation({
     mutationFn: async ({ tripId, caption }: AddMemoryParams): Promise<Memory> => {
+      if (DEV_MODE) {
+        const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara', 'nikko', 'hakone']
+        const seed = seeds[Math.floor(Math.random() * seeds.length)]
+        const newMemory: Memory = {
+          id: `demo-mem-${Date.now()}`,
+          trip_id: tripId,
+          user_id: DEMO_USER_ID,
+          image_url: `https://picsum.photos/seed/${seed}${Date.now()}/800/600`,
+          caption: caption ?? null,
+          created_at: new Date().toISOString(),
+        }
+        if (!mockMemories[tripId]) mockMemories[tripId] = []
+        mockMemories[tripId].unshift(newMemory)
+        return newMemory
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw { code: 'DB_FAILED', message: 'No hay sesión activa.' }
 

@@ -46,7 +46,8 @@ CREATE TABLE experiences (
   title TEXT NOT NULL,
   location JSONB,
   confirmation_code TEXT,
-  time_slot TEXT CHECK (time_slot IN ('morning', 'afternoon', 'evening', 'night')),
+  start_time TEXT CHECK (start_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'),
+  end_time TEXT CHECK (end_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'),
   date DATE,
   created_by UUID NOT NULL REFERENCES profiles(id),
   updated_at TIMESTAMPTZ DEFAULT NOW()

@@ -27,7 +27,7 @@ const variantClasses: Record<ButtonVariant, { container: string; text: string; s
   ghost: {
     container: 'border border-neutral-200 bg-transparent active:bg-neutral-100',
     text: 'text-neutral-700',
-    spinner: '#404040',
+    spinner: '#4f5d75',
   },
   destructive: {
     container: 'bg-error active:opacity-90',

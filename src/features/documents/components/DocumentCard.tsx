@@ -16,10 +16,10 @@ function getFileIcon(fileType: string | null): React.ComponentProps<typeof Ionic
 }
 
 function getFileIconColor(fileType: string | null): string {
-  if (!fileType) return '#737373'
-  if (fileType.includes('pdf')) return '#ef4444'
-  if (fileType.includes('image')) return '#0284c7'
-  return '#737373'
+  if (!fileType) return '#8d99ae'
+  if (fileType.includes('pdf')) return '#ef233c'
+  if (fileType.includes('image')) return '#0096c7'
+  return '#8d99ae'
 }
 
 function getFileBg(fileType: string | null): string {
@@ -61,7 +61,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
         )}
       </View>
 
-      <Ionicons name="open-outline" size={18} color="#e5e5e5" />
+      <Ionicons name="open-outline" size={18} color="#c5ced8" />
     </TouchableOpacity>
   )
 }

@@ -75,7 +75,7 @@ useMutation({
   onMutate: async (newExp) => {
     await queryClient.cancelQueries({ queryKey: queryKeys.experiences.all(tripId) })
     const snapshot = queryClient.getQueryData(queryKeys.experiences.all(tripId))
-    queryClient.setQueryData(queryKeys.experiences.all(tripId), (old) => [...old, { ...newExp, id: 'temp' }])
+    queryClient.setQueryData(queryKeys.experiences.all(tripId), (old) => [...old, { ...newExp, id: 'temp', start_time: newExp.start_time ?? null, end_time: newExp.end_time ?? null }])
     return { snapshot }
   },
   onError: (_, __, ctx) => queryClient.setQueryData(queryKeys.experiences.all(tripId), ctx.snapshot),

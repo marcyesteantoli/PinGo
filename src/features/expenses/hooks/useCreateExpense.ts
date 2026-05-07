@@ -2,13 +2,40 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { splitEqually } from '@utils/currency'
+import { DEV_MODE, DEMO_USER_ID, mockExpenses } from '@/dev/mockData'
 import type { CreateExpenseFormData } from '../types'
+import type { ExpenseWithSplits } from '@types/index'
 
 export function useCreateExpense(tripId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (formData: CreateExpenseFormData) => {
+      if (DEV_MODE) {
+        const id = `demo-gasto-${Date.now()}`
+        const splitAmount = splitEqually(formData.amount, formData.participant_ids.length)
+        const newExpense: ExpenseWithSplits = {
+          id,
+          trip_id: tripId,
+          experience_id: formData.experience_id ?? null,
+          description: formData.description,
+          amount: formData.amount,
+          currency: 'EUR',
+          payer_id: DEMO_USER_ID,
+          created_at: new Date().toISOString(),
+          payer: { id: DEMO_USER_ID, name: 'Usuario Demo', avatar_url: null, updated_at: '' } as any,
+          splits: formData.participant_ids.map((uid) => ({
+            expense_id: id,
+            user_id: uid,
+            amount: splitAmount,
+            is_settled: false,
+          })),
+        }
+        if (!mockExpenses[tripId]) mockExpenses[tripId] = []
+        mockExpenses[tripId].unshift(newExpense)
+        return newExpense
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No hay sesión activa')
 
@@ -42,7 +69,14 @@ export function useCreateExpense(tripId: string) {
 
       return expense
     },
-    onSuccess: () => {
+    onSuccess: (newExpense) => {
+      if (DEV_MODE) {
+        queryClient.setQueryData<ExpenseWithSplits[]>(
+          queryKeys.expenses.all(tripId),
+          (old = []) => [newExpense as ExpenseWithSplits, ...old]
+        )
+        return
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all(tripId) })
     },
   })

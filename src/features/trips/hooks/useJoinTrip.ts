@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { DEV_MODE } from '@/dev/mockData'
 import type { JoinTripFormData } from '../types'
 
 export function useJoinTrip() {
@@ -8,6 +9,8 @@ export function useJoinTrip() {
 
   return useMutation<string, Error, JoinTripFormData>({
     mutationFn: async ({ join_code }) => {
+      if (DEV_MODE) throw new Error('Los códigos de invitación no están disponibles en modo demo')
+
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No hay sesión activa')
 
