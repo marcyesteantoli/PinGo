@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { SectionList, Text, TouchableOpacity, View } from 'react-native'
+import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
@@ -14,21 +14,44 @@ import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import type { Experience } from '@types/index'
 import type { CreateExperienceFormData } from '@features/timeline/types'
 
-function groupByDate(experiences: Experience[]) {
+type Section = { title: string; data: Experience[] }
+
+type TimelineEntry =
+  | { type: 'header'; title: string; count: number; isFirst: boolean; isToday: boolean }
+  | { type: 'item'; experience: Experience; isUndated: boolean }
+
+function groupByDate(experiences: Experience[]): Section[] {
   const groups: Record<string, Experience[]> = {}
   for (const exp of experiences) {
     const key = exp.date ?? 'Sin fecha'
     if (!groups[key]) groups[key] = []
     groups[key].push(exp)
   }
-
   const dated = Object.entries(groups)
     .filter(([k]) => k !== 'Sin fecha')
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([title, data]) => ({ title, data }))
-
   const undated = groups['Sin fecha'] ?? []
   return undated.length > 0 ? [...dated, { title: 'Sin fecha', data: undated }] : dated
+}
+
+function toRows(sections: Section[]): TimelineEntry[] {
+  const today = new Date().toISOString().slice(0, 10)
+  const rows: TimelineEntry[] = []
+  sections.forEach((s, i) => {
+    const isUndated = s.title === 'Sin fecha'
+    rows.push({
+      type: 'header',
+      title: s.title,
+      count: s.data.length,
+      isFirst: i === 0,
+      isToday: !isUndated && s.title === today,
+    })
+    s.data.forEach(exp =>
+      rows.push({ type: 'item', experience: exp, isUndated })
+    )
+  })
+  return rows
 }
 
 export default function TimelineScreen() {
@@ -38,7 +61,10 @@ export default function TimelineScreen() {
   const deleteExperience = useDeleteExperience(tripId)
   const [sheetVisible, setSheetVisible] = useState(false)
 
-  const sections = useMemo(() => groupByDate(experiences ?? []), [experiences])
+  const rows = useMemo(
+    () => toRows(groupByDate(experiences ?? [])),
+    [experiences]
+  )
 
   const handleCreate = async (data: CreateExperienceFormData) => {
     try {
@@ -65,22 +91,59 @@ export default function TimelineScreen() {
           </TouchableOpacity>
         </View>
       ) : (
-        <SectionList
-          sections={sections}
-          keyExtractor={(item) => item.id}
+        <FlatList
+          data={rows}
+          keyExtractor={(entry) =>
+            entry.type === 'header' ? `header-${entry.title}` : entry.experience.id
+          }
           contentContainerClassName="pt-2 pb-24"
-          renderSectionHeader={({ section }) => (
-            <DaySection date={section.title} count={section.data.length} />
-          )}
-          renderItem={({ item }) => (
-            <View className="mb-4 pl-10 pr-5">
-              <ExperienceCard
-                experience={item}
-                canDelete={isOwner}
-                onDelete={() => deleteExperience.mutate(item.id)}
-              />
-            </View>
-          )}
+          renderItem={({ item: entry }) => {
+            if (entry.type === 'header') {
+              return (
+                <View className="flex-row">
+                  {/* Left track */}
+                  <View className="w-10 items-center">
+                    {entry.title === 'Sin fecha' ? (
+                      <View className="flex-1" />
+                    ) : (
+                      <>
+                        <View className="flex-1" />
+                        <View className={
+                          entry.isToday
+                            ? 'mt-2 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-neutral-900'
+                            : 'mt-2 w-3 h-3 rounded-full bg-neutral-400 dark:bg-neutral-500'
+                        } />
+                        <View className="h-2" />
+                        <View className="flex-1 w-[3px] bg-neutral-300 dark:bg-neutral-600 rounded-t-full" />
+                      </>
+                    )}
+                  </View>
+                  {/* Content */}
+                  <DaySection date={entry.title} count={entry.count} />
+                </View>
+              )
+            }
+
+            return (
+              <View className="flex-row">
+                {/* Left track */}
+                <View className="w-10 items-center">
+                  {entry.isUndated
+                    ? <View className="flex-1" />
+                    : <View className="flex-1 w-[3px] bg-neutral-300 dark:bg-neutral-600" />
+                  }
+                </View>
+                {/* Content */}
+                <View className="flex-1 pr-4 pb-3">
+                  <ExperienceCard
+                    experience={entry.experience}
+                    canDelete={isOwner}
+                    onDelete={() => deleteExperience.mutate(entry.experience.id)}
+                  />
+                </View>
+              </View>
+            )
+          }}
           ListEmptyComponent={
             <EmptyState
               icon="calendar-outline"
@@ -92,11 +155,9 @@ export default function TimelineScreen() {
           }
           onRefresh={refetch}
           refreshing={isLoading}
-          stickySectionHeadersEnabled={false}
         />
       )}
 
-      {/* FAB */}
       {!isLoading && (
         <TouchableOpacity
           onPress={() => setSheetVisible(true)}
