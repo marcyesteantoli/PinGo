@@ -1,0 +1,220 @@
+// Auto-generado con: npm run supabase:types
+// No editar manualmente
+
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string
+          name: string
+          avatar_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          avatar_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          name?: string
+          avatar_url?: string | null
+          updated_at?: string
+        }
+      }
+      trips: {
+        Row: {
+          id: string
+          title: string
+          start_date: string
+          end_date: string
+          created_by: string
+          join_code: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          start_date: string
+          end_date: string
+          created_by: string
+          join_code?: string
+          created_at?: string
+        }
+        Update: {
+          title?: string
+          start_date?: string
+          end_date?: string
+        }
+      }
+      trip_collaborators: {
+        Row: {
+          trip_id: string
+          user_id: string
+          role: 'owner' | 'member'
+        }
+        Insert: {
+          trip_id: string
+          user_id: string
+          role?: 'owner' | 'member'
+        }
+        Update: {
+          role?: 'owner' | 'member'
+        }
+      }
+      experiences: {
+        Row: {
+          id: string
+          trip_id: string
+          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'other'
+          title: string
+          location: Json | null
+          confirmation_code: string | null
+          time_slot: 'morning' | 'afternoon' | 'evening' | 'night' | null
+          date: string | null
+          created_by: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'other'
+          title: string
+          location?: Json | null
+          confirmation_code?: string | null
+          time_slot?: 'morning' | 'afternoon' | 'evening' | 'night' | null
+          date?: string | null
+          created_by: string
+          updated_at?: string
+        }
+        Update: {
+          type?: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'other'
+          title?: string
+          location?: Json | null
+          confirmation_code?: string | null
+          time_slot?: 'morning' | 'afternoon' | 'evening' | 'night' | null
+          date?: string | null
+          updated_at?: string
+        }
+      }
+      documents: {
+        Row: {
+          id: string
+          experience_id: string
+          trip_id: string
+          name: string
+          file_url: string
+          file_type: string | null
+          uploaded_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          experience_id: string
+          trip_id: string
+          name: string
+          file_url: string
+          file_type?: string | null
+          uploaded_by: string
+          created_at?: string
+        }
+        Update: {
+          name?: string
+        }
+      }
+      expenses: {
+        Row: {
+          id: string
+          trip_id: string
+          experience_id: string | null
+          amount: number
+          currency: string
+          description: string
+          payer_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          experience_id?: string | null
+          amount: number
+          currency?: string
+          description: string
+          payer_id: string
+          created_at?: string
+        }
+        Update: {
+          amount?: number
+          description?: string
+        }
+      }
+      expense_splits: {
+        Row: {
+          expense_id: string
+          user_id: string
+          amount: number
+          is_settled: boolean
+        }
+        Insert: {
+          expense_id: string
+          user_id: string
+          amount: number
+          is_settled?: boolean
+        }
+        Update: {
+          is_settled?: boolean
+        }
+      }
+      experience_ratings: {
+        Row: {
+          experience_id: string
+          user_id: string
+          rating: number
+          created_at: string
+        }
+        Insert: {
+          experience_id: string
+          user_id: string
+          rating: number
+          created_at?: string
+        }
+        Update: {
+          rating?: number
+        }
+      }
+      memories: {
+        Row: {
+          id: string
+          trip_id: string
+          user_id: string
+          image_url: string
+          caption: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          user_id: string
+          image_url: string
+          caption?: string | null
+          created_at?: string
+        }
+        Update: {
+          caption?: string | null
+        }
+      }
+    }
+    Views: {
+      experience_ratings_avg: {
+        Row: {
+          experience_id: string
+          rating_avg: number
+          rating_count: number
+        }
+      }
+    }
+  }
+}
