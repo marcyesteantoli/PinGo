@@ -42,6 +42,7 @@ export function useDeleteExperience(tripId: string) {
     onSettled: () => {
       if (DEV_MODE) return
       queryClient.invalidateQueries({ queryKey: queryKeys.experiences.all(tripId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.all(tripId) })
     },
   })
 }
