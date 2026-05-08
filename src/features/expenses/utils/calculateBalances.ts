@@ -1,5 +1,9 @@
 import type { Collaborator, ExpenseWithSplits, UserBalance } from '@types/index'
 
+// Zero-sum algorithm:
+// paid = sum of OTHER participants' unsettled splits in expenses I paid (what others still owe me)
+// owes = sum of MY unsettled splits in expenses others paid (what I still owe)
+// balance = paid - owes  →  sum of all balances = 0
 export function calculateBalances(
   expenses: ExpenseWithSplits[],
   collaborators: Collaborator[]
@@ -11,12 +15,15 @@ export function calculateBalances(
   }
 
   for (const expense of expenses) {
-    if (map[expense.payer_id]) {
-      map[expense.payer_id].paid += expense.amount
-    }
     for (const split of expense.splits) {
-      if (!split.is_settled && map[split.user_id]) {
-        map[split.user_id].owes += split.amount
+      if (split.is_settled) continue
+      if (split.user_id === expense.payer_id) continue // payer's own share, skip
+
+      if (map[expense.payer_id]) {
+        map[expense.payer_id].paid += split.amount // others owe me this
+      }
+      if (map[split.user_id]) {
+        map[split.user_id].owes += split.amount // I owe payer this
       }
     }
   }

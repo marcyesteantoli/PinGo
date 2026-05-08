@@ -51,9 +51,9 @@ export const mockTrips: Trip[] = [
 
 export const mockCollaborators: Record<string, Collaborator[]> = {
   [DEMO_TRIP_ID]: [
-    { user_id: DEMO_USER_ID, name: 'Usuario Demo', avatar_url: null, role: 'owner' },
-    { user_id: 'collab-002', name: 'Ana García', avatar_url: null, role: 'member' },
-    { user_id: 'collab-003', name: 'Carlos López', avatar_url: null, role: 'member' },
+    { user_id: DEMO_USER_ID, name: 'Marc Yeste', avatar_url: null, role: 'owner' },
+    { user_id: 'collab-002', name: 'Nuria Fabregat', avatar_url: null, role: 'member' },
+    { user_id: 'collab-003', name: 'Paula Tena', avatar_url: null, role: 'member' },
   ],
   [DEMO_TRIP_ID_2]: [
     { user_id: DEMO_USER_ID, name: 'Usuario Demo', avatar_url: null, role: 'owner' },
@@ -188,6 +188,15 @@ export const mockExperiences: Record<string, Experience[]> = {
 }
 
 // ─── GASTOS ──────────────────────────────────────────────────────────────────
+// Regla: el split del pagador siempre es is_settled: true (ya pagó su parte)
+// Balances Japón (zero-sum):
+//   Usuario Demo  → +€771.67 (le deben Ana €553.33 + Carlos €553.34 - debe a Ana €280 - debe a Carlos €55)
+//   Ana García    → -€48.33  (pagó hotel €840, pero debe vuelos €483.33 + cena €70 + fuji €55 = €608.33 - €560 adeudado)
+//   Carlos López  → -€723.34 (pagó tour €165, pero debe vuelos €483.34 + hotel €280 + cena €70 = €833.34 - €110 adeudado)
+//
+// Ajustes recomendados:
+//   Carlos → Usuario Demo: €723.34
+//   Ana    → Usuario Demo: €48.33
 
 export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
   [DEMO_TRIP_ID]: [
@@ -200,9 +209,9 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       currency: 'EUR',
       payer_id: DEMO_USER_ID,
       created_at: '2026-01-20T10:00:00Z',
-      payer: { id: DEMO_USER_ID, name: 'Usuario Demo', avatar_url: null, updated_at: '' } as any,
+      payer: { id: DEMO_USER_ID, name: 'Marc Yeste', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-001', user_id: DEMO_USER_ID, amount: 483.33, is_settled: false },
+        { expense_id: 'gasto-001', user_id: DEMO_USER_ID, amount: 483.33, is_settled: true },  // payer, ya pagó
         { expense_id: 'gasto-001', user_id: 'collab-002', amount: 483.33, is_settled: false },
         { expense_id: 'gasto-001', user_id: 'collab-003', amount: 483.34, is_settled: false },
       ],
@@ -216,10 +225,10 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       currency: 'EUR',
       payer_id: 'collab-002',
       created_at: '2026-01-20T10:05:00Z',
-      payer: { id: 'collab-002', name: 'Ana García', avatar_url: null, updated_at: '' } as any,
+      payer: { id: 'collab-002', name: 'Nuria Fabregat', avatar_url: null, updated_at: '' } as any,
       splits: [
         { expense_id: 'gasto-002', user_id: DEMO_USER_ID, amount: 280, is_settled: false },
-        { expense_id: 'gasto-002', user_id: 'collab-002', amount: 280, is_settled: false },
+        { expense_id: 'gasto-002', user_id: 'collab-002', amount: 280, is_settled: true },   // payer, ya pagó
         { expense_id: 'gasto-002', user_id: 'collab-003', amount: 280, is_settled: false },
       ],
     },
@@ -232,10 +241,10 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       currency: 'EUR',
       payer_id: DEMO_USER_ID,
       created_at: '2026-01-20T10:10:00Z',
-      payer: { id: DEMO_USER_ID, name: 'Usuario Demo', avatar_url: null, updated_at: '' } as any,
+      payer: { id: DEMO_USER_ID, name: 'Marc Yeste', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-003', user_id: DEMO_USER_ID, amount: 70, is_settled: false },
-        { expense_id: 'gasto-003', user_id: 'collab-002', amount: 70, is_settled: true },
+        { expense_id: 'gasto-003', user_id: DEMO_USER_ID, amount: 70, is_settled: true },   // payer, ya pagó
+        { expense_id: 'gasto-003', user_id: 'collab-002', amount: 70, is_settled: false },
         { expense_id: 'gasto-003', user_id: 'collab-003', amount: 70, is_settled: false },
       ],
     },
@@ -252,11 +261,12 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       splits: [
         { expense_id: 'gasto-004', user_id: DEMO_USER_ID, amount: 55, is_settled: false },
         { expense_id: 'gasto-004', user_id: 'collab-002', amount: 55, is_settled: false },
-        { expense_id: 'gasto-004', user_id: 'collab-003', amount: 55, is_settled: false },
+        { expense_id: 'gasto-004', user_id: 'collab-003', amount: 55, is_settled: true },   // payer, ya pagó
       ],
     },
   ],
   [DEMO_TRIP_ID_2]: [
+    // Lisboa: ambos han saldado todo → balances = 0, sin ajustes pendientes
     {
       id: 'gasto-101',
       trip_id: DEMO_TRIP_ID_2,
@@ -268,8 +278,8 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-12T10:00:00Z',
       payer: { id: DEMO_USER_ID, name: 'Usuario Demo', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-101', user_id: DEMO_USER_ID, amount: 190, is_settled: false },
-        { expense_id: 'gasto-101', user_id: 'collab-002', amount: 190, is_settled: true },
+        { expense_id: 'gasto-101', user_id: DEMO_USER_ID, amount: 190, is_settled: true },  // payer
+        { expense_id: 'gasto-101', user_id: 'collab-002', amount: 190, is_settled: true },  // Ana ya pagó
       ],
     },
     {
@@ -283,8 +293,8 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-12T10:05:00Z',
       payer: { id: 'collab-002', name: 'Ana García', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-102', user_id: DEMO_USER_ID, amount: 280, is_settled: true },
-        { expense_id: 'gasto-102', user_id: 'collab-002', amount: 280, is_settled: false },
+        { expense_id: 'gasto-102', user_id: DEMO_USER_ID, amount: 280, is_settled: true },  // Marc ya pagó
+        { expense_id: 'gasto-102', user_id: 'collab-002', amount: 280, is_settled: true },  // payer
       ],
     },
   ],

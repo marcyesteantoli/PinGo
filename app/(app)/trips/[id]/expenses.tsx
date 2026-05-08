@@ -10,10 +10,13 @@ import { useTripContext } from '@features/trips/TripProvider'
 import { AddExpenseSheet } from '@features/expenses/components/AddExpenseSheet'
 import { BalanceCard } from '@features/expenses/components/BalanceCard'
 import { ExpenseCard } from '@features/expenses/components/ExpenseCard'
+import { ExpenseSummaryCard } from '@features/expenses/components/ExpenseSummaryCard'
+import { DebtResolutionCard } from '@features/expenses/components/DebtResolutionCard'
 import { useCreateExpense } from '@features/expenses/hooks/useCreateExpense'
 import { useExpenses } from '@features/expenses/hooks/useExpenses'
-import { useSettleExpense } from '@features/expenses/hooks/useSettleExpense'
+import { useSettleDebt } from '@features/expenses/hooks/useSettleDebt'
 import { calculateBalances } from '@features/expenses/utils/calculateBalances'
+import { calculateDebtResolution } from '@features/expenses/utils/calculateDebtResolution'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import type { CreateExpenseFormData } from '@features/expenses/types'
 
@@ -21,9 +24,10 @@ export default function ExpensesScreen() {
   const { tripId, collaborators } = useTripContext()
   const { data: currentUser } = useCurrentUser()
   const { data: expenses, isLoading, isFetching, refetch } = useExpenses(tripId)
-  const createExpense = useCreateExpense(tripId)
-  const settleExpense = useSettleExpense(tripId)
+  const createExpense = useCreateExpense(tripId, collaborators)
+  const settleDebt = useSettleDebt(tripId)
   const [sheetVisible, setSheetVisible] = useState(false)
+  const [balancesExpanded, setBalancesExpanded] = useState(true)
   const insets = useSafeAreaInsets()
 
   const balances = useMemo(
@@ -31,12 +35,19 @@ export default function ExpensesScreen() {
     [expenses, collaborators]
   )
 
+  const debtTransactions = useMemo(
+    () => calculateDebtResolution(balances),
+    [balances]
+  )
+
+  const currentUserBalance = balances.find((b) => b.user_id === currentUser?.id)
+
   const handleCreate = async (data: CreateExpenseFormData) => {
     try {
       await createExpense.mutateAsync(data)
       setSheetVisible(false)
     } catch {
-      // Error se muestra en el sheet
+      // Error visible en el sheet
     }
   }
 
@@ -50,17 +61,64 @@ export default function ExpensesScreen() {
         </View>
       ) : (
         <ScrollView
-          contentContainerClassName="px-5 pb-24"
+          contentContainerClassName="px-5 pb-28"
           refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />}
           showsVerticalScrollIndicator={false}
         >
-          {/* Balances */}
+          {/* Summary */}
+          {(expenses?.length ?? 0) > 0 && (
+            <View className="mt-4">
+              <ExpenseSummaryCard
+                expenses={expenses ?? []}
+                currentUserId={currentUser?.id}
+                currentUserBalance={currentUserBalance}
+              />
+            </View>
+          )}
+
+          {/* Ajustes recomendados — sección principal accionable */}
+          {debtTransactions.length > 0 && (
+            <View className="mt-6 gap-3">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+                  Ajustes recomendados
+                </Text>
+                <Text className="text-xs text-neutral-400">{debtTransactions.length} pendiente{debtTransactions.length !== 1 ? 's' : ''}</Text>
+              </View>
+              {debtTransactions.map((tx, i) => (
+                <DebtResolutionCard
+                  key={`${tx.fromUserId}-${tx.toUserId}-${i}`}
+                  transaction={tx}
+                  isCurrentUserFrom={tx.fromUserId === currentUser?.id}
+                  isCurrentUserTo={tx.toUserId === currentUser?.id}
+                  onSettle={() => settleDebt.mutate({ fromUserId: tx.fromUserId, toUserId: tx.toUserId })}
+                  isSettling={
+                    settleDebt.isPending &&
+                    settleDebt.variables?.fromUserId === tx.fromUserId &&
+                    settleDebt.variables?.toUserId === tx.toUserId
+                  }
+                />
+              ))}
+            </View>
+          )}
+
+          {/* Balances — colapsable, informacional */}
           {balances.length > 0 && (
-            <View className="mt-4 gap-3">
-              <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
-                Balances
-              </Text>
-              {balances.map((b) => (
+            <View className="mt-6 gap-3">
+              <TouchableOpacity
+                onPress={() => setBalancesExpanded(!balancesExpanded)}
+                className="flex-row items-center justify-between active:opacity-70"
+              >
+                <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+                  Balances
+                </Text>
+                <Ionicons
+                  name={balancesExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color="#8d99ae"
+                />
+              </TouchableOpacity>
+              {balancesExpanded && balances.map((b) => (
                 <BalanceCard
                   key={b.user_id}
                   balance={b}
@@ -70,7 +128,7 @@ export default function ExpensesScreen() {
             </View>
           )}
 
-          {/* Expenses */}
+          {/* Lista de gastos — informacional */}
           <View className="mt-6 gap-3">
             <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
               Gastos ({expenses?.length ?? 0})
@@ -78,9 +136,9 @@ export default function ExpensesScreen() {
             {!expenses?.length ? (
               <EmptyState
                 icon="wallet-outline"
-                title="Sin gastos"
-                subtitle="Registra los gastos del viaje y divide con el grupo"
-                actionLabel="Añadir gasto"
+                title="Sin gastos aún"
+                subtitle="Registra los gastos del viaje y divide con el grupo automáticamente"
+                actionLabel="Añadir primer gasto"
                 onAction={() => setSheetVisible(true)}
               />
             ) : (
@@ -89,7 +147,6 @@ export default function ExpensesScreen() {
                   key={expense.id}
                   expense={expense}
                   currentUserId={currentUser?.id}
-                  onSettle={() => settleExpense.mutate(expense.id)}
                 />
               ))
             )}
@@ -114,6 +171,7 @@ export default function ExpensesScreen() {
         onSubmit={handleCreate}
         isLoading={createExpense.isPending}
         error={createExpense.error?.message}
+        currentUserId={currentUser?.id}
       />
     </View>
   )
