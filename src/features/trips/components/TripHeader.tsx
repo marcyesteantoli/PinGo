@@ -17,12 +17,6 @@ export function TripHeader() {
       <View className="px-5 pt-2 pb-5">
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center gap-2">
-            <TouchableOpacity
-              onPress={() => router.push('/')}
-              className="w-8 h-8 rounded-full bg-neutral-100 items-center justify-center"
-            >
-              <Ionicons name="arrow-back" size={16} color="#64748b" />
-            </TouchableOpacity>
             <Text className="text-base font-bold text-neutral-900 tracking-tight">TripSync</Text>
           </View>
           <View className="w-8 h-8 rounded-full bg-neutral-100 items-center justify-center">

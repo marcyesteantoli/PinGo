@@ -1,3 +1,8 @@
+---
+name: supabase
+description: Experto en Supabase como backend. Usar para esquema de BD, migraciones, RLS, Auth, Storage, Realtime y Edge Functions.
+---
+
 # Agente: Supabase
 
 ## Rol
@@ -285,4 +290,4 @@ CREATE TABLE memories (
 - RLS habilitado siempre en tablas con datos de usuario
 - No exponer la `service_role` key en el cliente
 - Paths de Storage predecibles y con scope por `trip_id`
-- Tipos consistentes con los que consume TanStack Query (ver `agents/tanstack-query.md`)
+- Tipos consistentes con los que consume TanStack Query (ver `.claude/agents/tanstack-query.md`)

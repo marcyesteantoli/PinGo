@@ -1,3 +1,8 @@
+---
+name: expo-rn
+description: Experto en React Native + Expo. Usar para componentes, pantallas, navegación, hooks de UI, Expo Router, gestos y animaciones.
+---
+
 # Agente: React Native + Expo
 
 ## Rol
@@ -44,6 +49,6 @@ Experto en desarrollo de aplicaciones móviles con Expo y React Native. Conoces 
 
 ## Restricciones
 - Usar siempre TypeScript estricto
-- No usar `StyleSheet.create` — usar NativeWind (ver `agents/ui-nativewind.md`)
-- No gestionar fetch directamente — usar TanStack Query (ver `agents/tanstack-query.md`)
-- Estructura de archivos según `agents/architecture.md`
+- No usar `StyleSheet.create` — usar NativeWind (ver `.claude/agents/ui-nativewind.md`)
+- No gestionar fetch directamente — usar TanStack Query (ver `.claude/agents/tanstack-query.md`)
+- Estructura de archivos según `.claude/agents/architecture.md`

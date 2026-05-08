@@ -1,16 +1,23 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { useQueryClient } from '@tanstack/react-query'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
+import { UndoToast } from '@components/ui/UndoToast'
 import { TripHeader } from '@features/trips/components/TripHeader'
 import { useTripContext } from '@features/trips/TripProvider'
 import { AddExperienceSheet } from '@features/timeline/components/AddExperienceSheet'
+import { DeleteExperienceSheet } from '@features/timeline/components/DeleteExperienceSheet'
 import { DaySection } from '@features/timeline/components/DaySection'
 import { ExperienceCard } from '@features/timeline/components/ExperienceCard'
 import { useCreateExperience } from '@features/timeline/hooks/useCreateExperience'
 import { useDeleteExperience } from '@features/timeline/hooks/useDeleteExperience'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
+import { useDocuments } from '@features/documents/hooks/useDocuments'
+import { supabase } from '@lib/supabase'
+import { queryKeys } from '@lib/queryKeys'
+import { DEV_MODE, mockExperiences } from '@/dev/mockData'
 import type { Experience } from '@types/index'
 import type { CreateExperienceFormData } from '@features/timeline/types'
 
@@ -54,17 +61,103 @@ function toRows(sections: Section[]): TimelineEntry[] {
   return rows
 }
 
+interface DeleteSheetState {
+  visible: boolean
+  experience: Experience | null
+  documentCount: number
+}
+
 export default function TimelineScreen() {
   const { tripId, isOwner } = useTripContext()
+  const queryClient = useQueryClient()
   const { data: experiences, isLoading, error, refetch } = useExperiences(tripId)
+  const { data: documents } = useDocuments(tripId)
   const createExperience = useCreateExperience(tripId)
   const deleteExperience = useDeleteExperience(tripId)
   const [sheetVisible, setSheetVisible] = useState(false)
+  const [toastVisible, setToastVisible] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
+  const [deleteSheet, setDeleteSheet] = useState<DeleteSheetState>({
+    visible: false,
+    experience: null,
+    documentCount: 0,
+  })
+
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const pendingDeleteRef = useRef<{
+    experienceId: string
+    snapshot: Experience[] | undefined
+  } | null>(null)
 
   const rows = useMemo(
     () => toRows(groupByDate(experiences ?? [])),
     [experiences]
   )
+
+  const commitDelete = async (experienceId: string, snapshot: Experience[] | undefined) => {
+    if (DEV_MODE) {
+      if (mockExperiences[tripId]) {
+        mockExperiences[tripId] = mockExperiences[tripId].filter(e => e.id !== experienceId)
+      }
+      return
+    }
+    const { error } = await supabase.from('experiences').delete().eq('id', experienceId)
+    if (error && snapshot) {
+      queryClient.setQueryData(queryKeys.experiences.all(tripId), snapshot)
+    } else if (!error) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.experiences.all(tripId) })
+    }
+  }
+
+  const handleDeleteIntent = (experience: Experience) => {
+    const expDocCount = documents?.filter(d => d.experience_id === experience.id).length ?? 0
+
+    if (expDocCount > 0) {
+      setDeleteSheet({ visible: true, experience, documentCount: expDocCount })
+      return
+    }
+
+    // Commit any already-pending delete before showing a new toast
+    if (pendingDeleteRef.current) {
+      clearTimeout(toastTimerRef.current)
+      const prev = pendingDeleteRef.current
+      pendingDeleteRef.current = null
+      commitDelete(prev.experienceId, prev.snapshot)
+    }
+
+    const snapshot = queryClient.getQueryData<Experience[]>(queryKeys.experiences.all(tripId))
+    queryClient.setQueryData<Experience[]>(
+      queryKeys.experiences.all(tripId),
+      (old = []) => old.filter(e => e.id !== experience.id)
+    )
+
+    pendingDeleteRef.current = { experienceId: experience.id, snapshot }
+    setToastMessage(`"${experience.title}" eliminada`)
+    setToastVisible(true)
+
+    toastTimerRef.current = setTimeout(() => {
+      const pending = pendingDeleteRef.current
+      pendingDeleteRef.current = null
+      setToastVisible(false)
+      if (pending) commitDelete(pending.experienceId, pending.snapshot)
+    }, 4000)
+  }
+
+  const handleUndo = () => {
+    clearTimeout(toastTimerRef.current)
+    const pending = pendingDeleteRef.current
+    pendingDeleteRef.current = null
+    if (pending?.snapshot) {
+      queryClient.setQueryData(queryKeys.experiences.all(tripId), pending.snapshot)
+    }
+    setToastVisible(false)
+  }
+
+  const handleDeleteWithDocuments = () => {
+    if (!deleteSheet.experience) return
+    deleteExperience.mutate(deleteSheet.experience.id)
+    setDeleteSheet(prev => ({ ...prev, visible: false }))
+  }
 
   const handleCreate = async (data: CreateExperienceFormData) => {
     try {
@@ -138,7 +231,7 @@ export default function TimelineScreen() {
                   <ExperienceCard
                     experience={entry.experience}
                     canDelete={isOwner}
-                    onDelete={() => deleteExperience.mutate(entry.experience.id)}
+                    onDelete={() => handleDeleteIntent(entry.experience)}
                   />
                 </View>
               </View>
@@ -168,12 +261,25 @@ export default function TimelineScreen() {
         </TouchableOpacity>
       )}
 
+      <UndoToast
+        visible={toastVisible}
+        message={toastMessage}
+        onUndo={handleUndo}
+      />
+
       <AddExperienceSheet
         visible={sheetVisible}
         onClose={() => setSheetVisible(false)}
         onSubmit={handleCreate}
         isLoading={createExperience.isPending}
         error={createExperience.error?.message}
+      />
+
+      <DeleteExperienceSheet
+        visible={deleteSheet.visible}
+        documentCount={deleteSheet.documentCount}
+        onClose={() => setDeleteSheet(prev => ({ ...prev, visible: false }))}
+        onConfirm={handleDeleteWithDocuments}
       />
     </View>
   )
