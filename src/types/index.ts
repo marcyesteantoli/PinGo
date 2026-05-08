@@ -12,6 +12,8 @@ export type Memory = Database['public']['Tables']['memories']['Row']
 
 export type ExperienceRatingAvg = Database['public']['Views']['experience_ratings_avg']['Row']
 
+export type TripRole = 'owner' | 'member'
+
 // Tipos compuestos usados en la app
 export type TripWithCollaborators = Trip & {
   collaborators: Array<TripCollaborator & { profile: Profile }>
@@ -21,7 +23,7 @@ export type Collaborator = {
   user_id: string
   name: string
   avatar_url: string | null
-  role: 'owner' | 'member'
+  role: TripRole
 }
 
 export type ExpenseWithSplits = Expense & {

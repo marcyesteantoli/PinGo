@@ -135,5 +135,9 @@ export function useAddMemory() {
         (old = []) => [newMemory, ...old]
       )
     },
+    onSettled: (_, __, variables) => {
+      if (DEV_MODE) return
+      queryClient.invalidateQueries({ queryKey: queryKeys.memories.all(variables.tripId) })
+    },
   })
 }

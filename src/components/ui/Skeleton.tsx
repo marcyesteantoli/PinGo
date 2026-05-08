@@ -25,7 +25,7 @@ export function Skeleton({ width, height = 16, className = '' }: SkeletonProps) 
   return (
     <Animated.View
       style={[animatedStyle, { height, width: width as any }]}
-      className={`bg-neutral-200 rounded-xl ${className}`}
+      className={`bg-neutral-200 dark:bg-neutral-700 rounded-xl ${className}`}
     />
   )
 }
@@ -36,7 +36,7 @@ export function SkeletonText({ className = '' }: { className?: string }) {
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <View className={`bg-white rounded-2xl p-4 gap-3 shadow-sm ${className}`}>
+    <View className={`bg-white dark:bg-surface-800 rounded-2xl p-4 gap-3 shadow-sm ${className}`}>
       <Skeleton height={20} className="w-3/4" />
       <Skeleton height={14} className="w-1/2" />
       <Skeleton height={14} className="w-2/3" />

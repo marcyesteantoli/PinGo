@@ -25,4 +25,7 @@ export const queryKeys = {
   collaborators: {
     byTrip: (tripId: string) => ['collaborators', tripId] as const,
   },
+  auth: {
+    currentUser: () => ['currentUser'] as const,
+  },
 }

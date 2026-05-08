@@ -71,7 +71,20 @@ export function useCreateExperience(tripId: string) {
 
       queryClient.setQueryData<Experience[]>(
         queryKeys.experiences.all(tripId),
-        (old = []) => [...old, temp]
+        (old = []) => {
+          const next = [...old, temp]
+          return next.sort((a, b) => {
+            if (!a.date && !b.date) return 0
+            if (!a.date) return 1
+            if (!b.date) return -1
+            const dateCompare = a.date.localeCompare(b.date)
+            if (dateCompare !== 0) return dateCompare
+            if (!a.start_time && !b.start_time) return 0
+            if (!a.start_time) return 1
+            if (!b.start_time) return -1
+            return a.start_time.localeCompare(b.start_time)
+          })
+        }
       )
 
       return { previous }
@@ -81,14 +94,29 @@ export function useCreateExperience(tripId: string) {
         queryClient.setQueryData(queryKeys.experiences.all(tripId), context.previous)
       }
     },
-    onSettled: (newExp) => {
-      if (DEV_MODE && newExp) {
-        queryClient.setQueryData<Experience[]>(
-          queryKeys.experiences.all(tripId),
-          (old = []) => [...old.filter((e) => !e.id.startsWith('temp_')), newExp]
-        )
-        return
-      }
+    onSuccess: (newExp) => {
+      if (!newExp) return
+      queryClient.setQueryData<Experience[]>(
+        queryKeys.experiences.all(tripId),
+        (old = []) => {
+          const withoutTemp = old.filter((e) => !e.id.startsWith('temp_'))
+          const next = [...withoutTemp, newExp]
+          return next.sort((a, b) => {
+            if (!a.date && !b.date) return 0
+            if (!a.date) return 1
+            if (!b.date) return -1
+            const dateCompare = a.date.localeCompare(b.date)
+            if (dateCompare !== 0) return dateCompare
+            if (!a.start_time && !b.start_time) return 0
+            if (!a.start_time) return 1
+            if (!b.start_time) return -1
+            return a.start_time.localeCompare(b.start_time)
+          })
+        }
+      )
+    },
+    onSettled: () => {
+      if (DEV_MODE) return
       queryClient.invalidateQueries({ queryKey: queryKeys.experiences.all(tripId) })
     },
   })

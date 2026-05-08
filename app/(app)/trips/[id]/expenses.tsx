@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { TripHeader } from '@features/trips/components/TripHeader'
@@ -19,10 +20,11 @@ import type { CreateExpenseFormData } from '@features/expenses/types'
 export default function ExpensesScreen() {
   const { tripId, collaborators } = useTripContext()
   const { data: currentUser } = useCurrentUser()
-  const { data: expenses, isLoading, refetch } = useExpenses(tripId)
+  const { data: expenses, isLoading, isFetching, refetch } = useExpenses(tripId)
   const createExpense = useCreateExpense(tripId)
   const settleExpense = useSettleExpense(tripId)
   const [sheetVisible, setSheetVisible] = useState(false)
+  const insets = useSafeAreaInsets()
 
   const balances = useMemo(
     () => calculateBalances(expenses ?? [], collaborators),
@@ -39,7 +41,7 @@ export default function ExpensesScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <View className="flex-1 bg-neutral-50">
       <TripHeader />
 
       {isLoading ? (
@@ -49,7 +51,7 @@ export default function ExpensesScreen() {
       ) : (
         <ScrollView
           contentContainerClassName="px-5 pb-24"
-          onScrollEndDrag={() => refetch()}
+          refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />}
           showsVerticalScrollIndicator={false}
         >
           {/* Balances */}
@@ -99,8 +101,8 @@ export default function ExpensesScreen() {
       {!isLoading && (
         <TouchableOpacity
           onPress={() => setSheetVisible(true)}
-          className="absolute bottom-8 right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-          style={{ elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 }}
+          className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+          style={{ bottom: insets.bottom + 16, ...fabShadow }}
         >
           <Ionicons name="add" size={28} color="#ffffff" />
         </TouchableOpacity>
@@ -113,6 +115,6 @@ export default function ExpensesScreen() {
         isLoading={createExpense.isPending}
         error={createExpense.error?.message}
       />
-    </SafeAreaView>
+    </View>
   )
 }

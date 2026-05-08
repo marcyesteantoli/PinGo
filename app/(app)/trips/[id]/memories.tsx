@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { TripHeader } from '@features/trips/components/TripHeader'
@@ -10,7 +11,9 @@ import { AddMemoryCaption } from '@features/memories/components/AddMemoryCaption
 import { MemoryDetail } from '@features/memories/components/MemoryDetail'
 import { MemoryGrid } from '@features/memories/components/MemoryGrid'
 import { useAddMemory } from '@features/memories/hooks/useAddMemory'
+import { useDeleteMemory } from '@features/memories/hooks/useDeleteMemory'
 import { useMemories } from '@features/memories/hooks/useMemories'
+import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { LIMITS } from '@/config/limits'
 import type { Memory } from '@types/index'
 
@@ -18,8 +21,11 @@ export default function MemoriesScreen() {
   const { tripId, isOwner, collaborators } = useTripContext()
   const { data: memories, isLoading, refetch } = useMemories(tripId)
   const addMemory = useAddMemory()
+  const deleteMemory = useDeleteMemory()
+  const { data: currentUser } = useCurrentUser()
   const [captionSheetVisible, setCaptionSheetVisible] = useState(false)
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null)
+  const insets = useSafeAreaInsets()
 
   const count = memories?.length ?? 0
 
@@ -47,7 +53,7 @@ export default function MemoriesScreen() {
   })()
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <View className="flex-1 bg-neutral-50">
       <TripHeader />
 
       {/* Counter */}
@@ -90,8 +96,8 @@ export default function MemoriesScreen() {
       {!isLoading && count < LIMITS.MAX_PHOTOS_PER_TRIP && (
         <TouchableOpacity
           onPress={() => setCaptionSheetVisible(true)}
-          className="absolute bottom-8 right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-          style={{ elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 }}
+          className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+          style={{ bottom: insets.bottom + 16, ...fabShadow }}
         >
           <Ionicons name="add" size={28} color="#ffffff" />
         </TouchableOpacity>
@@ -109,13 +115,14 @@ export default function MemoriesScreen() {
         memory={selectedMemory}
         visible={!!selectedMemory}
         onClose={() => setSelectedMemory(null)}
-        canDelete={isOwner || selectedMemory?.user_id !== undefined}
+        canDelete={isOwner || selectedMemory?.user_id === currentUser?.id}
         onDelete={(id) => {
+          deleteMemory.mutate({ memoryId: id, tripId })
           setSelectedMemory(null)
         }}
         uploaderName={selectedMemory ? (getUploader(selectedMemory.user_id)?.name ?? 'Desconocido') : undefined}
         uploaderAvatar={selectedMemory ? getUploader(selectedMemory.user_id)?.avatar_url : undefined}
       />
-    </SafeAreaView>
+    </View>
   )
 }

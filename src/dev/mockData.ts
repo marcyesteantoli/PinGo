@@ -1,6 +1,6 @@
 // ─── MODO DEMO ──────────────────────────────────────────────────────────────
 // Cambia a false para volver al modo real con Supabase
-export const DEV_MODE = true
+export const DEV_MODE = process.env.EXPO_PUBLIC_DEV_MODE !== 'false'
 // ────────────────────────────────────────────────────────────────────────────
 
 import type { Trip, Experience, Collaborator, Memory } from '@types/index'

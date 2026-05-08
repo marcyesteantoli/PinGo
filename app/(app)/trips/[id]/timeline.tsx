@@ -1,7 +1,10 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { FlatList, Text, TouchableOpacity, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 import { useQueryClient } from '@tanstack/react-query'
+import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { UndoToast } from '@components/ui/UndoToast'
@@ -15,9 +18,7 @@ import { useCreateExperience } from '@features/timeline/hooks/useCreateExperienc
 import { useDeleteExperience } from '@features/timeline/hooks/useDeleteExperience'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
-import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, mockExperiences } from '@/dev/mockData'
 import type { Experience } from '@types/index'
 import type { CreateExperienceFormData } from '@features/timeline/types'
 
@@ -68,6 +69,7 @@ interface DeleteSheetState {
 }
 
 export default function TimelineScreen() {
+  const insets = useSafeAreaInsets()
   const { tripId, isOwner } = useTripContext()
   const queryClient = useQueryClient()
   const { data: experiences, isLoading, error, refetch } = useExperiences(tripId)
@@ -95,21 +97,17 @@ export default function TimelineScreen() {
   )
 
   const commitDelete = async (experienceId: string, snapshot: Experience[] | undefined) => {
-    if (DEV_MODE) {
-      if (mockExperiences[tripId]) {
-        mockExperiences[tripId] = mockExperiences[tripId].filter(e => e.id !== experienceId)
+    try {
+      await deleteExperience.mutateAsync(experienceId)
+    } catch {
+      if (snapshot) {
+        queryClient.setQueryData(queryKeys.experiences.all(tripId), snapshot)
       }
-      return
-    }
-    const { error } = await supabase.from('experiences').delete().eq('id', experienceId)
-    if (error && snapshot) {
-      queryClient.setQueryData(queryKeys.experiences.all(tripId), snapshot)
-    } else if (!error) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.experiences.all(tripId) })
     }
   }
 
   const handleDeleteIntent = (experience: Experience) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     const expDocCount = documents?.filter(d => d.experience_id === experience.id).length ?? 0
 
     if (expDocCount > 0) {
@@ -168,6 +166,55 @@ export default function TimelineScreen() {
     }
   }
 
+  const keyExtractor = useCallback(
+    (entry: TimelineEntry) => entry.type === 'header' ? `header-${entry.title}` : entry.experience.id,
+    []
+  )
+
+  const renderItem = useCallback(({ item: entry }: { item: TimelineEntry }) => {
+    if (entry.type === 'header') {
+      return (
+        <View className="flex-row">
+          <View className="w-10 items-center">
+            {entry.title === 'Sin fecha' ? (
+              <View className="flex-1" />
+            ) : (
+              <>
+                <View className="flex-1" />
+                <View className={
+                  entry.isToday
+                    ? 'mt-2 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-neutral-900'
+                    : 'mt-2 w-3 h-3 rounded-full bg-neutral-400 dark:bg-neutral-500'
+                } />
+                <View className="h-2" />
+                <View className="flex-1 w-[3px] bg-neutral-300 dark:bg-neutral-600 rounded-t-full" />
+              </>
+            )}
+          </View>
+          <DaySection date={entry.title} count={entry.count} />
+        </View>
+      )
+    }
+
+    return (
+      <View className="flex-row">
+        <View className="w-10 items-center">
+          {entry.isUndated
+            ? <View className="flex-1" />
+            : <View className="flex-1 w-[3px] bg-neutral-300 dark:bg-neutral-600" />
+          }
+        </View>
+        <View className="flex-1 pr-4 pb-3">
+          <ExperienceCard
+            experience={entry.experience}
+            canDelete={isOwner}
+            onDelete={() => handleDeleteIntent(entry.experience)}
+          />
+        </View>
+      </View>
+    )
+  }, [isOwner, handleDeleteIntent])
+
   return (
     <View className="flex-1 bg-neutral-50">
       <TripHeader />
@@ -186,57 +233,9 @@ export default function TimelineScreen() {
       ) : (
         <FlatList
           data={rows}
-          keyExtractor={(entry) =>
-            entry.type === 'header' ? `header-${entry.title}` : entry.experience.id
-          }
+          keyExtractor={keyExtractor}
           contentContainerClassName="pt-2 pb-24"
-          renderItem={({ item: entry }) => {
-            if (entry.type === 'header') {
-              return (
-                <View className="flex-row">
-                  {/* Left track */}
-                  <View className="w-10 items-center">
-                    {entry.title === 'Sin fecha' ? (
-                      <View className="flex-1" />
-                    ) : (
-                      <>
-                        <View className="flex-1" />
-                        <View className={
-                          entry.isToday
-                            ? 'mt-2 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-neutral-900'
-                            : 'mt-2 w-3 h-3 rounded-full bg-neutral-400 dark:bg-neutral-500'
-                        } />
-                        <View className="h-2" />
-                        <View className="flex-1 w-[3px] bg-neutral-300 dark:bg-neutral-600 rounded-t-full" />
-                      </>
-                    )}
-                  </View>
-                  {/* Content */}
-                  <DaySection date={entry.title} count={entry.count} />
-                </View>
-              )
-            }
-
-            return (
-              <View className="flex-row">
-                {/* Left track */}
-                <View className="w-10 items-center">
-                  {entry.isUndated
-                    ? <View className="flex-1" />
-                    : <View className="flex-1 w-[3px] bg-neutral-300 dark:bg-neutral-600" />
-                  }
-                </View>
-                {/* Content */}
-                <View className="flex-1 pr-4 pb-3">
-                  <ExperienceCard
-                    experience={entry.experience}
-                    canDelete={isOwner}
-                    onDelete={() => handleDeleteIntent(entry.experience)}
-                  />
-                </View>
-              </View>
-            )
-          }}
+          renderItem={renderItem}
           ListEmptyComponent={
             <EmptyState
               icon="calendar-outline"
@@ -254,8 +253,8 @@ export default function TimelineScreen() {
       {!isLoading && (
         <TouchableOpacity
           onPress={() => setSheetVisible(true)}
-          className="absolute bottom-8 right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-          style={{ elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 }}
+          className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+          style={{ bottom: insets.bottom + 16, ...fabShadow }}
         >
           <Ionicons name="add" size={28} color="#ffffff" />
         </TouchableOpacity>

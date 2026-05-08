@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
@@ -25,15 +25,22 @@ interface ExperienceCardProps {
   onPress?: () => void
 }
 
-export function ExperienceCard({ experience, canDelete, onDelete, onPress }: ExperienceCardProps) {
+export const ExperienceCard = memo(function ExperienceCard({ experience, canDelete, onDelete, onPress }: ExperienceCardProps) {
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
   const [containerWidth, setContainerWidth] = useState(0)
-  const location = experience.location as { name?: string } | null
+  const rawLocation = experience.location
+  const location = (
+    typeof rawLocation === 'object' &&
+    rawLocation !== null &&
+    'name' in rawLocation &&
+    typeof (rawLocation as { name: unknown }).name === 'string'
+  ) ? (rawLocation as { name: string }) : null
   const timeRange = formatTimeRange(experience.start_time, experience.end_time)
 
   const pan = Gesture.Pan()
     .activeOffsetX([-10, 10])
+    .failOffsetY([-5, 5])
     .onBegin(() => {
       savedX.value = translateX.value
     })
@@ -158,4 +165,4 @@ export function ExperienceCard({ experience, canDelete, onDelete, onPress }: Exp
       </View>
     </View>
   )
-}
+})

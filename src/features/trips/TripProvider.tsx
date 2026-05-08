@@ -1,10 +1,18 @@
 import { createContext, useContext, ReactNode } from 'react'
-import { ActivityIndicator, View } from 'react-native'
+import { ActivityIndicator, Text, View } from 'react-native'
+import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, DEMO_USER_ID, mockTrips, mockCollaborators } from '@/dev/mockData'
-import type { Collaborator, Trip } from '@types/index'
+import { Button } from '@components/ui/Button'
+import type { Collaborator, TripRole, Trip } from '@types/index'
+
+type CollaboratorRow = {
+  user_id: string
+  role: TripRole
+  profiles: { name: string; avatar_url: string | null } | null
+}
 
 type TripContextValue = {
   tripId: string
@@ -50,6 +58,7 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
       return { trip, collaborators, userId: user?.id ?? null }
     },
   })
+  const router = useRouter()
 
   if (isLoading) {
     return (
@@ -59,15 +68,26 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
     )
   }
 
-  if (!data?.trip) return null
+  if (error || !data?.trip) {
+    return (
+      <View className="flex-1 items-center justify-center px-6 gap-4 bg-neutral-50">
+        <Text className="text-base text-neutral-600 text-center">
+          {error ? 'Error al cargar el viaje.' : 'Este viaje no está disponible.'}
+        </Text>
+        <Button onPress={() => router.back()} variant="ghost">
+          Volver
+        </Button>
+      </View>
+    )
+  }
 
   const collaborators: Collaborator[] =
-    data.collaborators?.map((c: any) => ({
+    (data.collaborators as CollaboratorRow[] ?? []).map((c) => ({
       user_id: c.user_id,
-      name: c.profiles.name,
-      avatar_url: c.profiles.avatar_url,
+      name: c.profiles?.name ?? '',
+      avatar_url: c.profiles?.avatar_url ?? null,
       role: c.role,
-    })) ?? []
+    }))
 
   const currentUserRole =
     collaborators.find((c) => c.user_id === data.userId)?.role ?? 'member'

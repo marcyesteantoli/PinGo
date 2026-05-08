@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Slot, useRouter, useSegments } from 'expo-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -10,26 +10,28 @@ import '../global.css'
 export default function RootLayout() {
   const router = useRouter()
   const segments = useSegments()
+  const segmentsRef = useRef(segments)
+
+  useEffect(() => {
+    segmentsRef.current = segments
+  }, [segments])
 
   useEffect(() => {
     if (DEV_MODE) {
-      const inAuthGroup = segments[0] === '(auth)'
-      if (inAuthGroup || segments.length === 0) {
+      const inAuthGroup = segmentsRef.current[0] === '(auth)'
+      if (inAuthGroup || segmentsRef.current.length === 0) {
         router.replace('/(app)')
       }
       return
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const inAuthGroup = segments[0] === '(auth)'
-      if (!session && !inAuthGroup) {
-        router.replace('/(auth)/login')
-      } else if (session && inAuthGroup) {
-        router.replace('/(app)')
-      }
+      const inAuthGroup = segmentsRef.current[0] === '(auth)'
+      if (!session && !inAuthGroup) router.replace('/(auth)/login')
+      else if (session && inAuthGroup) router.replace('/(app)')
     })
     return () => subscription.unsubscribe()
-  }, [segments])
+  }, []) // sin dependencias dinámicas — la suscripción se crea una sola vez
 
   return (
     <QueryClientProvider client={queryClient}>

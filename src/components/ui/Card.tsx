@@ -1,13 +1,6 @@
 import { ReactNode } from 'react'
 import { TouchableOpacity, View } from 'react-native'
-
-const cardShadow = {
-  elevation: 2,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.08,
-  shadowRadius: 4,
-}
+import { cardShadow } from '@lib/shadows'
 
 interface CardProps {
   children: ReactNode
@@ -22,7 +15,7 @@ export function Card({ children, onPress, className = '' }: CardProps) {
         <TouchableOpacity
           onPress={onPress}
           activeOpacity={0.8}
-          className={`bg-white rounded-2xl p-4 ${className}`}
+          className={`bg-white dark:bg-surface-800 rounded-2xl p-4 ${className}`}
         >
           {children}
         </TouchableOpacity>
@@ -32,7 +25,7 @@ export function Card({ children, onPress, className = '' }: CardProps) {
 
   return (
     <View className="rounded-2xl" style={cardShadow}>
-      <View className={`bg-white rounded-2xl p-4 ${className}`}>
+      <View className={`bg-white dark:bg-surface-800 rounded-2xl p-4 ${className}`}>
         {children}
       </View>
     </View>
