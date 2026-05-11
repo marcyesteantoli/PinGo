@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { useState } from 'react'
 import { Modal, Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { useTheme } from '@lib/theme'
 
 interface DatePickerInputProps {
   label?: string
@@ -42,6 +43,7 @@ export function DatePickerInput({
 }: DatePickerInputProps) {
   const [show, setShow] = useState(false)
   const pickerDate = parseDate(value)
+  const { isDark } = useTheme()
 
   const handleChange = (_event: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === 'android') setShow(false)
@@ -50,13 +52,15 @@ export function DatePickerInput({
 
   return (
     <View className="gap-1">
-      {label && <Text className="text-sm font-medium text-neutral-700">{label}</Text>}
+      {label && (
+        <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</Text>
+      )}
       <Pressable
         onPress={() => setShow(true)}
-        className={`border rounded-xl px-4 flex-row items-center justify-between bg-white ${error ? 'border-error' : 'border-neutral-200'}`}
+        className={`border rounded-xl px-4 flex-row items-center justify-between bg-white dark:bg-surface-800 ${error ? 'border-error' : 'border-neutral-200 dark:border-surface-600'}`}
         style={{ paddingVertical: 12 }}
       >
-        <Text className="text-base" style={{ color: value ? '#171717' : '#8d99ae' }}>
+        <Text className="text-base" style={{ color: value ? (isDark ? '#f1f5f9' : '#171717') : '#8d99ae' }}>
           {value ? formatDisplay(value) : placeholder}
         </Text>
         <Ionicons name="calendar-outline" size={18} color="#8d99ae" />
@@ -66,7 +70,7 @@ export function DatePickerInput({
       {Platform.OS === 'ios' ? (
         <Modal visible={show} transparent animationType="slide">
           <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-            <View style={{ backgroundColor: 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+            <View style={{ backgroundColor: isDark ? '#142033' : 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
               <View className="flex-row justify-end px-4 pt-3 pb-1">
                 <TouchableOpacity onPress={() => setShow(false)}>
                   <Text className="text-base font-semibold" style={{ color: '#0096c7' }}>Listo</Text>
@@ -80,6 +84,7 @@ export function DatePickerInput({
                 minimumDate={minimumDate}
                 maximumDate={maximumDate}
                 locale="es-ES"
+                themeVariant={isDark ? 'dark' : 'light'}
               />
             </View>
           </View>

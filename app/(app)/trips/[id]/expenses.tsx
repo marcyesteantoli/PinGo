@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
-import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { RefreshControl, Text, TouchableOpacity, View } from 'react-native'
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
@@ -15,6 +16,7 @@ import { DebtResolutionCard } from '@features/expenses/components/DebtResolution
 import { useCreateExpense } from '@features/expenses/hooks/useCreateExpense'
 import { useExpenses } from '@features/expenses/hooks/useExpenses'
 import { useSettleDebt } from '@features/expenses/hooks/useSettleDebt'
+import { useSettlements } from '@features/expenses/hooks/useSettlements'
 import { calculateBalances } from '@features/expenses/utils/calculateBalances'
 import { calculateDebtResolution } from '@features/expenses/utils/calculateDebtResolution'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
@@ -26,13 +28,14 @@ export default function ExpensesScreen() {
   const { data: expenses, isLoading, isFetching, refetch } = useExpenses(tripId)
   const createExpense = useCreateExpense(tripId, collaborators)
   const settleDebt = useSettleDebt(tripId)
+  const { data: settlements } = useSettlements(tripId)
   const [sheetVisible, setSheetVisible] = useState(false)
   const [balancesExpanded, setBalancesExpanded] = useState(true)
   const insets = useSafeAreaInsets()
 
   const balances = useMemo(
-    () => calculateBalances(expenses ?? [], collaborators),
-    [expenses, collaborators]
+    () => calculateBalances(expenses ?? [], collaborators, settlements ?? []),
+    [expenses, collaborators, settlements]
   )
 
   const debtTransactions = useMemo(
@@ -41,6 +44,9 @@ export default function ExpensesScreen() {
   )
 
   const currentUserBalance = balances.find((b) => b.user_id === currentUser?.id)
+
+  const scrollY = useSharedValue(0)
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
 
   const handleCreate = async (data: CreateExpenseFormData) => {
     try {
@@ -52,18 +58,20 @@ export default function ExpensesScreen() {
   }
 
   return (
-    <View className="flex-1 bg-neutral-50">
-      <TripHeader />
+    <View className="flex-1 bg-neutral-50 dark:bg-surface-900">
+      <TripHeader scrollY={scrollY} />
 
       {isLoading ? (
         <View className="px-5 pt-4 gap-3">
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
         </View>
       ) : (
-        <ScrollView
+        <Animated.ScrollView
           contentContainerClassName="px-5 pb-28"
           refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />}
           showsVerticalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         >
           {/* Summary */}
           {(expenses?.length ?? 0) > 0 && (
@@ -80,10 +88,10 @@ export default function ExpensesScreen() {
           {debtTransactions.length > 0 && (
             <View className="mt-6 gap-3">
               <View className="flex-row items-center justify-between">
-                <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+                <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                   Ajustes recomendados
                 </Text>
-                <Text className="text-xs text-neutral-400">{debtTransactions.length} pendiente{debtTransactions.length !== 1 ? 's' : ''}</Text>
+                <Text className="text-xs text-neutral-400 dark:text-neutral-500">{debtTransactions.length} pendiente{debtTransactions.length !== 1 ? 's' : ''}</Text>
               </View>
               {debtTransactions.map((tx, i) => (
                 <DebtResolutionCard
@@ -91,7 +99,7 @@ export default function ExpensesScreen() {
                   transaction={tx}
                   isCurrentUserFrom={tx.fromUserId === currentUser?.id}
                   isCurrentUserTo={tx.toUserId === currentUser?.id}
-                  onSettle={() => settleDebt.mutate({ fromUserId: tx.fromUserId, toUserId: tx.toUserId })}
+                  onSettle={() => settleDebt.mutate({ fromUserId: tx.fromUserId, toUserId: tx.toUserId, amount: tx.amount })}
                   isSettling={
                     settleDebt.isPending &&
                     settleDebt.variables?.fromUserId === tx.fromUserId &&
@@ -109,7 +117,7 @@ export default function ExpensesScreen() {
                 onPress={() => setBalancesExpanded(!balancesExpanded)}
                 className="flex-row items-center justify-between active:opacity-70"
               >
-                <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+                <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                   Balances
                 </Text>
                 <Ionicons
@@ -130,7 +138,7 @@ export default function ExpensesScreen() {
 
           {/* Lista de gastos — informacional */}
           <View className="mt-6 gap-3">
-            <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+            <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
               Gastos ({expenses?.length ?? 0})
             </Text>
             {!expenses?.length ? (
@@ -151,7 +159,7 @@ export default function ExpensesScreen() {
               ))
             )}
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       )}
 
       {/* FAB */}

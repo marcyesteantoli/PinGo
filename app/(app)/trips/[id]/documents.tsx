@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { SectionList, Text, TouchableOpacity, View } from 'react-native'
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
@@ -13,12 +14,16 @@ import { useDocuments } from '@features/documents/hooks/useDocuments'
 import { useUploadDocument } from '@features/documents/hooks/useUploadDocument'
 import type { UploadDocumentFormData } from '@features/documents/types'
 
+const AnimatedSectionList = Animated.createAnimatedComponent(SectionList)
+
 export default function DocumentsScreen() {
   const { tripId } = useTripContext()
   const { data: documents, isLoading, isFetching, refetch } = useDocuments(tripId)
   const uploadDocument = useUploadDocument()
   const [sheetVisible, setSheetVisible] = useState(false)
   const insets = useSafeAreaInsets()
+  const scrollY = useSharedValue(0)
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
 
   const sections = Object.values(
     (documents ?? []).reduce((acc: Record<string, { title: string; data: typeof documents }>, doc) => {
@@ -39,26 +44,26 @@ export default function DocumentsScreen() {
   }
 
   return (
-    <View className="flex-1 bg-neutral-50">
-      <TripHeader />
+    <View className="flex-1 bg-neutral-50 dark:bg-surface-900">
+      <TripHeader scrollY={scrollY} />
 
       {isLoading ? (
         <View className="px-5 pt-4 gap-3">
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
         </View>
       ) : (
-        <SectionList
+        <AnimatedSectionList
           sections={sections}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => (item as { id: string }).id}
           contentContainerClassName="px-5 pb-24"
           renderSectionHeader={({ section }) => (
             <View className="pt-4 pb-2">
-              <Text className="text-sm font-semibold text-neutral-500">{section.title}</Text>
+              <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">{(section as { title: string }).title}</Text>
             </View>
           )}
           renderItem={({ item }) => (
             <View className="mb-3">
-              <DocumentCard document={item} />
+              <DocumentCard document={item as any} />
             </View>
           )}
           ListEmptyComponent={
@@ -73,6 +78,8 @@ export default function DocumentsScreen() {
           onRefresh={refetch}
           refreshing={isFetching && !isLoading}
           stickySectionHeadersEnabled={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         />
       )}
 

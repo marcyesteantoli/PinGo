@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { Text, View } from 'react-native'
 import { Button } from './Button'
+import { useTheme } from '@lib/theme'
 
 interface EmptyStateProps {
   icon: React.ComponentProps<typeof Ionicons>['name']
@@ -11,12 +12,14 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon, title, subtitle, actionLabel, onAction }: EmptyStateProps) {
+  const { isDark } = useTheme()
+
   return (
     <View className="flex-1 items-center justify-center p-8 gap-4">
-      <Ionicons name={icon} size={64} color="#c5ced8" />
-      <Text className="text-xl font-semibold text-neutral-700 text-center">{title}</Text>
+      <Ionicons name={icon} size={64} color={isDark ? '#4a5568' : '#c5ced8'} />
+      <Text className="text-xl font-semibold text-neutral-700 dark:text-neutral-300 text-center">{title}</Text>
       {subtitle && (
-        <Text className="text-sm text-neutral-500 text-center">{subtitle}</Text>
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400 text-center">{subtitle}</Text>
       )}
       {actionLabel && onAction && (
         <Button onPress={onAction} variant="primary" size="md">

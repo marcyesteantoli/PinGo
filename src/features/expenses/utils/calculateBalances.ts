@@ -1,12 +1,13 @@
-import type { Collaborator, ExpenseWithSplits, UserBalance } from '@types/index'
+import type { Collaborator, ExpenseWithSplits, Settlement, UserBalance } from '@types/index'
 
-// Zero-sum algorithm:
-// paid = sum of OTHER participants' unsettled splits in expenses I paid (what others still owe me)
-// owes = sum of MY unsettled splits in expenses others paid (what I still owe)
-// balance = paid - owes  →  sum of all balances = 0
+// Gross algorithm:
+// paid = total expense amount I fronted as payer
+// owes = sum of all my splits (my fair share)
+// balance = (paid - owes) + sent_settlements - received_settlements  (pending)
 export function calculateBalances(
   expenses: ExpenseWithSplits[],
-  collaborators: Collaborator[]
+  collaborators: Collaborator[],
+  settlements: Settlement[] = []
 ): UserBalance[] {
   const map: Record<string, UserBalance> = {}
 
@@ -15,21 +16,27 @@ export function calculateBalances(
   }
 
   for (const expense of expenses) {
+    if (map[expense.payer_id]) {
+      map[expense.payer_id].paid += expense.amount
+    }
     for (const split of expense.splits) {
-      if (split.is_settled) continue
-      if (split.user_id === expense.payer_id) continue // payer's own share, skip
-
-      if (map[expense.payer_id]) {
-        map[expense.payer_id].paid += split.amount // others owe me this
-      }
       if (map[split.user_id]) {
-        map[split.user_id].owes += split.amount // I owe payer this
+        map[split.user_id].owes += split.amount
       }
     }
   }
 
   for (const b of Object.values(map)) {
     b.balance = Math.round((b.paid - b.owes) * 100) / 100
+  }
+
+  for (const s of settlements) {
+    if (map[s.from_user_id]) {
+      map[s.from_user_id].balance = Math.round((map[s.from_user_id].balance + s.amount) * 100) / 100
+    }
+    if (map[s.to_user_id]) {
+      map[s.to_user_id].balance = Math.round((map[s.to_user_id].balance - s.amount) * 100) / 100
+    }
   }
 
   return Object.values(map)

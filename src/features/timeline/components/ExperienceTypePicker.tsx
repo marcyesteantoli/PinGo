@@ -24,7 +24,7 @@ const TYPES: ExperienceType[] = ['transport', 'accommodation', 'activity', 'rest
 export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypePickerProps) {
   return (
     <View className="gap-1">
-      <Text className="text-sm font-medium text-neutral-700">Tipo</Text>
+      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Tipo</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
         <View className="flex-row gap-2 px-1 py-1">
           {TYPES.map((type) => {
@@ -36,7 +36,7 @@ export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypeP
                 className={`flex-row items-center gap-1.5 px-3 py-2 rounded-xl border ${
                   isSelected
                     ? 'bg-primary-500 border-primary-500'
-                    : 'bg-white border-neutral-200'
+                    : 'bg-white dark:bg-surface-700 border-neutral-200 dark:border-surface-600'
                 }`}
               >
                 <Ionicons
@@ -45,7 +45,7 @@ export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypeP
                   color={isSelected ? '#ffffff' : '#8d99ae'}
                 />
                 <Text
-                  className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-neutral-600'}`}
+                  className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}
                 >
                   {EXPERIENCE_TYPE_LABELS[type]}
                 </Text>

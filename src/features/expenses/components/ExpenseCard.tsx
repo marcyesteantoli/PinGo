@@ -23,7 +23,6 @@ function getExpenseIcon(description: string): string {
 
 export function ExpenseCard({ expense, currentUserId }: ExpenseCardProps) {
   const isCurrentUserPayer = expense.payer_id === currentUserId
-  // pending = participants who haven't settled (excluding payer's own split)
   const unsettledCount = expense.splits.filter(
     (s) => !s.is_settled && s.user_id !== expense.payer_id
   ).length
@@ -32,23 +31,23 @@ export function ExpenseCard({ expense, currentUserId }: ExpenseCardProps) {
 
   return (
     <View
-      className="bg-white rounded-2xl"
+      className="bg-white dark:bg-surface-800 rounded-2xl"
       style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 }}
     >
       <View className="p-4 flex-row items-start gap-3">
         {/* Icon */}
-        <View className="w-10 h-10 rounded-xl bg-neutral-100 items-center justify-center mt-0.5">
+        <View className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-surface-700 items-center justify-center mt-0.5">
           <Text className="text-lg">{getExpenseIcon(expense.description)}</Text>
         </View>
 
         {/* Content */}
         <View className="flex-1 gap-1">
-          <Text className="text-sm font-semibold text-neutral-900" numberOfLines={2}>
+          <Text className="text-sm font-semibold text-neutral-900 dark:text-neutral-50" numberOfLines={2}>
             {expense.description}
           </Text>
           <View className="flex-row items-center gap-1.5">
             <Avatar uri={expense.payer.avatar_url} name={expense.payer.name} size="sm" />
-            <Text className="text-xs text-neutral-500">
+            <Text className="text-xs text-neutral-500 dark:text-neutral-400">
               {isCurrentUserPayer ? 'Pagaste tú' : `Pagó ${expense.payer.name.split(' ')[0]}`}
             </Text>
           </View>
@@ -56,18 +55,18 @@ export function ExpenseCard({ expense, currentUserId }: ExpenseCardProps) {
 
         {/* Amount + status */}
         <View className="items-end gap-1.5">
-          <Text className="text-base font-bold text-neutral-900">
+          <Text className="text-base font-bold text-neutral-900 dark:text-neutral-50">
             {formatCurrency(expense.amount, expense.currency)}
           </Text>
           {allSettled ? (
-            <View className="flex-row items-center gap-1 bg-green-100 rounded-full px-2 py-0.5">
+            <View className="flex-row items-center gap-1 bg-green-100 dark:bg-green-900/40 rounded-full px-2 py-0.5">
               <Ionicons name="checkmark" size={10} color="#16a34a" />
-              <Text className="text-xs text-green-700">Saldado</Text>
+              <Text className="text-xs text-green-700 dark:text-green-400">Saldado</Text>
             </View>
           ) : (
-            <View className="flex-row items-center gap-1 bg-amber-100 rounded-full px-2 py-0.5">
+            <View className="flex-row items-center gap-1 bg-amber-100 dark:bg-amber-900/40 rounded-full px-2 py-0.5">
               <View className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              <Text className="text-xs text-amber-700">{unsettledCount}/{participantCount}</Text>
+              <Text className="text-xs text-amber-700 dark:text-amber-400">{unsettledCount}/{participantCount}</Text>
             </View>
           )}
         </View>

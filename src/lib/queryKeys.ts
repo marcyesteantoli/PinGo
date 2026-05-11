@@ -16,6 +16,9 @@ export const queryKeys = {
     all: (tripId: string) => ['expenses', tripId] as const,
     balances: (tripId: string) => ['expenses', tripId, 'balances'] as const,
   },
+  settlements: {
+    all: (tripId: string) => ['settlements', tripId] as const,
+  },
   memories: {
     all: (tripId: string) => ['memories', tripId] as const,
   },

@@ -45,3 +45,12 @@ export type UserBalance = {
   owes: number
   balance: number // positivo = le deben, negativo = debe
 }
+
+export type Settlement = {
+  id: string
+  trip_id: string
+  from_user_id: string
+  to_user_id: string
+  amount: number
+  created_at: string
+}

@@ -1,81 +1,64 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, DEMO_USER_ID, mockExpenses } from '@/dev/mockData'
-import type { ExpenseWithSplits } from '@types/index'
+import { DEV_MODE, mockSettlements } from '@/dev/mockData'
+import type { Settlement } from '@types/index'
 
 interface SettleDebtParams {
-  fromUserId: string // the one who owes
-  toUserId: string   // the one who is owed (creditor/payer)
+  fromUserId: string
+  toUserId: string
+  amount: number
 }
 
-// Settles all expense splits where fromUser owes toUser across the entire trip
 export function useSettleDebt(tripId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ fromUserId, toUserId }: SettleDebtParams) => {
+    mutationFn: async ({ fromUserId, toUserId, amount }: SettleDebtParams) => {
       if (DEV_MODE) {
-        const trip = mockExpenses[tripId]
-        if (trip) {
-          for (const expense of trip) {
-            if (expense.payer_id !== toUserId) continue
-            expense.splits = expense.splits.map((s) =>
-              s.user_id === fromUserId ? { ...s, is_settled: true } : s
-            )
-          }
-        }
+        if (!mockSettlements[tripId]) mockSettlements[tripId] = []
+        mockSettlements[tripId].push({
+          id: `settle-${Date.now()}`,
+          trip_id: tripId,
+          from_user_id: fromUserId,
+          to_user_id: toUserId,
+          amount,
+          created_at: new Date().toISOString(),
+        })
         return
       }
-
-      // Get all expenses in this trip paid by toUserId
-      const { data: expenseIds, error: fetchError } = await supabase
-        .from('expenses')
-        .select('id')
-        .eq('trip_id', tripId)
-        .eq('payer_id', toUserId)
-
-      if (fetchError) throw new Error(fetchError.message)
-      if (!expenseIds?.length) return
-
-      const ids = expenseIds.map((e) => e.id)
-
       const { error } = await supabase
-        .from('expense_splits')
-        .update({ is_settled: true })
-        .in('expense_id', ids)
-        .eq('user_id', fromUserId)
-        .eq('is_settled', false)
-
+        .from('trip_settlements')
+        .insert({ trip_id: tripId, from_user_id: fromUserId, to_user_id: toUserId, amount })
       if (error) throw new Error(error.message)
     },
-    onMutate: async ({ fromUserId, toUserId }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.expenses.all(tripId) })
-      const snapshot = queryClient.getQueryData<ExpenseWithSplits[]>(queryKeys.expenses.all(tripId))
+    onMutate: async ({ fromUserId, toUserId, amount }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.settlements.all(tripId) })
+      const snapshot = queryClient.getQueryData<Settlement[]>(queryKeys.settlements.all(tripId))
 
-      queryClient.setQueryData<ExpenseWithSplits[]>(
-        queryKeys.expenses.all(tripId),
-        (old = []) =>
-          old.map((expense) => {
-            if (expense.payer_id !== toUserId) return expense
-            return {
-              ...expense,
-              splits: expense.splits.map((s) =>
-                s.user_id === fromUserId ? { ...s, is_settled: true } : s
-              ),
-            }
-          })
+      queryClient.setQueryData<Settlement[]>(
+        queryKeys.settlements.all(tripId),
+        (old = []) => [
+          ...old,
+          {
+            id: `temp-settle-${Date.now()}`,
+            trip_id: tripId,
+            from_user_id: fromUserId,
+            to_user_id: toUserId,
+            amount,
+            created_at: new Date().toISOString(),
+          },
+        ]
       )
-
       return { snapshot }
     },
     onError: (_, __, ctx) => {
       if (ctx?.snapshot) {
-        queryClient.setQueryData(queryKeys.expenses.all(tripId), ctx.snapshot)
+        queryClient.setQueryData(queryKeys.settlements.all(tripId), ctx.snapshot)
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all(tripId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.settlements.all(tripId) })
     },
   })
 }

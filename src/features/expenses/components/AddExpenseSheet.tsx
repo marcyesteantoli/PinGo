@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
@@ -21,6 +21,7 @@ interface AddExpenseSheetProps {
 
 export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, currentUserId }: AddExpenseSheetProps) {
   const { collaborators } = useTripContext()
+  const [amountText, setAmountText] = useState('')
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<CreateExpenseFormData>({
     resolver: zodResolver(createExpenseSchema),
@@ -40,12 +41,14 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
 
   const handleClose = () => {
     reset({ participant_ids: [], payer_id: currentUserId })
+    setAmountText('')
     onClose()
   }
 
   const handleSubmitForm = async (data: CreateExpenseFormData) => {
     await onSubmit(data)
     reset({ participant_ids: [], payer_id: currentUserId })
+    setAmountText('')
   }
 
   return (
@@ -67,8 +70,9 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
                       <TextInput
                         placeholder="0,00"
                         placeholderTextColor="#cbd5e1"
-                        value={value?.toString() ?? ''}
+                        value={amountText}
                         onChangeText={(text) => {
+                          setAmountText(text)
                           const num = parseFloat(text.replace(',', '.'))
                           onChange(isNaN(num) ? undefined : num)
                         }}

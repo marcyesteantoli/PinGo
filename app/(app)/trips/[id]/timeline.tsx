@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from 'react'
-import { FlatList, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
@@ -35,10 +36,18 @@ function groupByDate(experiences: Experience[]): Section[] {
     if (!groups[key]) groups[key] = []
     groups[key].push(exp)
   }
+  const sortByTime = (exps: Experience[]) =>
+    exps.sort((a, b) => {
+      if (!a.start_time && !b.start_time) return 0
+      if (!a.start_time) return 1
+      if (!b.start_time) return -1
+      return a.start_time.localeCompare(b.start_time)
+    })
+
   const dated = Object.entries(groups)
     .filter(([k]) => k !== 'Sin fecha')
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([title, data]) => ({ title, data }))
+    .map(([title, data]) => ({ title, data: sortByTime(data) }))
   const undated = groups['Sin fecha'] ?? []
   return undated.length > 0 ? [...dated, { title: 'Sin fecha', data: undated }] : dated
 }
@@ -71,6 +80,8 @@ interface DeleteSheetState {
 export default function TimelineScreen() {
   const insets = useSafeAreaInsets()
   const { tripId, isOwner } = useTripContext()
+  const scrollY = useSharedValue(0)
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
   const queryClient = useQueryClient()
   const { data: experiences, isLoading, error, refetch } = useExperiences(tripId)
   const { data: documents } = useDocuments(tripId)
@@ -216,8 +227,8 @@ export default function TimelineScreen() {
   }, [isOwner, handleDeleteIntent])
 
   return (
-    <View className="flex-1 bg-neutral-50">
-      <TripHeader />
+    <View className="flex-1 bg-neutral-50 dark:bg-surface-900">
+      <TripHeader scrollY={scrollY} />
 
       {isLoading ? (
         <View className="px-5 pt-4 gap-3">
@@ -231,7 +242,7 @@ export default function TimelineScreen() {
           </TouchableOpacity>
         </View>
       ) : (
-        <FlatList
+        <Animated.FlatList
           data={rows}
           keyExtractor={keyExtractor}
           contentContainerClassName="pt-2 pb-24"
@@ -247,6 +258,8 @@ export default function TimelineScreen() {
           }
           onRefresh={refetch}
           refreshing={isLoading}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         />
       )}
 

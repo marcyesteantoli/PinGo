@@ -14,37 +14,37 @@ export function BalanceCard({ balance, isCurrentUser }: BalanceCardProps) {
   const isEven = !isPositive && !isNegative
 
   const badgeStyle = isPositive
-    ? 'bg-green-100'
+    ? 'bg-green-100 dark:bg-green-900/40'
     : isNegative
-      ? 'bg-red-100'
-      : 'bg-neutral-100'
+      ? 'bg-red-100 dark:bg-red-900/40'
+      : 'bg-neutral-100 dark:bg-surface-700'
 
   const badgeText = isPositive
-    ? 'text-green-700'
+    ? 'text-green-700 dark:text-green-400'
     : isNegative
-      ? 'text-red-600'
-      : 'text-neutral-500'
+      ? 'text-red-600 dark:text-red-400'
+      : 'text-neutral-500 dark:text-neutral-400'
 
   const balanceText = isPositive
-    ? 'text-green-600'
+    ? 'text-green-600 dark:text-green-400'
     : isNegative
-      ? 'text-red-500'
-      : 'text-neutral-400'
+      ? 'text-red-500 dark:text-red-400'
+      : 'text-neutral-400 dark:text-neutral-500'
 
   return (
     <View
-      className="bg-white rounded-2xl"
+      className="bg-white dark:bg-surface-800 rounded-2xl"
       style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 }}
     >
       <View className="p-4 flex-row items-center gap-3">
         <Avatar uri={balance.avatar_url} name={balance.name} size="md" />
 
         <View className="flex-1 gap-0.5">
-          <Text className="text-sm font-semibold text-neutral-900" numberOfLines={1}>
+          <Text className="text-sm font-semibold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
             {isCurrentUser ? `${balance.name} (tú)` : balance.name}
           </Text>
-          <Text className="text-xs text-neutral-400">
-            Te deben: {formatCurrency(balance.paid)} · Debes: {formatCurrency(balance.owes)}
+          <Text className="text-xs text-neutral-400 dark:text-neutral-500">
+            Ha pagado: {formatCurrency(balance.paid)} · Su parte: {formatCurrency(balance.owes)}
           </Text>
         </View>
 

@@ -3,13 +3,34 @@
 export const DEV_MODE = process.env.EXPO_PUBLIC_DEV_MODE !== 'false'
 // ────────────────────────────────────────────────────────────────────────────
 
-import type { Trip, Experience, Collaborator, Memory } from '@types/index'
+import type { Trip, Experience, Collaborator, Memory, Settlement } from '@types/index'
 import type { ExpenseWithSplits } from '@types/index'
 
 // IDs fijos para el usuario y los viajes de demo
-export const DEMO_USER_ID = 'demo-user-001'
-export const DEMO_TRIP_ID = 'demo-trip-japon'
-export const DEMO_TRIP_ID_2 = 'demo-trip-lisboa'
+export const DEMO_USER_ID    = '11111111-1111-1111-1111-111111111111'
+export const COLLAB_002_ID   = '22222222-2222-2222-2222-222222222222'
+export const COLLAB_003_ID   = '33333333-3333-3333-3333-333333333333'
+export const DEMO_TRIP_ID    = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+export const DEMO_TRIP_ID_2  = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+
+// IDs de experiencias
+const EXP_001 = 'e1111111-1111-1111-1111-111111111111'
+const EXP_002 = 'e2222222-2222-2222-2222-222222222222'
+const EXP_003 = 'e3333333-3333-3333-3333-333333333333'
+const EXP_004 = 'e4444444-4444-4444-4444-444444444444'
+const EXP_005 = 'e5555555-5555-5555-5555-555555555555'
+const EXP_101 = 'f1111111-1111-1111-1111-111111111111'
+const EXP_102 = 'f2222222-2222-2222-2222-222222222222'
+const EXP_103 = 'f3333333-3333-3333-3333-333333333333'
+const EXP_104 = 'f4444444-4444-4444-4444-444444444444'
+
+// IDs de gastos
+const GASTO_001 = 'c1111111-1111-1111-1111-111111111111'
+const GASTO_002 = 'c2222222-2222-2222-2222-222222222222'
+const GASTO_003 = 'c3333333-3333-3333-3333-333333333333'
+const GASTO_004 = 'c4444444-4444-4444-4444-444444444444'
+const GASTO_101 = 'd1111111-1111-1111-1111-111111111111'
+const GASTO_102 = 'd2222222-2222-2222-2222-222222222222'
 
 // Usuario simulado (compatible con el tipo User de Supabase Auth)
 export const DEMO_USER = {
@@ -51,13 +72,13 @@ export const mockTrips: Trip[] = [
 
 export const mockCollaborators: Record<string, Collaborator[]> = {
   [DEMO_TRIP_ID]: [
-    { user_id: DEMO_USER_ID, name: 'Marc Yeste', avatar_url: null, role: 'owner' },
-    { user_id: 'collab-002', name: 'Nuria Fabregat', avatar_url: null, role: 'member' },
-    { user_id: 'collab-003', name: 'Paula Tena', avatar_url: null, role: 'member' },
+    { user_id: DEMO_USER_ID,  name: 'Marc Yeste',    avatar_url: null, role: 'owner' },
+    { user_id: COLLAB_002_ID, name: 'Nuria Fabregat', avatar_url: null, role: 'member' },
+    { user_id: COLLAB_003_ID, name: 'Paula Tena',     avatar_url: null, role: 'member' },
   ],
   [DEMO_TRIP_ID_2]: [
-    { user_id: DEMO_USER_ID, name: 'Usuario Demo', avatar_url: null, role: 'owner' },
-    { user_id: 'collab-002', name: 'Ana García', avatar_url: null, role: 'member' },
+    { user_id: DEMO_USER_ID,  name: 'Usuario Demo', avatar_url: null, role: 'owner' },
+    { user_id: COLLAB_002_ID, name: 'Ana García',    avatar_url: null, role: 'member' },
   ],
 }
 
@@ -66,7 +87,7 @@ export const mockCollaborators: Record<string, Collaborator[]> = {
 export const mockExperiences: Record<string, Experience[]> = {
   [DEMO_TRIP_ID]: [
     {
-      id: 'exp-001',
+      id: EXP_001,
       trip_id: DEMO_TRIP_ID,
       type: 'transport',
       title: 'Vuelo BCN → NRT',
@@ -79,7 +100,7 @@ export const mockExperiences: Record<string, Experience[]> = {
       updated_at: '2026-01-15T10:00:00Z',
     },
     {
-      id: 'exp-002',
+      id: EXP_002,
       trip_id: DEMO_TRIP_ID,
       type: 'accommodation',
       title: 'Hotel Shinjuku Granbell',
@@ -92,7 +113,7 @@ export const mockExperiences: Record<string, Experience[]> = {
       updated_at: '2026-01-15T10:00:00Z',
     },
     {
-      id: 'exp-003',
+      id: EXP_003,
       trip_id: DEMO_TRIP_ID,
       type: 'activity',
       title: 'Templo Senso-ji',
@@ -105,7 +126,7 @@ export const mockExperiences: Record<string, Experience[]> = {
       updated_at: '2026-01-15T10:00:00Z',
     },
     {
-      id: 'exp-004',
+      id: EXP_004,
       trip_id: DEMO_TRIP_ID,
       type: 'restaurant',
       title: 'Sushi Saito · Roppongi',
@@ -114,11 +135,11 @@ export const mockExperiences: Record<string, Experience[]> = {
       start_time: '20:00',
       end_time: '22:00',
       date: '2026-06-12',
-      created_by: 'collab-002',
+      created_by: COLLAB_002_ID,
       updated_at: '2026-01-15T10:00:00Z',
     },
     {
-      id: 'exp-005',
+      id: EXP_005,
       trip_id: DEMO_TRIP_ID,
       type: 'activity',
       title: 'Excursión Monte Fuji',
@@ -127,13 +148,13 @@ export const mockExperiences: Record<string, Experience[]> = {
       start_time: '06:00',
       end_time: '18:00',
       date: '2026-06-14',
-      created_by: 'collab-003',
+      created_by: COLLAB_003_ID,
       updated_at: '2026-01-15T10:00:00Z',
     },
   ],
   [DEMO_TRIP_ID_2]: [
     {
-      id: 'exp-101',
+      id: EXP_101,
       trip_id: DEMO_TRIP_ID_2,
       type: 'transport',
       title: 'Vuelo BCN → LIS',
@@ -146,7 +167,7 @@ export const mockExperiences: Record<string, Experience[]> = {
       updated_at: '2026-01-10T10:00:00Z',
     },
     {
-      id: 'exp-102',
+      id: EXP_102,
       trip_id: DEMO_TRIP_ID_2,
       type: 'accommodation',
       title: 'Bairro Alto Hotel',
@@ -159,7 +180,7 @@ export const mockExperiences: Record<string, Experience[]> = {
       updated_at: '2026-01-10T10:00:00Z',
     },
     {
-      id: 'exp-103',
+      id: EXP_103,
       trip_id: DEMO_TRIP_ID_2,
       type: 'restaurant',
       title: 'Restaurante Belcanto',
@@ -168,11 +189,11 @@ export const mockExperiences: Record<string, Experience[]> = {
       start_time: '20:30',
       end_time: '22:30',
       date: '2026-03-16',
-      created_by: 'collab-002',
+      created_by: COLLAB_002_ID,
       updated_at: '2026-01-10T10:00:00Z',
     },
     {
-      id: 'exp-104',
+      id: EXP_104,
       trip_id: DEMO_TRIP_ID_2,
       type: 'activity',
       title: 'Torre de Belém',
@@ -201,9 +222,9 @@ export const mockExperiences: Record<string, Experience[]> = {
 export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
   [DEMO_TRIP_ID]: [
     {
-      id: 'gasto-001',
+      id: GASTO_001,
       trip_id: DEMO_TRIP_ID,
-      experience_id: 'exp-001',
+      experience_id: EXP_001,
       description: 'Vuelos grupo BCN → NRT',
       amount: 1450,
       currency: 'EUR',
@@ -211,31 +232,31 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-20T10:00:00Z',
       payer: { id: DEMO_USER_ID, name: 'Marc Yeste', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-001', user_id: DEMO_USER_ID, amount: 483.33, is_settled: true },  // payer, ya pagó
-        { expense_id: 'gasto-001', user_id: 'collab-002', amount: 483.33, is_settled: false },
-        { expense_id: 'gasto-001', user_id: 'collab-003', amount: 483.34, is_settled: false },
+        { expense_id: GASTO_001, user_id: DEMO_USER_ID,  amount: 483.33, is_settled: true },
+        { expense_id: GASTO_001, user_id: COLLAB_002_ID, amount: 483.33, is_settled: false },
+        { expense_id: GASTO_001, user_id: COLLAB_003_ID, amount: 483.34, is_settled: false },
       ],
     },
     {
-      id: 'gasto-002',
+      id: GASTO_002,
       trip_id: DEMO_TRIP_ID,
-      experience_id: 'exp-002',
+      experience_id: EXP_002,
       description: 'Hotel Shinjuku (3 noches)',
       amount: 840,
       currency: 'EUR',
-      payer_id: 'collab-002',
+      payer_id: COLLAB_002_ID,
       created_at: '2026-01-20T10:05:00Z',
-      payer: { id: 'collab-002', name: 'Nuria Fabregat', avatar_url: null, updated_at: '' } as any,
+      payer: { id: COLLAB_002_ID, name: 'Nuria Fabregat', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-002', user_id: DEMO_USER_ID, amount: 280, is_settled: false },
-        { expense_id: 'gasto-002', user_id: 'collab-002', amount: 280, is_settled: true },   // payer, ya pagó
-        { expense_id: 'gasto-002', user_id: 'collab-003', amount: 280, is_settled: false },
+        { expense_id: GASTO_002, user_id: DEMO_USER_ID,  amount: 280, is_settled: false },
+        { expense_id: GASTO_002, user_id: COLLAB_002_ID, amount: 280, is_settled: true },
+        { expense_id: GASTO_002, user_id: COLLAB_003_ID, amount: 280, is_settled: false },
       ],
     },
     {
-      id: 'gasto-003',
+      id: GASTO_003,
       trip_id: DEMO_TRIP_ID,
-      experience_id: 'exp-004',
+      experience_id: EXP_004,
       description: 'Cena en Sushi Saito',
       amount: 210,
       currency: 'EUR',
@@ -243,34 +264,33 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-20T10:10:00Z',
       payer: { id: DEMO_USER_ID, name: 'Marc Yeste', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-003', user_id: DEMO_USER_ID, amount: 70, is_settled: true },   // payer, ya pagó
-        { expense_id: 'gasto-003', user_id: 'collab-002', amount: 70, is_settled: false },
-        { expense_id: 'gasto-003', user_id: 'collab-003', amount: 70, is_settled: false },
+        { expense_id: GASTO_003, user_id: DEMO_USER_ID,  amount: 70, is_settled: true },
+        { expense_id: GASTO_003, user_id: COLLAB_002_ID, amount: 70, is_settled: false },
+        { expense_id: GASTO_003, user_id: COLLAB_003_ID, amount: 70, is_settled: false },
       ],
     },
     {
-      id: 'gasto-004',
+      id: GASTO_004,
       trip_id: DEMO_TRIP_ID,
-      experience_id: 'exp-005',
+      experience_id: EXP_005,
       description: 'Tour Monte Fuji',
       amount: 165,
       currency: 'EUR',
-      payer_id: 'collab-003',
+      payer_id: COLLAB_003_ID,
       created_at: '2026-01-20T10:15:00Z',
-      payer: { id: 'collab-003', name: 'Paula Tena', avatar_url: null, updated_at: '' } as any,
+      payer: { id: COLLAB_003_ID, name: 'Paula Tena', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-004', user_id: DEMO_USER_ID, amount: 55, is_settled: false },
-        { expense_id: 'gasto-004', user_id: 'collab-002', amount: 55, is_settled: false },
-        { expense_id: 'gasto-004', user_id: 'collab-003', amount: 55, is_settled: true },   // payer, ya pagó
+        { expense_id: GASTO_004, user_id: DEMO_USER_ID,  amount: 55, is_settled: false },
+        { expense_id: GASTO_004, user_id: COLLAB_002_ID, amount: 55, is_settled: false },
+        { expense_id: GASTO_004, user_id: COLLAB_003_ID, amount: 55, is_settled: true },
       ],
     },
   ],
   [DEMO_TRIP_ID_2]: [
-    // Lisboa: ambos han saldado todo → balances = 0, sin ajustes pendientes
     {
-      id: 'gasto-101',
+      id: GASTO_101,
       trip_id: DEMO_TRIP_ID_2,
-      experience_id: 'exp-101',
+      experience_id: EXP_101,
       description: 'Vuelos BCN → LIS',
       amount: 380,
       currency: 'EUR',
@@ -278,23 +298,23 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-12T10:00:00Z',
       payer: { id: DEMO_USER_ID, name: 'Usuario Demo', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-101', user_id: DEMO_USER_ID, amount: 190, is_settled: true },  // payer
-        { expense_id: 'gasto-101', user_id: 'collab-002', amount: 190, is_settled: true },  // Ana ya pagó
+        { expense_id: GASTO_101, user_id: DEMO_USER_ID,  amount: 190, is_settled: true },
+        { expense_id: GASTO_101, user_id: COLLAB_002_ID, amount: 190, is_settled: true },
       ],
     },
     {
-      id: 'gasto-102',
+      id: GASTO_102,
       trip_id: DEMO_TRIP_ID_2,
-      experience_id: 'exp-102',
+      experience_id: EXP_102,
       description: 'Bairro Alto Hotel (2 noches)',
       amount: 560,
       currency: 'EUR',
-      payer_id: 'collab-002',
+      payer_id: COLLAB_002_ID,
       created_at: '2026-01-12T10:05:00Z',
-      payer: { id: 'collab-002', name: 'Ana García', avatar_url: null, updated_at: '' } as any,
+      payer: { id: COLLAB_002_ID, name: 'Ana García', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: 'gasto-102', user_id: DEMO_USER_ID, amount: 280, is_settled: true },  // Marc ya pagó
-        { expense_id: 'gasto-102', user_id: 'collab-002', amount: 280, is_settled: true },  // payer
+        { expense_id: GASTO_102, user_id: DEMO_USER_ID,  amount: 280, is_settled: true },
+        { expense_id: GASTO_102, user_id: COLLAB_002_ID, amount: 280, is_settled: true },
       ],
     },
   ],
@@ -316,7 +336,7 @@ export const mockDocuments: Record<string, Array<{
   [DEMO_TRIP_ID]: [
     {
       id: 'doc-001',
-      experience_id: 'exp-001',
+      experience_id: EXP_001,
       trip_id: DEMO_TRIP_ID,
       name: 'Reserva vuelo IB7841',
       file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
@@ -327,7 +347,7 @@ export const mockDocuments: Record<string, Array<{
     },
     {
       id: 'doc-002',
-      experience_id: 'exp-002',
+      experience_id: EXP_002,
       trip_id: DEMO_TRIP_ID,
       name: 'Confirmación hotel Shinjuku',
       file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
@@ -338,12 +358,12 @@ export const mockDocuments: Record<string, Array<{
     },
     {
       id: 'doc-003',
-      experience_id: 'exp-001',
+      experience_id: EXP_001,
       trip_id: DEMO_TRIP_ID,
       name: 'Seguro de viaje 2026',
       file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
       file_type: 'application/pdf',
-      uploaded_by: 'collab-002',
+      uploaded_by: COLLAB_002_ID,
       created_at: '2026-01-21T09:00:00Z',
       experience_title: 'Vuelo BCN → NRT',
     },
@@ -351,7 +371,7 @@ export const mockDocuments: Record<string, Array<{
   [DEMO_TRIP_ID_2]: [
     {
       id: 'doc-101',
-      experience_id: 'exp-101',
+      experience_id: EXP_101,
       trip_id: DEMO_TRIP_ID_2,
       name: 'Billetes VY1234',
       file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
@@ -361,6 +381,13 @@ export const mockDocuments: Record<string, Array<{
       experience_title: 'Vuelo BCN → LIS',
     },
   ],
+}
+
+// ─── LIQUIDACIONES ──────────────────────────────────────────────────────────
+
+export const mockSettlements: Record<string, Settlement[]> = {
+  [DEMO_TRIP_ID]: [],
+  [DEMO_TRIP_ID_2]: [],
 }
 
 // ─── RECUERDOS ───────────────────────────────────────────────────────────────
@@ -378,7 +405,7 @@ export const mockMemories: Record<string, Memory[]> = {
     {
       id: 'mem-002',
       trip_id: DEMO_TRIP_ID,
-      user_id: 'collab-002',
+      user_id: COLLAB_002_ID,
       image_url: 'https://picsum.photos/seed/fuji/800/600',
       caption: 'Vistas desde el Monte Fuji',
       created_at: '2026-06-14T10:00:00Z',
@@ -386,7 +413,7 @@ export const mockMemories: Record<string, Memory[]> = {
     {
       id: 'mem-003',
       trip_id: DEMO_TRIP_ID,
-      user_id: 'collab-003',
+      user_id: COLLAB_003_ID,
       image_url: 'https://picsum.photos/seed/shinjuku/800/600',
       caption: null,
       created_at: '2026-06-11T20:00:00Z',
@@ -404,7 +431,7 @@ export const mockMemories: Record<string, Memory[]> = {
     {
       id: 'mem-102',
       trip_id: DEMO_TRIP_ID_2,
-      user_id: 'collab-002',
+      user_id: COLLAB_002_ID,
       image_url: 'https://picsum.photos/seed/lisboa/800/600',
       caption: 'Vistas desde el Mirador da Graça',
       created_at: '2026-03-16T16:00:00Z',
