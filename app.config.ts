@@ -29,6 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-dev-client',
     'expo-router',
     'expo-secure-store',
+    'expo-font',
     [
       'expo-image-picker',
       { photosPermission: 'La app necesita acceso a tus fotos para añadir recuerdos.' },
