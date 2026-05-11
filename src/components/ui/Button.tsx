@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { ActivityIndicator, Text, TouchableOpacity } from 'react-native'
+import { colors } from '@lib/colors'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive'
 type ButtonSize = 'sm' | 'md' | 'lg'
@@ -18,22 +19,22 @@ const variantClasses: Record<ButtonVariant, { container: string; text: string; s
   primary: {
     container: 'bg-primary-500 active:bg-primary-600',
     text: 'text-white',
-    spinner: '#ffffff',
+    spinner: colors.white,
   },
   secondary: {
     container: 'bg-secondary-500 active:bg-secondary-600',
     text: 'text-white',
-    spinner: '#ffffff',
+    spinner: colors.white,
   },
   ghost: {
     container: 'border border-neutral-200 bg-transparent active:bg-neutral-100 dark:border-neutral-600 dark:active:bg-neutral-800',
     text: 'text-neutral-700 dark:text-neutral-200',
-    spinner: '#4f5d75',
+    spinner: colors.neutral[600],
   },
   destructive: {
     container: 'bg-error active:opacity-90',
     text: 'text-white',
-    spinner: '#ffffff',
+    spinner: colors.white,
   },
 }
 

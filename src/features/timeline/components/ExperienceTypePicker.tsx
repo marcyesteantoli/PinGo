@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { EXPERIENCE_TYPE_LABELS } from '../types'
 import type { Experience } from '@types/index'
+import { colors } from '@lib/colors'
 
 type ExperienceType = Experience['type']
 
@@ -42,7 +43,7 @@ export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypeP
                 <Ionicons
                   name={TYPE_ICONS[type]}
                   size={16}
-                  color={isSelected ? '#ffffff' : '#8d99ae'}
+                  color={isSelected ? colors.white : colors.neutral[400]}
                 />
                 <Text
                   className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}

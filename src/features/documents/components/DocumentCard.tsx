@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { Linking, Text, TouchableOpacity, View } from 'react-native'
 import type { Document } from '@types/index'
+import { colors } from '@lib/colors'
 
 type DocumentWithExperience = Document & { experience_title: string | null }
 
@@ -16,10 +17,10 @@ function getFileIcon(fileType: string | null): React.ComponentProps<typeof Ionic
 }
 
 function getFileIconColor(fileType: string | null): string {
-  if (!fileType) return '#8d99ae'
-  if (fileType.includes('pdf')) return '#ef233c'
-  if (fileType.includes('image')) return '#0096c7'
-  return '#8d99ae'
+  if (!fileType) return colors.neutral[400]
+  if (fileType.includes('pdf')) return colors.error
+  if (fileType.includes('image')) return colors.primary[500]
+  return colors.neutral[400]
 }
 
 function getFileBg(fileType: string | null): string {
@@ -65,7 +66,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
           )}
         </View>
 
-        <Ionicons name="open-outline" size={18} color="#c5ced8" />
+        <Ionicons name="open-outline" size={18} color={colors.neutral[300]} />
       </TouchableOpacity>
     </View>
   )

@@ -1,6 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { BottomSheet } from '@components/ui/BottomSheet'
+import { colors } from '@lib/colors'
 
 interface DeleteExperienceSheetProps {
   visible: boolean
@@ -14,7 +15,7 @@ export function DeleteExperienceSheet({ visible, documentCount, onClose, onConfi
     <BottomSheet visible={visible} onClose={onClose} title="Eliminar experiencia">
       <View className="gap-4 mb-2">
         <View className="flex-row items-start gap-3 bg-error/10 rounded-2xl p-4">
-          <Ionicons name="warning-outline" size={20} color="#ef4444" />
+          <Ionicons name="warning-outline" size={20} color={colors.error} />
           <Text className="text-sm text-neutral-700 flex-1">
             Esta experiencia tiene {documentCount}{' '}
             {documentCount === 1 ? 'documento adjunto' : 'documentos adjuntos'} que también se eliminarán permanentemente.

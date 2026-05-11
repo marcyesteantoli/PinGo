@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { TouchableOpacity } from 'react-native'
 import { useTheme } from '@lib/theme'
+import { colors } from '@lib/colors'
 
 interface ThemeToggleProps {
   className?: string
@@ -18,7 +19,7 @@ export function ThemeToggle({ className = '' }: ThemeToggleProps) {
       <Ionicons
         name={isDark ? 'sunny-outline' : 'moon-outline'}
         size={18}
-        color={isDark ? '#fbbf24' : '#64748b'}
+        color={isDark ? colors.warning[400] : colors.neutral[500]}
       />
     </TouchableOpacity>
   )

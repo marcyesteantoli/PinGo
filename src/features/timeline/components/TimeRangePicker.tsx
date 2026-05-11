@@ -3,6 +3,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { useState } from 'react'
 import { Modal, Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '@lib/theme'
+import { colors } from '@lib/colors'
 
 interface TimePickerInputProps {
   value?: string
@@ -41,20 +42,20 @@ function TimePickerInput({ value, onChange, placeholder = '--:--', error }: Time
         className={`border rounded-xl px-3 flex-row items-center justify-between bg-white dark:bg-surface-800 ${error ? 'border-error' : 'border-neutral-200 dark:border-surface-600'}`}
         style={{ paddingVertical: 12 }}
       >
-        <Text className="text-base" style={{ color: value ? (isDark ? '#f1f5f9' : '#171717') : '#8d99ae' }}>
+        <Text className="text-base" style={{ color: value ? (isDark ? colors.neutral[50] : colors.neutral[900]) : colors.neutral[400] }}>
           {value ?? placeholder}
         </Text>
-        <Ionicons name="time-outline" size={16} color="#8d99ae" />
+        <Ionicons name="time-outline" size={16} color={colors.neutral[400]} />
       </Pressable>
       {error && <Text className="text-xs text-error">{error}</Text>}
 
       {Platform.OS === 'ios' ? (
         <Modal visible={show} transparent animationType="slide">
           <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-            <View style={{ backgroundColor: isDark ? '#142033' : 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+            <View style={{ backgroundColor: isDark ? colors.surface[800] : colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
               <View className="flex-row justify-end px-4 pt-3 pb-1">
                 <TouchableOpacity onPress={() => setShow(false)}>
-                  <Text className="text-base font-semibold" style={{ color: '#0096c7' }}>Listo</Text>
+                  <Text className="text-base font-semibold" style={{ color: colors.primary[500] }}>Listo</Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker

@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Avatar } from '@components/ui/Avatar'
 import { formatCurrency } from '@utils/currency'
 import type { ExpenseWithSplits } from '@types/index'
+import { colors } from '@lib/colors'
 
 interface ExpenseCardProps {
   expense: ExpenseWithSplits
@@ -60,7 +61,7 @@ export function ExpenseCard({ expense, currentUserId }: ExpenseCardProps) {
           </Text>
           {allSettled ? (
             <View className="flex-row items-center gap-1 bg-green-100 dark:bg-green-900/40 rounded-full px-2 py-0.5">
-              <Ionicons name="checkmark" size={10} color="#16a34a" />
+              <Ionicons name="checkmark" size={10} color={colors.success[600]} />
               <Text className="text-xs text-green-700 dark:text-green-400">Saldado</Text>
             </View>
           ) : (

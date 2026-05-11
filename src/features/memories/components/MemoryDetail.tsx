@@ -3,6 +3,7 @@ import { Image, Modal, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Avatar } from '@components/ui/Avatar'
 import type { Memory } from '@types/index'
+import { colors } from '@lib/colors'
 
 interface MemoryDetailProps {
   memory: Memory | null
@@ -39,7 +40,7 @@ export function MemoryDetail({
             onPress={onClose}
             className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
           >
-            <Ionicons name="close" size={22} color="#ffffff" />
+            <Ionicons name="close" size={22} color={colors.white} />
           </TouchableOpacity>
 
           {canDelete && onDelete && (
@@ -47,7 +48,7 @@ export function MemoryDetail({
               onPress={() => { onDelete(memory.id); onClose() }}
               className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
             >
-              <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              <Ionicons name="trash-outline" size={20} color={colors.error} />
             </TouchableOpacity>
           )}
         </View>

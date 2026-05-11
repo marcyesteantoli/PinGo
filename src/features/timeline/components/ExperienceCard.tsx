@@ -7,6 +7,7 @@ import { Badge } from '@components/ui/Badge'
 import type { BadgeVariant } from '@components/ui/Badge'
 import { EXPERIENCE_TYPE_LABELS, formatTimeRange } from '../types'
 import type { Experience } from '@types/index'
+import { colors } from '@lib/colors'
 
 const TYPE_BADGE_VARIANT: Record<Experience['type'], BadgeVariant> = {
   transport: 'transport',
@@ -117,7 +118,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
                 {/* Location subtitle */}
                 {location?.name && (
                   <View className="flex-row items-center gap-1 mt-0.5">
-                    <Ionicons name="location-outline" size={12} color="#94a3b8" />
+                    <Ionicons name="location-outline" size={12} color={colors.neutral[400]} />
                     <Text className="text-xs text-neutral-400 dark:text-neutral-500 flex-1" numberOfLines={1}>
                       {location.name}
                     </Text>
@@ -129,7 +130,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
                   <View className="flex-row items-center gap-2 mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-surface-700">
                     {timeRange && (
                       <View className="flex-row items-center gap-1">
-                        <Ionicons name="time-outline" size={12} color="#94a3b8" />
+                        <Ionicons name="time-outline" size={12} color={colors.neutral[400]} />
                         <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
                           {timeRange}
                         </Text>
@@ -158,7 +159,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
               style={{ width: DELETE_WIDTH }}
               activeOpacity={0.8}
             >
-              <Ionicons name="trash-outline" size={20} color="#ffffff" />
+              <Ionicons name="trash-outline" size={20} color={colors.white} />
             </TouchableOpacity>
           )}
         </Animated.View>

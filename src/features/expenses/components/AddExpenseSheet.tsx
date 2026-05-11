@@ -9,6 +9,7 @@ import { Avatar } from '@components/ui/Avatar'
 import { useTripContext } from '@features/trips/TripProvider'
 import { ParticipantPicker } from './ParticipantPicker'
 import { createExpenseSchema, type CreateExpenseFormData } from '../types'
+import { colors } from '@lib/colors'
 
 interface AddExpenseSheetProps {
   visible: boolean
@@ -66,10 +67,10 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
                 render={({ field: { onChange, value } }) => (
                   <View className="items-center gap-1">
                     <View className="flex-row items-baseline gap-1">
-                      <Text style={{ fontSize: 28, color: '#8d99ae', fontWeight: '300' }}>€</Text>
+                      <Text style={{ fontSize: 28, color: colors.neutral[400], fontWeight: '300' }}>€</Text>
                       <TextInput
                         placeholder="0,00"
-                        placeholderTextColor="#cbd5e1"
+                        placeholderTextColor={colors.neutral[300]}
                         value={amountText}
                         onChangeText={(text) => {
                           setAmountText(text)
@@ -80,11 +81,11 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
                         style={{
                           fontSize: 40,
                           fontWeight: '700',
-                          color: '#0f172a',
+                          color: colors.neutral[900],
                           minWidth: 120,
                           textAlign: 'center',
                           borderBottomWidth: 2,
-                          borderBottomColor: errors.amount ? '#ef4444' : '#e2e8f0',
+                          borderBottomColor: errors.amount ? colors.error : colors.neutral[200],
                           paddingBottom: 4,
                         }}
                       />
@@ -127,7 +128,7 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
                         isSelected ? 'border-secondary-400 bg-secondary-50' : 'border-neutral-200 bg-white'
                       }`}
                     >
-                      <View style={isSelected ? { borderWidth: 2, borderColor: '#7b82f5', borderRadius: 22, padding: 1 } : {}}>
+                      <View style={isSelected ? { borderWidth: 2, borderColor: colors.primary[400], borderRadius: 22, padding: 1 } : {}}>
                         <Avatar uri={c.avatar_url} name={c.name} size="sm" />
                       </View>
                       <Text className={`text-xs font-medium text-center max-w-16 ${isSelected ? 'text-secondary-700' : 'text-neutral-600'}`} numberOfLines={1}>

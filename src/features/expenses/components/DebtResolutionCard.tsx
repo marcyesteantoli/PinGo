@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Avatar } from '@components/ui/Avatar'
 import { formatCurrency } from '@utils/currency'
 import type { DebtTransaction } from '../utils/calculateDebtResolution'
+import { colors } from '@lib/colors'
 
 interface DebtResolutionCardProps {
   transaction: DebtTransaction
@@ -38,7 +39,7 @@ export function DebtResolutionCard({
           <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">{formatCurrency(transaction.amount)}</Text>
           <View className="flex-row items-center gap-1">
             <View className="h-px flex-1 bg-neutral-200 dark:bg-surface-600" />
-            <Ionicons name="arrow-forward" size={14} color="#8d99ae" />
+            <Ionicons name="arrow-forward" size={14} color={colors.neutral[400]} />
             <View className="h-px flex-1 bg-neutral-200 dark:bg-surface-600" />
           </View>
         </View>
@@ -59,9 +60,9 @@ export function DebtResolutionCard({
           style={{ opacity: isSettling ? 0.6 : 1 }}
         >
           {isSettling ? (
-            <ActivityIndicator size="small" color="#8d99ae" />
+            <ActivityIndicator size="small" color={colors.neutral[400]} />
           ) : (
-            <Ionicons name="checkmark-circle-outline" size={16} color="#8d99ae" />
+            <Ionicons name="checkmark-circle-outline" size={16} color={colors.neutral[400]} />
           )}
           <Text className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
             {isSettling ? 'Guardando...' : 'Marcar como saldado'}

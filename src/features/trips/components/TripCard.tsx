@@ -6,6 +6,7 @@ import { Badge } from '@components/ui/Badge'
 import { formatDateRange } from '@utils/date'
 import { useTheme } from '@lib/theme'
 import type { TripWithCollaborators } from '@features/trips/hooks/useTrips'
+import { colors } from '@lib/colors'
 
 interface TripCardProps {
   trip: TripWithCollaborators
@@ -47,8 +48,8 @@ export function TripCard({ trip, onPress }: TripCardProps) {
   }
 
   const { label, variant } = statusConfig[status]
-  const borderColor = isDark ? '#1e2d3f' : '#ffffff'
-  const subtleColor = isDark ? '#8896a8' : '#a0adb8'
+  const borderColor = isDark ? colors.surface[700] : colors.white
+  const subtleColor = isDark ? colors.neutral[400] : colors.neutral[400]
 
   return (
     <Card onPress={onPress}>
@@ -103,7 +104,7 @@ export function TripCard({ trip, onPress }: TripCardProps) {
                     borderRadius: 16,
                     borderWidth: 2,
                     borderColor,
-                    backgroundColor: isDark ? '#2a3a4e' : '#e5e7eb',
+                    backgroundColor: isDark ? colors.surface[700] : colors.neutral[200],
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}

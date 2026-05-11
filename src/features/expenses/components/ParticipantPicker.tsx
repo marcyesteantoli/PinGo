@@ -2,6 +2,7 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Avatar } from '@components/ui/Avatar'
 import type { Collaborator } from '@types/index'
+import { colors } from '@lib/colors'
 
 interface ParticipantPickerProps {
   collaborators: Collaborator[]
@@ -39,7 +40,7 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
           <Ionicons
             name={allSelected ? 'checkbox' : 'checkbox-outline'}
             size={14}
-            color={allSelected ? '#4f56e8' : '#8d99ae'}
+            color={allSelected ? colors.primary[500] : colors.neutral[400]}
           />
           <Text className={`text-xs font-medium ${allSelected ? 'text-secondary-600' : 'text-neutral-500'}`}>
             {allSelected ? 'Deseleccionar todo' : 'Seleccionar todo'}
@@ -68,7 +69,7 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
                   isSelected ? 'border-secondary-500 bg-secondary-500' : 'border-neutral-300 bg-white'
                 }`}
               >
-                {isSelected && <Ionicons name="checkmark" size={12} color="#fff" />}
+                {isSelected && <Ionicons name="checkmark" size={12} color={colors.white} />}
               </View>
             </TouchableOpacity>
           )
