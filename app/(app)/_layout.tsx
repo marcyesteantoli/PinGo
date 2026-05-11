@@ -4,6 +4,7 @@ export default function AppLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="profile" options={{ presentation: 'modal' }} />
       <Stack.Screen name="trips/new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="trips/[id]" />
     </Stack>

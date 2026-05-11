@@ -72,13 +72,6 @@ Timeline: `calendar-outline` · Documentos: `document-text-outline` · Gastos: `
 - Bottom sheets / modales: `rounded-t-[28px]`
 - App icon / avatares cuadrados: `rounded-[22px]`
 
-### Superficies y Colores
-- Fondo principal: `bg-neutral-50` light / `bg-surface-900` dark
-- Fondo secundario (inset grouped cards): `bg-white` light / `bg-surface-800` dark
-- Fill terciario (inputs filled): `bg-neutral-100` light / `bg-surface-700` dark
-- Separadores: `border-neutral-200` light / `border-surface-700` dark (grosor 0.5)
-- Colores de acento del sistema: usar `primary-500` para interactivos, `error` para destructivos
-
 ### Componentes estándar iOS
 
 **Botones:**

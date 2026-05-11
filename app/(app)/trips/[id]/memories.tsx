@@ -69,7 +69,7 @@ export default function MemoriesScreen() {
             style={{ width: Math.max(4, (count / LIMITS.MAX_PHOTOS_PER_TRIP) * 80) }}
           />
           <View
-            className="h-1.5 rounded-full bg-neutral-200 dark:bg-surface-700"
+            className="h-1.5 rounded-full bg-secondary-100 dark:bg-secondary-900/30"
             style={{ width: Math.max(0, 80 - (count / LIMITS.MAX_PHOTOS_PER_TRIP) * 80) }}
           />
         </View>

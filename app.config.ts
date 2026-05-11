@@ -26,7 +26,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     package: 'com.tfm.travelapp',
   },
   plugins: [
-    'expo-dev-client',
     'expo-router',
     'expo-secure-store',
     'expo-font',

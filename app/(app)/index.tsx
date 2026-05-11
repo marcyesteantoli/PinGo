@@ -5,24 +5,34 @@ import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Avatar } from '@components/ui/Avatar'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { EmptyState } from '@components/ui/EmptyState'
 import { Input } from '@components/ui/Input'
 import { SkeletonCard } from '@components/ui/Skeleton'
-import { ThemeToggle } from '@components/ui/ThemeToggle'
+import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { useProfile } from '@features/auth/hooks/useProfile'
 import { TripCard } from '@features/trips/components/TripCard'
 import { useJoinTrip } from '@features/trips/hooks/useJoinTrip'
 import { useTrips } from '@features/trips/hooks/useTrips'
 import { joinTripSchema, type JoinTripFormData } from '@features/trips/types'
-import { useTheme } from '@lib/theme'
+
+type Segment = 'upcoming' | 'past'
+
+const SEGMENTS: { key: Segment; label: string }[] = [
+  { key: 'upcoming', label: 'Próximos' },
+  { key: 'past',     label: 'Pasados'  },
+]
 
 export default function DashboardScreen() {
   const router = useRouter()
-  const { isDark } = useTheme()
   const { data: trips, isLoading, error, refetch } = useTrips()
   const joinTrip = useJoinTrip()
+  const { data: user } = useCurrentUser()
+  const { data: profile } = useProfile(user?.id)
   const [joinSheetVisible, setJoinSheetVisible] = useState(false)
+  const [segment, setSegment] = useState<Segment>('upcoming')
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<JoinTripFormData>({
     resolver: zodResolver(joinTripSchema),
@@ -39,26 +49,79 @@ export default function DashboardScreen() {
     }
   }
 
+  const today = new Date().toISOString().split('T')[0]
+  const upcomingTrips = trips?.filter(t => t.end_date >= today) ?? []
+  const pastTrips    = trips?.filter(t => t.end_date <  today) ?? []
+  const displayedTrips = segment === 'upcoming' ? upcomingTrips : pastTrips
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-surface-900" edges={['top']}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-4">
         <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50">Mis viajes</Text>
-        <View className="flex-row gap-2">
-          <ThemeToggle className="bg-neutral-100 dark:bg-surface-700" />
-          <TouchableOpacity
-            onPress={() => setJoinSheetVisible(true)}
-            className="w-11 h-11 rounded-[10px] bg-neutral-100 dark:bg-surface-700 items-center justify-center"
-          >
-            <Ionicons name="enter-outline" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push('/(app)/trips/new')}
-            className="w-11 h-11 rounded-[10px] bg-primary-500 items-center justify-center"
-          >
-            <Ionicons name="add" size={22} color="#ffffff" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          onPress={() => router.push('/(app)/profile')}
+          className="w-11 h-11 rounded-full overflow-hidden"
+        >
+          <Avatar
+            uri={profile?.avatar_url}
+            name={profile?.name ?? user?.user_metadata?.name ?? 'U'}
+            size="md"
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Segmented control */}
+      <View className="mx-5 mb-4 flex-row bg-neutral-100 dark:bg-surface-700 rounded-[10px] p-1">
+        {SEGMENTS.map(({ key, label }) => {
+          const isActive = segment === key
+          return (
+            <TouchableOpacity
+              key={key}
+              onPress={() => setSegment(key)}
+              activeOpacity={0.8}
+              className={`flex-1 py-[7px] rounded-[8px] items-center ${
+                isActive ? 'bg-white dark:bg-surface-600' : ''
+              }`}
+              style={isActive ? {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.08,
+                shadowRadius: 2,
+                elevation: 2,
+              } : undefined}
+            >
+              <Text
+                className={`text-[13px] font-semibold ${
+                  isActive
+                    ? 'text-neutral-900 dark:text-neutral-50'
+                    : 'text-neutral-500 dark:text-neutral-400'
+                }`}
+              >
+                {label}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+
+      {/* Action buttons */}
+      <View className="flex-row gap-3 mx-5 mb-4">
+        <Button
+          onPress={() => router.push('/(app)/trips/new')}
+          className="flex-1"
+        >
+          <Ionicons name="add" size={18} color="#ffffff" />
+          <Text className="text-white text-[17px] font-semibold ml-1.5">Crear viaje</Text>
+        </Button>
+        <Button
+          onPress={() => setJoinSheetVisible(true)}
+          variant="ghost"
+          className="flex-1"
+        >
+          <Ionicons name="enter-outline" size={18} color="#4f56e8" />
+          <Text className="text-neutral-700 dark:text-neutral-200 text-[17px] font-semibold ml-1.5">Unirse</Text>
+        </Button>
       </View>
 
       {/* Lista */}
@@ -73,7 +136,7 @@ export default function DashboardScreen() {
         </View>
       ) : (
         <FlatList
-          data={trips}
+          data={displayedTrips}
           keyExtractor={(item) => item.id}
           contentContainerClassName="px-5 gap-3 pb-8"
           renderItem={({ item }) => (
@@ -83,13 +146,19 @@ export default function DashboardScreen() {
             />
           )}
           ListEmptyComponent={
-            <EmptyState
-              icon="airplane-outline"
-              title="Sin viajes todavía"
-              subtitle="Crea tu primer viaje o únete con un código"
-              actionLabel="Crear viaje"
-              onAction={() => router.push('/(app)/trips/new')}
-            />
+            segment === 'upcoming' ? (
+              <EmptyState
+                icon="airplane-outline"
+                title="Sin viajes próximos"
+                subtitle="Crea tu primer viaje o únete con un código"
+              />
+            ) : (
+              <EmptyState
+                icon="checkmark-circle-outline"
+                title="Sin viajes pasados"
+                subtitle="Aquí aparecerán los viajes que hayas completado"
+              />
+            )
           }
           onRefresh={refetch}
           refreshing={isLoading}

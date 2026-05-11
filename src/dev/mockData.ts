@@ -134,7 +134,7 @@ export const mockExperiences: Record<string, Experience[]> = {
       confirmation_code: null,
       start_time: '20:00',
       end_time: '22:00',
-      date: '2026-06-12',
+      date: '2026-05-11',
       created_by: COLLAB_002_ID,
       updated_at: '2026-01-15T10:00:00Z',
     },

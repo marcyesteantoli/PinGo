@@ -128,7 +128,7 @@ export default function RegisterScreen() {
           <View className="flex-row items-center justify-center mt-8 gap-1">
             <Text className="text-sm text-neutral-500 dark:text-neutral-400">¿Ya tienes cuenta?</Text>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text className="text-sm font-semibold text-primary-600 dark:text-primary-400">Inicia sesión</Text>
+              <Text className="text-sm font-semibold text-secondary-600 dark:text-secondary-400">Inicia sesión</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

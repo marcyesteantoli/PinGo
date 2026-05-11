@@ -124,13 +124,13 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
                       onPress={() => setValue('payer_id', c.user_id)}
                       activeOpacity={0.7}
                       className={`items-center gap-1.5 px-3 py-2.5 rounded-2xl border min-w-16 ${
-                        isSelected ? 'border-primary-400 bg-primary-50' : 'border-neutral-200 bg-white'
+                        isSelected ? 'border-secondary-400 bg-secondary-50' : 'border-neutral-200 bg-white'
                       }`}
                     >
-                      <View style={isSelected ? { borderWidth: 2, borderColor: '#2563eb', borderRadius: 22, padding: 1 } : {}}>
+                      <View style={isSelected ? { borderWidth: 2, borderColor: '#7b82f5', borderRadius: 22, padding: 1 } : {}}>
                         <Avatar uri={c.avatar_url} name={c.name} size="sm" />
                       </View>
-                      <Text className={`text-xs font-medium text-center max-w-16 ${isSelected ? 'text-primary-700' : 'text-neutral-600'}`} numberOfLines={1}>
+                      <Text className={`text-xs font-medium text-center max-w-16 ${isSelected ? 'text-secondary-700' : 'text-neutral-600'}`} numberOfLines={1}>
                         {c.user_id === currentUserId ? 'Tú' : c.name.split(' ')[0]}
                       </Text>
                     </TouchableOpacity>
@@ -165,6 +165,7 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
             <Button
               onPress={handleSubmit(handleSubmitForm)}
               isLoading={isLoading}
+              variant="secondary"
               size="lg"
             >
               Añadir gasto

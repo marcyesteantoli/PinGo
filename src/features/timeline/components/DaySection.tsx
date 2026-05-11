@@ -30,8 +30,8 @@ export function DaySection({ date, count }: DaySectionProps) {
       )}
 
       {count > 0 && (
-        <View className="bg-primary-100 dark:bg-primary-900/40 px-2 py-0.5 rounded-full">
-          <Text className="text-xs font-semibold text-primary-600 dark:text-primary-300">
+        <View className="bg-secondary-100 dark:bg-secondary-900/40 px-2 py-0.5 rounded-full">
+          <Text className="text-xs font-semibold text-secondary-600 dark:text-secondary-300">
             {count}
           </Text>
         </View>

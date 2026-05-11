@@ -30,5 +30,6 @@ export const queryKeys = {
   },
   auth: {
     currentUser: () => ['currentUser'] as const,
+    profile: (userId?: string) => ['profile', userId] as const,
   },
 }

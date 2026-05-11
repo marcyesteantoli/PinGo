@@ -1,5 +1,5 @@
-import { Ionicons } from '@expo/vector-icons'
-import { Text, View } from 'react-native'
+import { useRouter } from 'expo-router'
+import { Text, TouchableOpacity, View } from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -7,7 +7,9 @@ import Animated, {
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import type { SharedValue } from 'react-native-reanimated'
-import { ThemeToggle } from '@components/ui/ThemeToggle'
+import { Avatar } from '@components/ui/Avatar'
+import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { useProfile } from '@features/auth/hooks/useProfile'
 import { useTripContext } from '../TripProvider'
 import { formatShortDate } from '@utils/date'
 
@@ -18,7 +20,10 @@ interface TripHeaderProps {
 }
 
 export function TripHeader({ scrollY }: TripHeaderProps) {
+  const router = useRouter()
   const { trip, collaborators } = useTripContext()
+  const { data: user } = useCurrentUser()
+  const { data: profile } = useProfile(user?.id)
 
   const internalScrollY = useSharedValue(0)
   const activeScrollY = scrollY ?? internalScrollY
@@ -63,10 +68,16 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
             </Animated.Text>
           </View>
           <View className="flex-row items-center gap-2">
-            <ThemeToggle className="bg-neutral-100 dark:bg-surface-700" />
-            <View className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-surface-700 items-center justify-center">
-              <Ionicons name="person" size={16} color="#64748b" />
-            </View>
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/profile')}
+              className="w-8 h-8 rounded-full overflow-hidden"
+            >
+              <Avatar
+                uri={profile?.avatar_url}
+                name={profile?.name ?? user?.user_metadata?.name ?? 'U'}
+                size="sm"
+              />
+            </TouchableOpacity>
           </View>
         </View>
 

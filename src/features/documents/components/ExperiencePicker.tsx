@@ -24,7 +24,7 @@ export function ExperiencePicker({ experiences, value, onChange, error }: Experi
                   key={exp.id}
                   onPress={() => onChange(exp.id)}
                   className={`px-3 py-2 rounded-xl border ${
-                    isSelected ? 'bg-primary-500 border-primary-500' : 'bg-white border-neutral-200'
+                    isSelected ? 'bg-secondary-500 border-secondary-500' : 'bg-white border-neutral-200'
                   }`}
                 >
                   <Text
