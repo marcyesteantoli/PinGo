@@ -27,16 +27,16 @@ export default function NewTripScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-surface-900" edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Header */}
-        <View className="flex-row items-center justify-between px-5 py-4 border-b border-neutral-100">
-          <Text className="text-lg font-semibold text-neutral-900">Nuevo viaje</Text>
+        <View className="flex-row items-center justify-between px-5 py-4 border-b border-neutral-100 dark:border-surface-700">
+          <Text className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Nuevo viaje</Text>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text className="text-base text-neutral-500">Cancelar</Text>
+            <Text className="text-base text-neutral-500 dark:text-neutral-400">Cancelar</Text>
           </TouchableOpacity>
         </View>
 

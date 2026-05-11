@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { Text, TouchableOpacity, View } from 'react-native'
+import { useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
@@ -28,6 +29,7 @@ export default function MemoriesScreen() {
   const insets = useSafeAreaInsets()
 
   const count = memories?.length ?? 0
+  const scrollY = useSharedValue(0)
 
   const getUploader = (userId: string) => collaborators.find((c) => c.user_id === userId)
 
@@ -53,12 +55,12 @@ export default function MemoriesScreen() {
   })()
 
   return (
-    <View className="flex-1 bg-neutral-50">
-      <TripHeader />
+    <View className="flex-1 bg-neutral-50 dark:bg-surface-900">
+      <TripHeader scrollY={scrollY} />
 
       {/* Counter */}
       <View className="flex-row items-center justify-between px-5 py-3">
-        <Text className="text-sm text-neutral-500">
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400">
           {count} de {LIMITS.MAX_PHOTOS_PER_TRIP} fotos
         </Text>
         <View className="flex-row items-center gap-1">
@@ -67,7 +69,7 @@ export default function MemoriesScreen() {
             style={{ width: Math.max(4, (count / LIMITS.MAX_PHOTOS_PER_TRIP) * 80) }}
           />
           <View
-            className="h-1.5 rounded-full bg-neutral-200"
+            className="h-1.5 rounded-full bg-neutral-200 dark:bg-surface-700"
             style={{ width: Math.max(0, 80 - (count / LIMITS.MAX_PHOTOS_PER_TRIP) * 80) }}
           />
         </View>
@@ -89,6 +91,7 @@ export default function MemoriesScreen() {
         <MemoryGrid
           memories={memories}
           onPress={(m) => setSelectedMemory(m)}
+          scrollY={scrollY}
         />
       )}
 

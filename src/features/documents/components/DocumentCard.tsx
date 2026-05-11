@@ -23,10 +23,10 @@ function getFileIconColor(fileType: string | null): string {
 }
 
 function getFileBg(fileType: string | null): string {
-  if (!fileType) return 'bg-neutral-100'
-  if (fileType.includes('pdf')) return 'bg-red-100'
-  if (fileType.includes('image')) return 'bg-sky-100'
-  return 'bg-neutral-100'
+  if (!fileType) return 'bg-neutral-100 dark:bg-surface-700'
+  if (fileType.includes('pdf')) return 'bg-red-100 dark:bg-red-900/30'
+  if (fileType.includes('image')) return 'bg-sky-100 dark:bg-sky-900/30'
+  return 'bg-neutral-100 dark:bg-surface-700'
 }
 
 export function DocumentCard({ document }: DocumentCardProps) {
@@ -43,7 +43,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
     >
       <TouchableOpacity
         onPress={handleOpen}
-        className="bg-white rounded-2xl p-4 flex-row items-center gap-3"
+        className="bg-white dark:bg-surface-800 rounded-2xl p-4 flex-row items-center gap-3"
         activeOpacity={0.7}
       >
         <View className={`w-10 h-10 rounded-xl items-center justify-center ${getFileBg(document.file_type)}`}>
@@ -55,11 +55,11 @@ export function DocumentCard({ document }: DocumentCardProps) {
         </View>
 
         <View className="flex-1 gap-0.5">
-          <Text className="text-sm font-semibold text-neutral-900" numberOfLines={1}>
+          <Text className="text-sm font-semibold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
             {document.name}
           </Text>
           {document.experience_title && (
-            <Text className="text-xs text-neutral-400" numberOfLines={1}>
+            <Text className="text-xs text-neutral-400 dark:text-neutral-500" numberOfLines={1}>
               {document.experience_title}
             </Text>
           )}

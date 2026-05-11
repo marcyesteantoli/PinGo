@@ -1,9 +1,11 @@
 import { Tabs, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { TripProvider } from '@features/trips/TripProvider'
+import { useTheme } from '@lib/theme'
 
 export default function TripLayout() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const { isDark } = useTheme()
 
   return (
     <TripProvider tripId={id}>
@@ -11,6 +13,12 @@ export default function TripLayout() {
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: '#06b6d4',
+          tabBarInactiveTintColor: isDark ? '#94a3b8' : '#64748b',
+          tabBarStyle: {
+            backgroundColor: isDark ? '#142033' : '#ffffff',
+            borderTopColor: isDark ? '#1e2c42' : '#e2e8f5',
+            borderTopWidth: 1,
+          },
         }}
       >
         <Tabs.Screen

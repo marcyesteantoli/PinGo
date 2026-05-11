@@ -95,7 +95,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
             <View style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}>
               <TouchableOpacity
                 onPress={onPress}
-                className="bg-white px-4 pt-3 pb-3"
+                className="bg-white dark:bg-surface-800 px-4 pt-3 pb-3"
                 activeOpacity={0.7}
               >
                 {/* Badge row */}
@@ -110,7 +110,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
                 </View>
 
                 {/* Title */}
-                <Text className="text-base font-semibold text-neutral-900 mb-0.5" numberOfLines={2}>
+                <Text className="text-base font-semibold text-neutral-900 dark:text-neutral-50 mb-0.5" numberOfLines={2}>
                   {experience.title}
                 </Text>
 
@@ -118,7 +118,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
                 {location?.name && (
                   <View className="flex-row items-center gap-1 mt-0.5">
                     <Ionicons name="location-outline" size={12} color="#94a3b8" />
-                    <Text className="text-xs text-neutral-400 flex-1" numberOfLines={1}>
+                    <Text className="text-xs text-neutral-400 dark:text-neutral-500 flex-1" numberOfLines={1}>
                       {location.name}
                     </Text>
                   </View>
@@ -126,11 +126,11 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
 
                 {/* Bottom row: time range + confirmation code */}
                 {hasBottomRow && (
-                  <View className="flex-row items-center gap-2 mt-2.5 pt-2.5 border-t border-neutral-100">
+                  <View className="flex-row items-center gap-2 mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-surface-700">
                     {timeRange && (
                       <View className="flex-row items-center gap-1">
-                        <Ionicons name="time-outline" size={12} color="#525252" />
-                        <Text className="text-sm font-semibold text-neutral-700">
+                        <Ionicons name="time-outline" size={12} color="#94a3b8" />
+                        <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
                           {timeRange}
                         </Text>
                       </View>
@@ -138,9 +138,9 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
                     {experience.confirmation_code && (
                       <>
                         {timeRange && (
-                          <Text className="text-neutral-300 text-sm">•</Text>
+                          <Text className="text-neutral-300 dark:text-neutral-600 text-sm">•</Text>
                         )}
-                        <Text className="text-xs text-neutral-400">
+                        <Text className="text-xs text-neutral-400 dark:text-neutral-500">
                           + Reserva {experience.confirmation_code}
                         </Text>
                       </>

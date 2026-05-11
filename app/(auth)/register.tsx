@@ -29,7 +29,7 @@ export default function RegisterScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-surface-900" edges={['top']}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -42,8 +42,8 @@ export default function RegisterScreen() {
             <View className="w-16 h-16 rounded-2xl bg-primary-500 items-center justify-center">
               <Ionicons name="airplane" size={32} color="#ffffff" />
             </View>
-            <Text className="text-3xl font-bold text-neutral-900">Crear cuenta</Text>
-            <Text className="text-base text-neutral-500">Únete y empieza a planificar</Text>
+            <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">Crear cuenta</Text>
+            <Text className="text-base text-neutral-500 dark:text-neutral-400">Únete y empieza a planificar</Text>
           </View>
 
           <View className="gap-4">
@@ -126,9 +126,9 @@ export default function RegisterScreen() {
           </View>
 
           <View className="flex-row items-center justify-center mt-8 gap-1">
-            <Text className="text-sm text-neutral-500">¿Ya tienes cuenta?</Text>
+            <Text className="text-sm text-neutral-500 dark:text-neutral-400">¿Ya tienes cuenta?</Text>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text className="text-sm font-semibold text-primary-600">Inicia sesión</Text>
+              <Text className="text-sm font-semibold text-primary-600 dark:text-primary-400">Inicia sesión</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
