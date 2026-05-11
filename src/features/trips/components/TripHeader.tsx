@@ -13,30 +13,24 @@ export function TripHeader() {
   const travelerCount = collaborators.length
 
   return (
-    <SafeAreaView className="bg-white" edges={['top']}>
+    <SafeAreaView className="bg-white dark:bg-surface-800" edges={['top']}>
       <View className="px-5 pt-2 pb-5">
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center gap-2">
-            <TouchableOpacity
-              onPress={() => router.push('/')}
-              className="w-8 h-8 rounded-full bg-neutral-100 items-center justify-center"
-            >
-              <Ionicons name="arrow-back" size={16} color="#64748b" />
-            </TouchableOpacity>
-            <Text className="text-base font-bold text-neutral-900 tracking-tight">TripSync</Text>
+            <Text className="text-base font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">TripSync</Text>
           </View>
-          <View className="w-8 h-8 rounded-full bg-neutral-100 items-center justify-center">
+          <View className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-surface-700 items-center justify-center">
             <Ionicons name="person" size={16} color="#64748b" />
           </View>
         </View>
 
-        <Text className="text-[26px] font-bold text-neutral-900 leading-tight mb-1" numberOfLines={3}>
+        <Text className="text-[26px] font-bold text-neutral-900 dark:text-neutral-50 leading-tight mb-1" numberOfLines={3}>
           {trip.title}
         </Text>
 
         <View className="flex-row items-center flex-wrap">
           <Text className="text-sm font-medium text-primary-500">{dateRange}</Text>
-          <Text className="text-sm text-neutral-400">
+          <Text className="text-sm text-neutral-400 dark:text-neutral-500">
             {' '}• {travelerCount} {travelerCount === 1 ? 'Viajero' : 'Viajeros'}
           </Text>
         </View>

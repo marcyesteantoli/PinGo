@@ -2,7 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockExpenses } from '@/dev/mockData'
-import type { ExpenseWithSplits } from '@types/index'
+import type { Expense, ExpenseSplit, Profile, ExpenseWithSplits } from '@types/index'
+
+type ExpenseRow = Expense & {
+  expense_splits: ExpenseSplit[]
+  payer: Pick<Profile, 'name' | 'avatar_url'> | null
+}
 
 export function useExpenses(tripId: string) {
   return useQuery<ExpenseWithSplits[]>({
@@ -17,7 +22,7 @@ export function useExpenses(tripId: string) {
 
       if (error) throw new Error(error.message)
 
-      return (data ?? []).map((e: any) => ({
+      return (data ?? [] as ExpenseRow[]).map((e) => ({
         ...e,
         splits: e.expense_splits ?? [],
         payer: e.payer ?? { name: 'Desconocido', avatar_url: null },

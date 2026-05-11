@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { SectionList, Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { TripHeader } from '@features/trips/components/TripHeader'
@@ -14,9 +15,10 @@ import type { UploadDocumentFormData } from '@features/documents/types'
 
 export default function DocumentsScreen() {
   const { tripId } = useTripContext()
-  const { data: documents, isLoading, refetch } = useDocuments(tripId)
+  const { data: documents, isLoading, isFetching, refetch } = useDocuments(tripId)
   const uploadDocument = useUploadDocument()
   const [sheetVisible, setSheetVisible] = useState(false)
+  const insets = useSafeAreaInsets()
 
   const sections = Object.values(
     (documents ?? []).reduce((acc: Record<string, { title: string; data: typeof documents }>, doc) => {
@@ -37,7 +39,7 @@ export default function DocumentsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <View className="flex-1 bg-neutral-50">
       <TripHeader />
 
       {isLoading ? (
@@ -69,7 +71,7 @@ export default function DocumentsScreen() {
             />
           }
           onRefresh={refetch}
-          refreshing={isLoading}
+          refreshing={isFetching && !isLoading}
           stickySectionHeadersEnabled={false}
         />
       )}
@@ -77,8 +79,8 @@ export default function DocumentsScreen() {
       {!isLoading && (
         <TouchableOpacity
           onPress={() => setSheetVisible(true)}
-          className="absolute bottom-8 right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-          style={{ elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 }}
+          className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+          style={{ bottom: insets.bottom + 16, ...fabShadow }}
         >
           <Ionicons name="add" size={28} color="#ffffff" />
         </TouchableOpacity>
@@ -91,6 +93,6 @@ export default function DocumentsScreen() {
         isLoading={uploadDocument.isPending}
         error={uploadDocument.error?.message}
       />
-    </SafeAreaView>
+    </View>
   )
 }

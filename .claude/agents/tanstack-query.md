@@ -1,3 +1,8 @@
+---
+name: tanstack-query
+description: Experto en TanStack Query v5. Usar para queries, mutations, caché, sincronización offline y optimistic updates.
+---
+
 # Agente: TanStack Query
 
 ## Rol

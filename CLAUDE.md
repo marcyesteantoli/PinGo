@@ -15,11 +15,11 @@ Eres el agente principal de este proyecto. Tu rol es analizar cada tarea que lle
 
 | Si la tarea involucra… | Delega a |
 |------------------------|----------|
-| Componentes, pantallas, navegación, hooks de UI, Expo Router, gestos, animaciones | `agents/expo-rn.md` |
-| Esquema de BD, migraciones, RLS, Auth, Storage, Realtime, Edge Functions | `agents/supabase.md` |
-| Queries, mutations, caché, sincronización offline, optimistic updates | `agents/tanstack-query.md` |
-| NativeWind, design system, tema, estilos, layout, accesibilidad, Reanimated | `agents/ui-nativewind.md` |
-| Estructura de carpetas, TypeScript types, patrones de código, performance, convenciones | `agents/architecture.md` |
+| Componentes, pantallas, navegación, hooks de UI, Expo Router, gestos, animaciones | `@expo-rn` |
+| Esquema de BD, migraciones, RLS, Auth, Storage, Realtime, Edge Functions | `@supabase` |
+| Queries, mutations, caché, sincronización offline, optimistic updates | `@tanstack-query` |
+| NativeWind, design system, tema, estilos, layout, accesibilidad, Reanimated | `@ui-nativewind` |
+| Estructura de carpetas, TypeScript types, patrones de código, performance, convenciones | `@architecture` |
 
 ### Proceso de decisión
 
@@ -40,8 +40,8 @@ Eres el agente principal de este proyecto. Tu rol es analizar cada tarea que lle
 
 ## Sub-agentes disponibles
 
-- [React Native + Expo](agents/expo-rn.md)
-- [Supabase](agents/supabase.md)
-- [TanStack Query](agents/tanstack-query.md)
-- [UI + NativeWind](agents/ui-nativewind.md)
-- [Arquitectura](agents/architecture.md)
+- `@expo-rn` — React Native + Expo
+- `@supabase` — Supabase backend
+- `@tanstack-query` — TanStack Query
+- `@ui-nativewind` — UI + NativeWind
+- `@architecture` — Arquitectura del proyecto

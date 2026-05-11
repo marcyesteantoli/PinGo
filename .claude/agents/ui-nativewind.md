@@ -1,3 +1,8 @@
+---
+name: ui-nativewind
+description: Experto en UI con NativeWind v4 y Tailwind CSS. Usar para design system, tema, estilos, layout, accesibilidad y animaciones con Reanimated.
+---
+
 # Agente: UI + NativeWind
 
 ## Rol

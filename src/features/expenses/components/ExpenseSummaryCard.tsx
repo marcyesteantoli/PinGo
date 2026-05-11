@@ -1,0 +1,55 @@
+import { Text, View } from 'react-native'
+import { formatCurrency } from '@utils/currency'
+import type { ExpenseWithSplits, UserBalance } from '@types/index'
+
+interface ExpenseSummaryCardProps {
+  expenses: ExpenseWithSplits[]
+  currentUserId?: string
+  currentUserBalance?: UserBalance
+}
+
+export function ExpenseSummaryCard({ expenses, currentUserId, currentUserBalance }: ExpenseSummaryCardProps) {
+  const totalViaje = expenses.reduce((sum, e) => sum + e.amount, 0)
+
+  const miParte = expenses.reduce((sum, e) => {
+    const split = e.splits.find((s) => s.user_id === currentUserId)
+    return sum + (split?.amount ?? 0)
+  }, 0)
+
+  const balance = currentUserBalance?.balance ?? 0
+  const isPositive = balance > 0.005
+  const isNegative = balance < -0.005
+
+  return (
+    <View className="bg-white rounded-2xl p-5 gap-4" style={{ elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8 }}>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Resumen del viaje</Text>
+        <Text className="text-xs text-neutral-400">{expenses.length} gasto{expenses.length !== 1 ? 's' : ''}</Text>
+      </View>
+
+      <View className="items-center py-2">
+        <Text className="text-xs text-neutral-400 mb-1">Total gastado</Text>
+        <Text className="text-3xl font-bold text-neutral-900">{formatCurrency(totalViaje)}</Text>
+      </View>
+
+      <View className="flex-row border-t border-neutral-100 pt-4 gap-4">
+        <View className="flex-1 items-center">
+          <Text className="text-xs text-neutral-400 mb-1">Mi parte</Text>
+          <Text className="text-lg font-bold text-neutral-700">{formatCurrency(miParte)}</Text>
+        </View>
+
+        <View className="w-px bg-neutral-100" />
+
+        <View className="flex-1 items-center">
+          <Text className="text-xs text-neutral-400 mb-1">Mi balance</Text>
+          <Text className={`text-lg font-bold ${isPositive ? 'text-green-600' : isNegative ? 'text-red-500' : 'text-neutral-400'}`}>
+            {isPositive ? '+' : ''}{formatCurrency(balance)}
+          </Text>
+          <Text className={`text-xs mt-0.5 ${isPositive ? 'text-green-500' : isNegative ? 'text-red-400' : 'text-neutral-400'}`}>
+            {isPositive ? 'Te deben' : isNegative ? 'Debes' : 'En paz'}
+          </Text>
+        </View>
+      </View>
+    </View>
+  )
+}

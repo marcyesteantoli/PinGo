@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
@@ -12,6 +13,7 @@ import { loginSchema, type LoginFormData } from '@features/auth/types'
 export default function LoginScreen() {
   const router = useRouter()
   const signIn = useSignIn()
+  const passwordRef = useRef<TextInput>(null)
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -57,6 +59,10 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                   autoComplete="email"
                   error={errors.email?.message}
+                  accessibilityLabel="Campo de email"
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  blurOnSubmit={false}
                 />
               )}
             />
@@ -66,6 +72,7 @@ export default function LoginScreen() {
               name="password"
               render={({ field: { onChange, value } }) => (
                 <Input
+                  ref={passwordRef}
                   label="Contraseña"
                   placeholder="••••••••"
                   value={value}
@@ -73,6 +80,9 @@ export default function LoginScreen() {
                   secureTextEntry
                   autoComplete="current-password"
                   error={errors.password?.message}
+                  accessibilityLabel="Campo de contraseña"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSubmit(onSubmit)}
                 />
               )}
             />

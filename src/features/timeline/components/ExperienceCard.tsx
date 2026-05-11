@@ -1,6 +1,7 @@
+import { memo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated'
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { Badge } from '@components/ui/Badge'
 import type { BadgeVariant } from '@components/ui/Badge'
@@ -24,25 +25,37 @@ interface ExperienceCardProps {
   onPress?: () => void
 }
 
-export function ExperienceCard({ experience, canDelete, onDelete, onPress }: ExperienceCardProps) {
+export const ExperienceCard = memo(function ExperienceCard({ experience, canDelete, onDelete, onPress }: ExperienceCardProps) {
   const translateX = useSharedValue(0)
-  const location = experience.location as { name?: string } | null
+  const savedX = useSharedValue(0)
+  const [containerWidth, setContainerWidth] = useState(0)
+  const rawLocation = experience.location
+  const location = (
+    typeof rawLocation === 'object' &&
+    rawLocation !== null &&
+    'name' in rawLocation &&
+    typeof (rawLocation as { name: unknown }).name === 'string'
+  ) ? (rawLocation as { name: string }) : null
   const timeRange = formatTimeRange(experience.start_time, experience.end_time)
 
   const pan = Gesture.Pan()
     .activeOffsetX([-10, 10])
+    .failOffsetY([-5, 5])
+    .onBegin(() => {
+      savedX.value = translateX.value
+    })
     .onUpdate((e) => {
       if (!canDelete) return
-      translateX.value = Math.min(0, Math.max(-DELETE_WIDTH, e.translationX))
+      translateX.value = Math.min(0, Math.max(-DELETE_WIDTH, savedX.value + e.translationX))
     })
-    .onEnd((e) => {
+    .onEnd(() => {
       if (!canDelete) {
-        translateX.value = withSpring(0)
+        translateX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
         return
       }
-      translateX.value = e.translationX < -DELETE_WIDTH / 2
-        ? withSpring(-DELETE_WIDTH)
-        : withSpring(0)
+      translateX.value = translateX.value < -DELETE_WIDTH / 2
+        ? withTiming(-DELETE_WIDTH, { duration: 240, easing: Easing.out(Easing.cubic) })
+        : withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
     })
 
   const cardStyle = useAnimatedStyle(() => ({
@@ -50,86 +63,106 @@ export function ExperienceCard({ experience, canDelete, onDelete, onPress }: Exp
   }))
 
   const handleDeletePress = () => {
-    translateX.value = withSpring(0)
+    translateX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
     onDelete?.()
   }
 
   const hasBottomRow = !!(timeRange || experience.confirmation_code)
 
+  // Width only known after first layout — card is hidden until then to avoid flash
+  const rowWidth = containerWidth > 0 ? containerWidth + (canDelete ? DELETE_WIDTH : 0) : undefined
+  const cardWidth = containerWidth > 0 ? containerWidth : undefined
+
   return (
     <View
       className="rounded-2xl"
-      style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 }}
+      style={{
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        opacity: containerWidth > 0 ? 1 : 0,
+      }}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width
+        if (w > 0 && w !== containerWidth) setContainerWidth(w)
+      }}
     >
       <View className="overflow-hidden rounded-2xl">
-        {canDelete && (
-          <View className="absolute right-0 top-0 bottom-0 w-[76px] bg-error items-center justify-center">
-            <TouchableOpacity onPress={handleDeletePress} className="items-center justify-center p-4">
+        <Animated.View style={[{ flexDirection: 'row', width: rowWidth }, cardStyle]}>
+          <GestureDetector gesture={pan}>
+            <View style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}>
+              <TouchableOpacity
+                onPress={onPress}
+                className="bg-white px-4 pt-3 pb-3"
+                activeOpacity={0.7}
+              >
+                {/* Badge row */}
+                <View className="flex-row gap-1.5 mb-2">
+                  <Badge
+                    label={EXPERIENCE_TYPE_LABELS[experience.type]}
+                    variant={TYPE_BADGE_VARIANT[experience.type]}
+                  />
+                  {experience.type === 'accommodation' && experience.confirmation_code && (
+                    <Badge label="Check-in" variant="neutral" />
+                  )}
+                </View>
+
+                {/* Title */}
+                <Text className="text-base font-semibold text-neutral-900 mb-0.5" numberOfLines={2}>
+                  {experience.title}
+                </Text>
+
+                {/* Location subtitle */}
+                {location?.name && (
+                  <View className="flex-row items-center gap-1 mt-0.5">
+                    <Ionicons name="location-outline" size={12} color="#94a3b8" />
+                    <Text className="text-xs text-neutral-400 flex-1" numberOfLines={1}>
+                      {location.name}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Bottom row: time range + confirmation code */}
+                {hasBottomRow && (
+                  <View className="flex-row items-center gap-2 mt-2.5 pt-2.5 border-t border-neutral-100">
+                    {timeRange && (
+                      <View className="flex-row items-center gap-1">
+                        <Ionicons name="time-outline" size={12} color="#525252" />
+                        <Text className="text-sm font-semibold text-neutral-700">
+                          {timeRange}
+                        </Text>
+                      </View>
+                    )}
+                    {experience.confirmation_code && (
+                      <>
+                        {timeRange && (
+                          <Text className="text-neutral-300 text-sm">•</Text>
+                        )}
+                        <Text className="text-xs text-neutral-400">
+                          + Reserva {experience.confirmation_code}
+                        </Text>
+                      </>
+                    )}
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          </GestureDetector>
+
+          {canDelete && (
+            <TouchableOpacity
+              onPress={handleDeletePress}
+              className="bg-error items-center justify-center"
+              style={{ width: DELETE_WIDTH }}
+              activeOpacity={0.8}
+            >
               <Ionicons name="trash-outline" size={20} color="#ffffff" />
             </TouchableOpacity>
-          </View>
-        )}
-
-        <GestureDetector gesture={pan}>
-          <Animated.View style={cardStyle}>
-            <TouchableOpacity
-              onPress={onPress}
-              className="bg-white px-4 pt-3 pb-3 rounded-2xl"
-              activeOpacity={0.7}
-            >
-              {/* Badge row */}
-              <View className="flex-row gap-1.5 mb-2">
-                <Badge
-                  label={EXPERIENCE_TYPE_LABELS[experience.type]}
-                  variant={TYPE_BADGE_VARIANT[experience.type]}
-                />
-                {experience.type === 'accommodation' && experience.confirmation_code && (
-                  <Badge label="Check-in" variant="neutral" />
-                )}
-              </View>
-
-              {/* Title */}
-              <Text className="text-base font-semibold text-neutral-900 mb-0.5" numberOfLines={2}>
-                {experience.title}
-              </Text>
-
-              {/* Location subtitle */}
-              {location?.name && (
-                <View className="flex-row items-center gap-1 mt-0.5">
-                  <Ionicons name="location-outline" size={12} color="#94a3b8" />
-                  <Text className="text-xs text-neutral-400 flex-1" numberOfLines={1}>
-                    {location.name}
-                  </Text>
-                </View>
-              )}
-
-              {/* Bottom row: time range + confirmation code */}
-              {hasBottomRow && (
-                <View className="flex-row items-center gap-2 mt-2.5 pt-2.5 border-t border-neutral-100">
-                  {timeRange && (
-                    <View className="flex-row items-center gap-1">
-                      <Ionicons name="time-outline" size={12} color="#525252" />
-                      <Text className="text-sm font-semibold text-neutral-700">
-                        {timeRange}
-                      </Text>
-                    </View>
-                  )}
-                  {experience.confirmation_code && (
-                    <>
-                      {timeRange && (
-                        <Text className="text-neutral-300 text-sm">•</Text>
-                      )}
-                      <Text className="text-xs text-neutral-400">
-                        + Reserva {experience.confirmation_code}
-                      </Text>
-                    </>
-                  )}
-                </View>
-              )}
-            </TouchableOpacity>
-          </Animated.View>
-        </GestureDetector>
+          )}
+        </Animated.View>
       </View>
     </View>
   )
-}
+})

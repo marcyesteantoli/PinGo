@@ -37,31 +37,36 @@ export function DocumentCard({ document }: DocumentCardProps) {
   }
 
   return (
-    <TouchableOpacity
-      onPress={handleOpen}
-      className="bg-white rounded-2xl p-4 shadow-sm flex-row items-center gap-3"
-      activeOpacity={0.7}
+    <View
+      className="rounded-2xl"
+      style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 }}
     >
-      <View className={`w-10 h-10 rounded-xl items-center justify-center ${getFileBg(document.file_type)}`}>
-        <Ionicons
-          name={getFileIcon(document.file_type)}
-          size={20}
-          color={getFileIconColor(document.file_type)}
-        />
-      </View>
+      <TouchableOpacity
+        onPress={handleOpen}
+        className="bg-white rounded-2xl p-4 flex-row items-center gap-3"
+        activeOpacity={0.7}
+      >
+        <View className={`w-10 h-10 rounded-xl items-center justify-center ${getFileBg(document.file_type)}`}>
+          <Ionicons
+            name={getFileIcon(document.file_type)}
+            size={20}
+            color={getFileIconColor(document.file_type)}
+          />
+        </View>
 
-      <View className="flex-1 gap-0.5">
-        <Text className="text-sm font-semibold text-neutral-900" numberOfLines={1}>
-          {document.name}
-        </Text>
-        {document.experience_title && (
-          <Text className="text-xs text-neutral-400" numberOfLines={1}>
-            {document.experience_title}
+        <View className="flex-1 gap-0.5">
+          <Text className="text-sm font-semibold text-neutral-900" numberOfLines={1}>
+            {document.name}
           </Text>
-        )}
-      </View>
+          {document.experience_title && (
+            <Text className="text-xs text-neutral-400" numberOfLines={1}>
+              {document.experience_title}
+            </Text>
+          )}
+        </View>
 
-      <Ionicons name="open-outline" size={18} color="#c5ced8" />
-    </TouchableOpacity>
+        <Ionicons name="open-outline" size={18} color="#c5ced8" />
+      </TouchableOpacity>
+    </View>
   )
 }

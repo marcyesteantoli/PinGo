@@ -1,3 +1,8 @@
+---
+name: architecture
+description: Experto en arquitectura del proyecto. Usar para estructura de carpetas, TypeScript types, patrones de código, performance y convenciones.
+---
+
 # Agente: Arquitectura del Proyecto
 
 ## Rol

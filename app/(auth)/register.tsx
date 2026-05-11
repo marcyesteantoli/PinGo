@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
@@ -12,6 +13,8 @@ import { registerSchema, type RegisterFormData } from '@features/auth/types'
 export default function RegisterScreen() {
   const router = useRouter()
   const signUp = useSignUp()
+  const emailRef = useRef<TextInput>(null)
+  const passwordRef = useRef<TextInput>(null)
 
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -56,6 +59,10 @@ export default function RegisterScreen() {
                   autoCapitalize="words"
                   autoComplete="name"
                   error={errors.name?.message}
+                  accessibilityLabel="Campo de nombre"
+                  returnKeyType="next"
+                  onSubmitEditing={() => emailRef.current?.focus()}
+                  blurOnSubmit={false}
                 />
               )}
             />
@@ -65,6 +72,7 @@ export default function RegisterScreen() {
               name="email"
               render={({ field: { onChange, value } }) => (
                 <Input
+                  ref={emailRef}
                   label="Email"
                   placeholder="tu@email.com"
                   value={value}
@@ -73,6 +81,10 @@ export default function RegisterScreen() {
                   autoCapitalize="none"
                   autoComplete="email"
                   error={errors.email?.message}
+                  accessibilityLabel="Campo de email"
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  blurOnSubmit={false}
                 />
               )}
             />
@@ -82,6 +94,7 @@ export default function RegisterScreen() {
               name="password"
               render={({ field: { onChange, value } }) => (
                 <Input
+                  ref={passwordRef}
                   label="Contraseña"
                   placeholder="Mínimo 6 caracteres"
                   value={value}
@@ -89,6 +102,9 @@ export default function RegisterScreen() {
                   secureTextEntry
                   autoComplete="new-password"
                   error={errors.password?.message}
+                  accessibilityLabel="Campo de contraseña"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSubmit(onSubmit)}
                 />
               )}
             />

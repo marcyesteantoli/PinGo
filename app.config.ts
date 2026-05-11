@@ -26,8 +26,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     package: 'com.tfm.travelapp',
   },
   plugins: [
+    'expo-dev-client',
     'expo-router',
     'expo-secure-store',
+    'expo-font',
     [
       'expo-image-picker',
       { photosPermission: 'La app necesita acceso a tus fotos para añadir recuerdos.' },

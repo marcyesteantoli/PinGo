@@ -1,3 +1,4 @@
+import { ReactNode } from 'react'
 import { ActivityIndicator, Text, TouchableOpacity } from 'react-native'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive'
@@ -9,7 +10,7 @@ interface ButtonProps {
   size?: ButtonSize
   isLoading?: boolean
   disabled?: boolean
-  children: string
+  children: ReactNode
   className?: string
 }
 
@@ -25,8 +26,8 @@ const variantClasses: Record<ButtonVariant, { container: string; text: string; s
     spinner: '#ffffff',
   },
   ghost: {
-    container: 'border border-neutral-200 bg-transparent active:bg-neutral-100',
-    text: 'text-neutral-700',
+    container: 'border border-neutral-200 bg-transparent active:bg-neutral-100 dark:border-neutral-600 dark:active:bg-neutral-800',
+    text: 'text-neutral-700 dark:text-neutral-200',
     spinner: '#4f5d75',
   },
   destructive: {
@@ -64,8 +65,10 @@ export function Button({
     >
       {isLoading ? (
         <ActivityIndicator size="small" color={v.spinner} />
-      ) : (
+      ) : typeof children === 'string' ? (
         <Text className={`${v.text} ${s.text}`}>{children}</Text>
+      ) : (
+        children
       )}
     </TouchableOpacity>
   )
