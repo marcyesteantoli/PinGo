@@ -43,20 +43,20 @@ export default function DashboardScreen() {
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-surface-900" edges={['top']}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-4">
-        <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">Mis viajes</Text>
+        <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50">Mis viajes</Text>
         <View className="flex-row gap-2">
-          <ThemeToggle className="border border-neutral-200 dark:border-surface-600 bg-white dark:bg-surface-800" />
+          <ThemeToggle className="bg-neutral-100 dark:bg-surface-700" />
           <TouchableOpacity
             onPress={() => setJoinSheetVisible(true)}
-            className="w-9 h-9 rounded-xl border border-neutral-200 dark:border-surface-600 bg-white dark:bg-surface-800 items-center justify-center"
+            className="w-11 h-11 rounded-[10px] bg-neutral-100 dark:bg-surface-700 items-center justify-center"
           >
-            <Ionicons name="enter-outline" size={18} color={isDark ? '#94a3b8' : '#737373'} />
+            <Ionicons name="enter-outline" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push('/(app)/trips/new')}
-            className="w-9 h-9 rounded-xl bg-primary-500 items-center justify-center"
+            className="w-11 h-11 rounded-[10px] bg-primary-500 items-center justify-center"
           >
-            <Ionicons name="add" size={20} color="#ffffff" />
+            <Ionicons name="add" size={22} color="#ffffff" />
           </TouchableOpacity>
         </View>
       </View>

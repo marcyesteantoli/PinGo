@@ -38,11 +38,11 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="items-center mb-10 gap-3">
-            <View className="w-16 h-16 rounded-2xl bg-primary-500 items-center justify-center">
+            <View className="w-16 h-16 rounded-[22px] bg-primary-500 items-center justify-center">
               <Ionicons name="airplane" size={32} color="#ffffff" />
             </View>
-            <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">Bienvenido</Text>
-            <Text className="text-base text-neutral-500 dark:text-neutral-400">Inicia sesión para continuar</Text>
+            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50">Bienvenido</Text>
+            <Text className="text-[17px] text-neutral-500 dark:text-neutral-400">Inicia sesión para continuar</Text>
           </View>
 
           <View className="gap-4">

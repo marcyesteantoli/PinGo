@@ -75,13 +75,13 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
 
   return (
     <View
-      className="rounded-2xl"
+      className="rounded-[12px]"
       style={{
-        elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 2,
         opacity: containerWidth > 0 ? 1 : 0,
       }}
       onLayout={(e) => {
@@ -89,7 +89,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
         if (w > 0 && w !== containerWidth) setContainerWidth(w)
       }}
     >
-      <View className="overflow-hidden rounded-2xl">
+      <View className="overflow-hidden rounded-[12px]">
         <Animated.View style={[{ flexDirection: 'row', width: rowWidth }, cardStyle]}>
           <GestureDetector gesture={pan}>
             <View style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}>

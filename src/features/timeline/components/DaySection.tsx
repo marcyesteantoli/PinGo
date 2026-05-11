@@ -16,17 +16,15 @@ export function DaySection({ date, count }: DaySectionProps) {
 
       {isToday ? (
         <View className="flex-row items-center gap-2 flex-1">
-          <Text className="text-lg font-semibold text-primary-500 dark:text-primary-400 tracking-wide">
+          <Text className="text-xs font-semibold text-primary-500 dark:text-primary-400 uppercase tracking-wider">
             {formatDateWithWeekday(date)}
           </Text>
-          <View className="bg-primary-500 px-1.5 py-0.5 rounded-full">
-            <Text className="text-[10px] font-bold text-white uppercase tracking-wider">
-              Hoy
-            </Text>
+          <View className="bg-primary-500 px-2 py-0.5 rounded-full">
+            <Text className="text-[10px] font-bold text-white uppercase tracking-wider">Hoy</Text>
           </View>
         </View>
       ) : (
-        <Text className="text-base font-bold text-neutral-900 dark:text-neutral-50 tracking-wide flex-1">
+        <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider flex-1">
           {isUndated ? 'Sin fecha' : formatDateWithWeekday(date)}
         </Text>
       )}

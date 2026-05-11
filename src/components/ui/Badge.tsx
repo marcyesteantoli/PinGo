@@ -27,7 +27,7 @@ const variantClasses: Record<BadgeVariant, { container: string; text: string }> 
   error: { container: 'bg-red-100', text: 'text-red-700' },
   neutral: { container: 'bg-neutral-100', text: 'text-neutral-700' },
   transport: { container: 'bg-sky-100', text: 'text-sky-700' },
-  accommodation: { container: 'bg-purple-100', text: 'text-purple-700' },
+  accommodation: { container: 'bg-secondary-100', text: 'text-secondary-700' },
   activity: { container: 'bg-orange-100', text: 'text-orange-700' },
   restaurant: { container: 'bg-amber-100', text: 'text-amber-700' },
   other: { container: 'bg-neutral-100', text: 'text-neutral-500' },

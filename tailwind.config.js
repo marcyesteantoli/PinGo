@@ -106,10 +106,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans:           ['PlusJakartaSans-Regular', 'System'],
-        'sans-medium':  ['PlusJakartaSans-Medium', 'System'],
-        'sans-semibold':['PlusJakartaSans-SemiBold', 'System'],
-        'sans-bold':    ['PlusJakartaSans-Bold', 'System'],
+        sans: ['System', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
     },
   },

@@ -80,16 +80,16 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
           }}
         >
           <Text
-            className="text-[26px] font-bold text-neutral-900 dark:text-neutral-50 leading-tight mb-1"
+            className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 leading-tight mb-1"
             numberOfLines={3}
           >
             {trip.title}
           </Text>
 
           <View className="flex-row items-center flex-wrap pb-5">
-            <Text className="text-sm font-medium text-primary-500">{dateRange}</Text>
-            <Text className="text-sm text-neutral-400 dark:text-neutral-500">
-              {' '}• {travelerCount} {travelerCount === 1 ? 'Viajero' : 'Viajeros'}
+            <Text className="text-[15px] font-medium text-primary-500">{dateRange}</Text>
+            <Text className="text-[15px] text-neutral-400 dark:text-neutral-500">
+              {' '}· {travelerCount} {travelerCount === 1 ? 'viajero' : 'viajeros'}
             </Text>
           </View>
         </Animated.View>

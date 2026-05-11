@@ -39,12 +39,12 @@ export function UndoToast({ visible, message, onUndo }: UndoToastProps) {
       ]}
     >
       <View
-        className="bg-primary-50 dark:bg-surface-800 rounded-2xl px-4 py-3.5 flex-row items-center border border-primary-200 dark:border-surface-600"
-        style={{ elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8 }}
+        className="bg-neutral-900/90 dark:bg-surface-600 rounded-full px-5 py-3 flex-row items-center"
+        style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 4 }}
       >
-        <Text className="text-primary-900 dark:text-neutral-100 text-sm flex-1" numberOfLines={1}>{message}</Text>
-        <TouchableOpacity onPress={onUndo} className="ml-4 py-0.5">
-          <Text className="text-primary-600 dark:text-primary-400 text-sm font-semibold">Deshacer</Text>
+        <Text className="text-white text-[15px] flex-1" numberOfLines={1}>{message}</Text>
+        <TouchableOpacity onPress={onUndo} className="ml-4 py-0.5 min-h-[44px] justify-center">
+          <Text className="text-primary-400 text-[15px] font-semibold">Deshacer</Text>
         </TouchableOpacity>
       </View>
     </Animated.View>

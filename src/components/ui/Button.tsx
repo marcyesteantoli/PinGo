@@ -38,9 +38,9 @@ const variantClasses: Record<ButtonVariant, { container: string; text: string; s
 }
 
 const sizeClasses: Record<ButtonSize, { container: string; text: string }> = {
-  sm: { container: 'px-3 py-2 rounded-xl', text: 'text-sm font-medium' },
-  md: { container: 'px-5 py-3 rounded-2xl', text: 'text-base font-semibold' },
-  lg: { container: 'px-6 py-4 rounded-2xl', text: 'text-lg font-semibold' },
+  sm: { container: 'px-4 py-2 rounded-full', text: 'text-[15px] font-medium' },
+  md: { container: 'px-5 py-[11px] rounded-[10px]', text: 'text-[17px] font-semibold' },
+  lg: { container: 'px-6 py-[13px] rounded-[14px]', text: 'text-[17px] font-semibold' },
 }
 
 export function Button({
@@ -60,7 +60,7 @@ export function Button({
     <TouchableOpacity
       onPress={onPress}
       disabled={isDisabled}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
       className={`flex-row items-center justify-center ${v.container} ${s.container} ${isDisabled ? 'opacity-50' : ''} ${className}`}
     >
       {isLoading ? (

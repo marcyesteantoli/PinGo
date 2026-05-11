@@ -11,16 +11,16 @@ export const Input = forwardRef<TextInput, InputProps & { className?: string }>(
     return (
       <View className="gap-1">
         {label && (
-          <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</Text>
+          <Text className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400">{label}</Text>
         )}
         <TextInput
           ref={ref}
-          className={`border rounded-xl px-4 py-3 text-base text-neutral-900 bg-white dark:bg-surface-800 dark:border-surface-600 dark:text-neutral-50 ${error ? 'border-error' : 'border-neutral-200'} ${className}`}
-          placeholderTextColor="#8d99ae"
+          className={`rounded-[10px] px-4 py-[11px] text-[17px] text-neutral-900 dark:text-neutral-50 ${error ? 'bg-red-50 dark:bg-red-900/20' : 'bg-neutral-100 dark:bg-surface-700'} ${className}`}
+          placeholderTextColor="#94a3b8"
           {...props}
         />
         {error && (
-          <Text className="text-xs text-error">{error}</Text>
+          <Text className="text-[13px] text-error">{error}</Text>
         )}
       </View>
     )

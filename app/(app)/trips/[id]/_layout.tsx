@@ -13,11 +13,15 @@ export default function TripLayout() {
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: '#06b6d4',
-          tabBarInactiveTintColor: isDark ? '#94a3b8' : '#64748b',
+          tabBarInactiveTintColor: isDark ? '#64748b' : '#94a3b8',
           tabBarStyle: {
-            backgroundColor: isDark ? '#142033' : '#ffffff',
-            borderTopColor: isDark ? '#1e2c42' : '#e2e8f5',
-            borderTopWidth: 1,
+            backgroundColor: isDark ? 'rgba(20,32,51,0.97)' : 'rgba(255,255,255,0.97)',
+            borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
+            borderTopWidth: 0.5,
+          },
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontWeight: '500',
           },
         }}
       >
@@ -25,8 +29,8 @@ export default function TripLayout() {
           name="timeline"
           options={{
             title: 'Timeline',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="calendar-outline" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={size} color={color} />
             ),
           }}
         />
@@ -34,8 +38,8 @@ export default function TripLayout() {
           name="documents"
           options={{
             title: 'Documentos',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="document-text-outline" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons name={focused ? 'document-text' : 'document-text-outline'} size={size} color={color} />
             ),
           }}
         />
@@ -43,8 +47,8 @@ export default function TripLayout() {
           name="expenses"
           options={{
             title: 'Gastos',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="wallet-outline" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons name={focused ? 'wallet' : 'wallet-outline'} size={size} color={color} />
             ),
           }}
         />
@@ -52,8 +56,8 @@ export default function TripLayout() {
           name="memories"
           options={{
             title: 'Recuerdos',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="images-outline" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons name={focused ? 'images' : 'images-outline'} size={size} color={color} />
             ),
           }}
         />

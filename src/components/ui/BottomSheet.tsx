@@ -1,6 +1,22 @@
-import { ReactNode } from 'react'
-import { Modal, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
+import { ReactNode, useEffect, useState } from 'react'
+import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+const OFFSCREEN_Y = 1000
+const CLOSE_THRESHOLD = 80
+
+const OPEN_TIMING = { duration: 380, easing: Easing.bezier(0.25, 1, 0.5, 1) }
+const CLOSE_TIMING = { duration: 260, easing: Easing.bezier(0.4, 0, 1, 1) }
+const SNAP_SPRING = { damping: 40, stiffness: 400, mass: 1 }
 
 interface BottomSheetProps {
   visible: boolean
@@ -12,36 +28,100 @@ interface BottomSheetProps {
 export function BottomSheet({ visible, onClose, title, children }: BottomSheetProps) {
   const insets = useSafeAreaInsets()
   const paddingBottom = Math.max(insets.bottom + 16, 32)
+  const [modalVisible, setModalVisible] = useState(false)
+
+  const translateY = useSharedValue(OFFSCREEN_Y)
+  const backdropOpacity = useSharedValue(0)
+
+  useEffect(() => {
+    if (visible) {
+      translateY.value = OFFSCREEN_Y
+      backdropOpacity.value = 0
+      setModalVisible(true)
+    } else {
+      backdropOpacity.value = withTiming(0, { duration: 220 })
+      translateY.value = withTiming(OFFSCREEN_Y, CLOSE_TIMING, () => {
+        setModalVisible(false)
+      })
+    }
+  }, [visible])
+
+  useEffect(() => {
+    if (modalVisible) {
+      translateY.value = withTiming(0, OPEN_TIMING)
+      backdropOpacity.value = withTiming(1, { duration: 280 })
+    }
+  }, [modalVisible])
+
+  const gesture = Gesture.Pan()
+    .onUpdate((e) => {
+      if (e.translationY > 0) {
+        translateY.value = e.translationY
+        backdropOpacity.value = Math.max(0, 1 - e.translationY / 300)
+      }
+    })
+    .onEnd((e) => {
+      if (e.translationY > CLOSE_THRESHOLD || e.velocityY > 700) {
+        runOnJS(onClose)()
+      } else {
+        translateY.value = withSpring(0, SNAP_SPRING)
+        backdropOpacity.value = withTiming(1, { duration: 200 })
+      }
+    })
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }))
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }))
 
   return (
     <Modal
-      visible={visible}
+      visible={modalVisible}
       transparent
-      animationType="slide"
+      animationType="none"
       onRequestClose={onClose}
       statusBarTranslucent
     >
       <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <TouchableWithoutFeedback onPress={onClose}>
-          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)' }} />
-        </TouchableWithoutFeedback>
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+            },
+            backdropStyle,
+          ]}
+        >
+          <Pressable style={{ flex: 1 }} onPress={onClose} />
+        </Animated.View>
 
-        <View className="bg-white dark:bg-surface-800 rounded-t-3xl px-5" style={{ paddingBottom }}>
-          <View className="items-center pt-3 pb-4">
-            <View className="w-10 h-1 rounded-full bg-neutral-200 dark:bg-surface-600" />
-          </View>
+        <Animated.View style={sheetStyle}>
+          <View className="bg-white dark:bg-surface-800 rounded-t-[28px] px-5" style={{ paddingBottom }}>
+          <GestureDetector gesture={gesture}>
+            <View style={{ width: '100%', alignItems: 'center', paddingTop: 12, paddingBottom: 16 }}>
+              <View className="w-9 h-[5px] rounded-full bg-neutral-300 dark:bg-surface-500" />
+            </View>
+          </GestureDetector>
 
           {title && (
             <View className="flex-row items-center justify-between mb-5">
-              <Text className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">{title}</Text>
-              <TouchableOpacity onPress={onClose} className="p-1">
-                <Text className="text-sm text-neutral-500 dark:text-neutral-400">Cerrar</Text>
+              <Text className="text-[20px] font-semibold text-neutral-900 dark:text-neutral-50">{title}</Text>
+              <TouchableOpacity onPress={onClose} className="p-2 -mr-1">
+                <Text className="text-[17px] text-primary-500 dark:text-primary-400">Cerrar</Text>
               </TouchableOpacity>
             </View>
           )}
 
           {children}
-        </View>
+          </View>
+        </Animated.View>
       </View>
     </Modal>
   )
