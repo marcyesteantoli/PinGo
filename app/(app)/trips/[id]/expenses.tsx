@@ -58,7 +58,7 @@ export default function ExpensesScreen() {
   }
 
   return (
-    <View className="flex-1 bg-neutral-50 dark:bg-surface-900">
+    <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
       <TripHeader scrollY={scrollY} />
 
       {isLoading ? (

@@ -55,7 +55,7 @@ export default function DashboardScreen() {
   const displayedTrips = segment === 'upcoming' ? upcomingTrips : pastTrips
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-surface-900" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-4">
         <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50">Mis viajes</Text>
@@ -72,7 +72,7 @@ export default function DashboardScreen() {
       </View>
 
       {/* Segmented control */}
-      <View className="mx-5 mb-4 flex-row bg-neutral-100 dark:bg-surface-700 rounded-[10px] p-1">
+      <View className="mx-5 mb-4 flex-row bg-neutral-200 dark:bg-surface-700 rounded-[10px] p-1">
         {SEGMENTS.map(({ key, label }) => {
           const isActive = segment === key
           return (

@@ -1,5 +1,5 @@
 import { Controller, useForm } from 'react-hook-form'
-import { Text, View } from 'react-native'
+import { Image, Text, View } from 'react-native'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
@@ -10,9 +10,17 @@ interface AddMemoryCaptionProps {
   onSubmit: (caption?: string) => void
   isLoading?: boolean
   error?: string | null
+  imageUri?: string
 }
 
-export function AddMemoryCaption({ visible, onClose, onSubmit, isLoading, error }: AddMemoryCaptionProps) {
+export function AddMemoryCaption({
+  visible,
+  onClose,
+  onSubmit,
+  isLoading,
+  error,
+  imageUri,
+}: AddMemoryCaptionProps) {
   const { control, handleSubmit, reset } = useForm<{ caption: string }>({
     defaultValues: { caption: '' },
   })
@@ -30,6 +38,14 @@ export function AddMemoryCaption({ visible, onClose, onSubmit, isLoading, error 
   return (
     <BottomSheet visible={visible} onClose={handleClose} title="Añadir recuerdo">
       <View className="gap-4 pb-4">
+        {imageUri && (
+          <Image
+            source={{ uri: imageUri }}
+            style={{ width: '100%', height: 200, borderRadius: 12 }}
+            resizeMode="cover"
+          />
+        )}
+
         <Controller
           control={control}
           name="caption"
@@ -51,12 +67,8 @@ export function AddMemoryCaption({ visible, onClose, onSubmit, isLoading, error 
           <Text className="text-sm text-error text-center">{error}</Text>
         )}
 
-        <Button
-          onPress={handleSubmit(handleSubmitForm)}
-          isLoading={isLoading}
-          size="lg"
-        >
-          Seleccionar foto
+        <Button onPress={handleSubmit(handleSubmitForm)} isLoading={isLoading} size="lg">
+          {imageUri ? 'Añadir recuerdo' : 'Seleccionar foto'}
         </Button>
       </View>
     </BottomSheet>

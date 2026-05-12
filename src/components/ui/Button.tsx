@@ -27,7 +27,7 @@ const variantClasses: Record<ButtonVariant, { container: string; text: string; s
     spinner: colors.white,
   },
   ghost: {
-    container: 'border border-neutral-200 bg-transparent active:bg-neutral-100 dark:border-neutral-600 dark:active:bg-neutral-800',
+    container: 'border border-neutral-300 bg-transparent active:bg-neutral-100 dark:border-neutral-600 dark:active:bg-neutral-800',
     text: 'text-neutral-700 dark:text-neutral-200',
     spinner: colors.neutral[600],
   },

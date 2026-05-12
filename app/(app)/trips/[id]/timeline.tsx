@@ -195,7 +195,7 @@ export default function TimelineScreen() {
                 <View className={
                   entry.isToday
                     ? 'mt-2 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-neutral-900'
-                    : 'mt-2 w-3 h-3 rounded-full bg-neutral-400 dark:bg-neutral-500'
+                    : 'mt-2 w-3 h-3 rounded-full bg-neutral-400 dark:bg-neutral-1000'
                 } />
                 <View className="h-2" />
                 <View className="flex-1 w-[3px] bg-neutral-300 dark:bg-neutral-600 rounded-t-full" />
@@ -227,7 +227,7 @@ export default function TimelineScreen() {
   }, [isOwner, handleDeleteIntent])
 
   return (
-    <View className="flex-1 bg-neutral-50 dark:bg-surface-900">
+    <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
       <TripHeader scrollY={scrollY} />
 
       {isLoading ? (

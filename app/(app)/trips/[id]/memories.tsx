@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { Alert, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Text, TouchableOpacity, View } from 'react-native'
+import * as ImagePicker from 'expo-image-picker'
 import { useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
@@ -16,46 +17,90 @@ import { useDeleteMemory } from '@features/memories/hooks/useDeleteMemory'
 import { useMemories } from '@features/memories/hooks/useMemories'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { LIMITS } from '@/config/limits'
+import { DEV_MODE } from '@/dev/mockData'
 import type { Memory } from '@types/index'
 
 export default function MemoriesScreen() {
   const { tripId, isOwner, collaborators } = useTripContext()
-  const { data: memories, isLoading, refetch } = useMemories(tripId)
+  const { data: memories, isLoading } = useMemories(tripId)
   const addMemory = useAddMemory()
   const deleteMemory = useDeleteMemory()
   const { data: currentUser } = useCurrentUser()
-  const [captionSheetVisible, setCaptionSheetVisible] = useState(false)
-  const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null)
-  const insets = useSafeAreaInsets()
 
+  const [captionSheetVisible, setCaptionSheetVisible] = useState(false)
+  const [pendingAsset, setPendingAsset] = useState<ImagePicker.ImagePickerAsset | null>(null)
+  const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null)
+
+  const insets = useSafeAreaInsets()
   const count = memories?.length ?? 0
   const scrollY = useSharedValue(0)
 
   const getUploader = (userId: string) => collaborators.find((c) => c.user_id === userId)
 
+  // Flujo: FAB → galería → preview+caption → subir
+  const handlePickImage = async () => {
+    // 1. Verificar límite antes de abrir el picker
+    if (count >= LIMITS.MAX_PHOTOS_PER_TRIP) return
+
+    // En DEV_MODE simulamos una imagen de galería con picsum para ver el flujo real
+    if (DEV_MODE) {
+      const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara']
+      const seed = seeds[Math.floor(Math.random() * seeds.length)]
+      setPendingAsset({ uri: `https://picsum.photos/seed/${seed}${Date.now()}/800/600` } as ImagePicker.ImagePickerAsset)
+      setCaptionSheetVisible(true)
+      return
+    }
+
+    // 2. Pedir permiso
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== 'granted') {
+      Alert.alert(
+        'Acceso a fotos denegado',
+        'Ve a Ajustes > Privacidad > Fotos y permite el acceso a TripSync.',
+        [{ text: 'Entendido', style: 'default' }]
+      )
+      return
+    }
+
+    // 3. Abrir galería
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 1,
+      allowsEditing: false,
+    })
+
+    if (result.canceled || !result.assets[0]) return
+
+    // 4. Guardar asset y mostrar sheet de caption
+    setPendingAsset(result.assets[0])
+    setCaptionSheetVisible(true)
+  }
+
   const handleAddMemory = async (caption?: string) => {
     try {
-      await addMemory.mutateAsync({ tripId, caption })
+      await addMemory.mutateAsync({ tripId, caption, asset: pendingAsset ?? undefined })
       setCaptionSheetVisible(false)
-    } catch (err: any) {
-      if (err?.code === 'NO_IMAGE_SELECTED') {
-        setCaptionSheetVisible(false)
-        return
-      }
-      // Otros errores se muestran en el sheet
+      setPendingAsset(null)
+    } catch {
+      // El error se muestra en el sheet a través de errorMessage
     }
+  }
+
+  const handleCloseSheet = () => {
+    setCaptionSheetVisible(false)
+    setPendingAsset(null)
+    addMemory.reset()
   }
 
   const errorMessage = (() => {
     const err = addMemory.error as any
     if (!err) return null
     if (err.code === 'LIMIT_REACHED') return err.message
-    if (err.code === 'PERMISSION_DENIED') return 'Ve a Ajustes > Privacidad para permitir el acceso a fotos.'
-    return err.message
+    return err.message ?? 'Ha ocurrido un error. Inténtalo de nuevo.'
   })()
 
   return (
-    <View className="flex-1 bg-neutral-50 dark:bg-surface-900">
+    <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
       <TripHeader scrollY={scrollY} />
 
       {/* Counter */}
@@ -77,7 +122,9 @@ export default function MemoriesScreen() {
 
       {isLoading ? (
         <View className="px-5 gap-3">
-          {[1, 2].map((i) => <SkeletonCard key={i} />)}
+          {[1, 2].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
         </View>
       ) : !memories?.length ? (
         <EmptyState
@@ -85,7 +132,7 @@ export default function MemoriesScreen() {
           title="Sin recuerdos"
           subtitle="Guarda los mejores momentos del viaje"
           actionLabel="Añadir foto"
-          onAction={() => setCaptionSheetVisible(true)}
+          onAction={handlePickImage}
         />
       ) : (
         <MemoryGrid
@@ -98,7 +145,7 @@ export default function MemoriesScreen() {
       {/* FAB */}
       {!isLoading && count < LIMITS.MAX_PHOTOS_PER_TRIP && (
         <TouchableOpacity
-          onPress={() => setCaptionSheetVisible(true)}
+          onPress={handlePickImage}
           className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
           style={{ bottom: insets.bottom + 16, ...fabShadow }}
         >
@@ -108,10 +155,11 @@ export default function MemoriesScreen() {
 
       <AddMemoryCaption
         visible={captionSheetVisible}
-        onClose={() => setCaptionSheetVisible(false)}
+        onClose={handleCloseSheet}
         onSubmit={handleAddMemory}
         isLoading={addMemory.isPending}
         error={errorMessage}
+        imageUri={pendingAsset?.uri}
       />
 
       <MemoryDetail
@@ -123,8 +171,12 @@ export default function MemoriesScreen() {
           deleteMemory.mutate({ memoryId: id, tripId })
           setSelectedMemory(null)
         }}
-        uploaderName={selectedMemory ? (getUploader(selectedMemory.user_id)?.name ?? 'Desconocido') : undefined}
-        uploaderAvatar={selectedMemory ? getUploader(selectedMemory.user_id)?.avatar_url : undefined}
+        uploaderName={
+          selectedMemory ? (getUploader(selectedMemory.user_id)?.name ?? 'Desconocido') : undefined
+        }
+        uploaderAvatar={
+          selectedMemory ? getUploader(selectedMemory.user_id)?.avatar_url : undefined
+        }
       />
     </View>
   )

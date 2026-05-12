@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { Image, Modal, Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Avatar } from '@components/ui/Avatar'
 import type { Memory } from '@types/index'
 import { colors } from '@lib/colors'
@@ -24,6 +24,8 @@ export function MemoryDetail({
   uploaderName = 'Desconocido',
   uploaderAvatar,
 }: MemoryDetailProps) {
+  const insets = useSafeAreaInsets()
+
   if (!memory) return null
 
   return (
@@ -31,9 +33,8 @@ export function MemoryDetail({
       visible={visible}
       animationType="fade"
       onRequestClose={onClose}
-      statusBarTranslucent
     >
-      <SafeAreaView className="flex-1 bg-black" edges={['top', 'bottom']}>
+      <View className="flex-1 bg-black" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
         {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3">
           <TouchableOpacity
@@ -56,7 +57,7 @@ export function MemoryDetail({
         {/* Image */}
         <Image
           source={{ uri: memory.image_url }}
-          className="flex-1"
+          className="flex-1 w-full"
           resizeMode="contain"
         />
 
@@ -70,7 +71,7 @@ export function MemoryDetail({
             <Text className="text-neutral-400 text-sm">{uploaderName}</Text>
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   )
 }

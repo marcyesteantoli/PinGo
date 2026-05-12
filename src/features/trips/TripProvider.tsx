@@ -70,7 +70,7 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
 
   if (error || !data?.trip) {
     return (
-      <View className="flex-1 items-center justify-center px-6 gap-4 bg-neutral-50">
+      <View className="flex-1 items-center justify-center px-6 gap-4 bg-neutral-100">
         <Text className="text-base text-neutral-600 text-center">
           {error ? 'Error al cargar el viaje.' : 'Este viaje no está disponible.'}
         </Text>

@@ -7,56 +7,16 @@ import { LIMITS } from '@/config/limits'
 import { DEV_MODE, DEMO_USER_ID, mockMemories } from '@/dev/mockData'
 import type { Memory } from '@types/index'
 
-type AddMemoryParams = {
+export type AddMemoryParams = {
   tripId: string
   caption?: string
+  asset?: ImagePicker.ImagePickerAsset // undefined en DEV_MODE
 }
 
 type AddMemoryError =
   | { code: 'LIMIT_REACHED'; message: string }
-  | { code: 'PERMISSION_DENIED'; message: string }
-  | { code: 'NO_IMAGE_SELECTED'; message: string }
   | { code: 'UPLOAD_FAILED'; message: string }
   | { code: 'DB_FAILED'; message: string }
-
-async function pickAndValidate(tripId: string): Promise<ImagePicker.ImagePickerAsset> {
-  // 1. Verificar límite ANTES de abrir la galería
-  const { count, error: countError } = await supabase
-    .from('memories')
-    .select('*', { count: 'exact', head: true })
-    .eq('trip_id', tripId)
-
-  if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' }
-
-  if ((count ?? 0) >= LIMITS.MAX_PHOTOS_PER_TRIP) {
-    throw {
-      code: 'LIMIT_REACHED',
-      message: `Este viaje ha alcanzado el límite de ${LIMITS.MAX_PHOTOS_PER_TRIP} fotos.`,
-    } satisfies AddMemoryError
-  }
-
-  // 2. Verificar permiso
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-  if (status !== 'granted') {
-    throw {
-      code: 'PERMISSION_DENIED',
-      message: 'Necesitamos acceso a tus fotos para añadir recuerdos.',
-    } satisfies AddMemoryError
-  }
-
-  // 3. Abrir galería
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 1, // sin compresión aquí — la hacemos nosotros
-    allowsEditing: false,
-  })
-
-  if (result.canceled || !result.assets[0]) {
-    throw { code: 'NO_IMAGE_SELECTED', message: '' } satisfies AddMemoryError
-  }
-
-  return result.assets[0]
-}
 
 async function uploadMemory(
   asset: ImagePicker.ImagePickerAsset,
@@ -64,29 +24,34 @@ async function uploadMemory(
   userId: string,
   caption?: string
 ): Promise<Memory> {
-  // 4. Comprimir
+  // 1. Comprimir
   const compressed = await compressImage(asset.uri)
 
-  // 5. Preparar el fichero para upload
+  // 2. Preparar el fichero para upload
   const filename = `${userId}_${Date.now()}.jpg`
   const storagePath = `memories/${tripId}/${filename}`
 
   const response = await fetch(compressed.uri)
   const blob = await response.blob()
 
-  // 6. Subir a Storage
+  // 3. Subir a Storage
   const { error: uploadError } = await supabase.storage
     .from('memories')
     .upload(storagePath, blob, { contentType: 'image/jpeg', upsert: false })
 
   if (uploadError) {
-    throw { code: 'UPLOAD_FAILED', message: 'Error al subir la foto. Inténtalo de nuevo.' } satisfies AddMemoryError
+    throw {
+      code: 'UPLOAD_FAILED',
+      message: 'Error al subir la foto. Inténtalo de nuevo.',
+    } satisfies AddMemoryError
   }
 
-  // 7. Obtener URL pública
-  const { data: { publicUrl } } = supabase.storage.from('memories').getPublicUrl(storagePath)
+  // 4. Obtener URL pública
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from('memories').getPublicUrl(storagePath)
 
-  // 8. Insertar en BD — si falla, limpiar el archivo subido
+  // 5. Insertar en BD — si falla, limpiar el archivo subido
   const { data, error: dbError } = await supabase
     .from('memories')
     .insert({ trip_id: tripId, user_id: userId, image_url: publicUrl, caption })
@@ -96,7 +61,10 @@ async function uploadMemory(
   if (dbError) {
     // Limpieza: borrar el archivo huérfano de Storage
     await supabase.storage.from('memories').remove([storagePath])
-    throw { code: 'DB_FAILED', message: 'Error al guardar el recuerdo. Inténtalo de nuevo.' } satisfies AddMemoryError
+    throw {
+      code: 'DB_FAILED',
+      message: 'Error al guardar el recuerdo. Inténtalo de nuevo.',
+    } satisfies AddMemoryError
   }
 
   return data
@@ -106,7 +74,8 @@ export function useAddMemory() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ tripId, caption }: AddMemoryParams): Promise<Memory> => {
+    mutationFn: async ({ tripId, caption, asset }: AddMemoryParams): Promise<Memory> => {
+      // DEV_MODE: genera imagen mock aleatoria, ignora el asset real
       if (DEV_MODE) {
         const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara', 'nikko', 'hakone']
         const seed = seeds[Math.floor(Math.random() * seeds.length)]
@@ -123,10 +92,27 @@ export function useAddMemory() {
         return newMemory
       }
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw { code: 'DB_FAILED', message: 'No hay sesión activa.' }
+      // Double-check del límite antes del upload (el screen ya lo verifica antes de abrir el picker)
+      const { count, error: countError } = await supabase
+        .from('memories')
+        .select('*', { count: 'exact', head: true })
+        .eq('trip_id', tripId)
 
-      const asset = await pickAndValidate(tripId)
+      if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' }
+
+      if ((count ?? 0) >= LIMITS.MAX_PHOTOS_PER_TRIP) {
+        throw {
+          code: 'LIMIT_REACHED',
+          message: `Este viaje ha alcanzado el límite de ${LIMITS.MAX_PHOTOS_PER_TRIP} fotos.`,
+        } satisfies AddMemoryError
+      }
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw { code: 'DB_FAILED', message: 'No hay sesión activa.' } satisfies AddMemoryError
+
+      // El asset llega ya seleccionado desde el screen
+      if (!asset) throw { code: 'DB_FAILED', message: 'No se ha seleccionado ninguna imagen.' } satisfies AddMemoryError
+
       return uploadMemory(asset, tripId, user.id, caption)
     },
     onSuccess: (newMemory) => {

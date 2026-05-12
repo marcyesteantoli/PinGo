@@ -1,5 +1,5 @@
-import { ReactNode, useEffect, useState } from 'react'
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
   Easing,
@@ -13,9 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const OFFSCREEN_Y = 1000
 const CLOSE_THRESHOLD = 80
-
-const OPEN_TIMING = { duration: 380, easing: Easing.bezier(0.25, 1, 0.5, 1) }
-const CLOSE_TIMING = { duration: 260, easing: Easing.bezier(0.4, 0, 1, 1) }
 const SNAP_SPRING = { damping: 40, stiffness: 400, mass: 1 }
 
 interface BottomSheetProps {
@@ -30,6 +27,12 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
   const paddingBottom = Math.max(insets.bottom + 16, 32)
   const [modalVisible, setModalVisible] = useState(false)
 
+  // Easing.bezier must be inside the component, not at module level.
+  // At module level it runs before Reanimated's worklet runtime initializes on iOS,
+  // causing a silent native crash with no JS error.
+  const OPEN_TIMING = useMemo(() => ({ duration: 380, easing: Easing.bezier(0.25, 1, 0.5, 1) }), [])
+  const CLOSE_TIMING = useMemo(() => ({ duration: 260, easing: Easing.bezier(0.4, 0, 1, 1) }), [])
+
   const translateY = useSharedValue(OFFSCREEN_Y)
   const backdropOpacity = useSharedValue(0)
 
@@ -41,7 +44,7 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
     } else {
       backdropOpacity.value = withTiming(0, { duration: 220 })
       translateY.value = withTiming(OFFSCREEN_Y, CLOSE_TIMING, () => {
-        setModalVisible(false)
+        runOnJS(setModalVisible)(false)
       })
     }
   }, [visible])
@@ -53,6 +56,11 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
     }
   }, [modalVisible])
 
+  const handleGestureClose = useCallback(() => {
+    Keyboard.dismiss()
+    onClose()
+  }, [onClose])
+
   const gesture = Gesture.Pan()
     .onUpdate((e) => {
       if (e.translationY > 0) {
@@ -62,7 +70,7 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
     })
     .onEnd((e) => {
       if (e.translationY > CLOSE_THRESHOLD || e.velocityY > 700) {
-        runOnJS(onClose)()
+        runOnJS(handleGestureClose)()
       } else {
         translateY.value = withSpring(0, SNAP_SPRING)
         backdropOpacity.value = withTiming(1, { duration: 200 })
@@ -85,7 +93,10 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1, justifyContent: 'flex-end' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <Animated.View
           style={[
             {
@@ -99,30 +110,30 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
             backdropStyle,
           ]}
         >
-          <Pressable style={{ flex: 1 }} onPress={onClose} />
+          <Pressable style={{ flex: 1 }} onPress={() => { Keyboard.dismiss(); onClose() }} />
         </Animated.View>
 
         <Animated.View style={sheetStyle}>
           <View className="bg-white dark:bg-surface-800 rounded-t-[28px] px-5" style={{ paddingBottom }}>
-          <GestureDetector gesture={gesture}>
-            <View style={{ width: '100%', alignItems: 'center', paddingTop: 12, paddingBottom: 16 }}>
-              <View className="w-9 h-[5px] rounded-full bg-neutral-300 dark:bg-surface-500" />
-            </View>
-          </GestureDetector>
+            <GestureDetector gesture={gesture}>
+              <View style={{ width: '100%', alignItems: 'center', paddingTop: 12, paddingBottom: 16 }}>
+                <View className="w-9 h-[5px] rounded-full bg-neutral-300 dark:bg-surface-500" />
+              </View>
+            </GestureDetector>
 
-          {title && (
-            <View className="flex-row items-center justify-between mb-5">
-              <Text className="text-[20px] font-semibold text-neutral-900 dark:text-neutral-50">{title}</Text>
-              <TouchableOpacity onPress={onClose} className="p-2 -mr-1">
-                <Text className="text-[17px] text-primary-500 dark:text-primary-400">Cerrar</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+            {title && (
+              <View className="flex-row items-center justify-between mb-5">
+                <Text className="text-[20px] font-semibold text-neutral-900 dark:text-neutral-50">{title}</Text>
+                <TouchableOpacity onPress={() => { Keyboard.dismiss(); onClose() }} className="p-2 -mr-1">
+                  <Text className="text-[17px] text-primary-500 dark:text-primary-400">Cerrar</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
-          {children}
+            {children}
           </View>
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }
