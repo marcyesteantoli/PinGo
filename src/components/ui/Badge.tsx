@@ -3,6 +3,7 @@ import { Text, View } from 'react-native'
 export type BadgeVariant =
   | 'primary'
   | 'secondary'
+  | 'active'
   | 'success'
   | 'warning'
   | 'error'
@@ -22,6 +23,7 @@ interface BadgeProps {
 const variantClasses: Record<BadgeVariant, { container: string; text: string }> = {
   primary: { container: 'bg-primary-100', text: 'text-primary-700' },
   secondary: { container: 'bg-secondary-100', text: 'text-secondary-700' },
+  active: { container: 'bg-secondary-500', text: 'text-white' },
   success: { container: 'bg-green-100', text: 'text-green-700' },
   warning: { container: 'bg-amber-100', text: 'text-amber-700' },
   error: { container: 'bg-red-100', text: 'text-red-700' },

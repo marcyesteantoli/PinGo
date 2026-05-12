@@ -183,8 +183,6 @@ export default function ProfileScreen() {
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
-              trackColor={{ false: '#e2e8f0', true: '#06b6d4' }}
-              thumbColor="#ffffff"
             />
           </View>
         </View>

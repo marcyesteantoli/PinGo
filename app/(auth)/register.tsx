@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -39,9 +40,14 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="items-center mb-10 gap-3">
-            <View className="w-16 h-16 rounded-2xl bg-primary-500 items-center justify-center">
+            <LinearGradient
+              colors={['#4f56e8', '#f43f5e']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ width: 64, height: 64, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
+            >
               <Ionicons name="airplane" size={32} color="#ffffff" />
-            </View>
+            </LinearGradient>
             <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">Crear cuenta</Text>
             <Text className="text-base text-neutral-500 dark:text-neutral-400">Únete y empieza a planificar</Text>
           </View>

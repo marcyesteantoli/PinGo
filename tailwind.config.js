@@ -106,7 +106,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['System', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['PlusJakartaSans_400Regular', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
     },
   },

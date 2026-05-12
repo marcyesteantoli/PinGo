@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Text, View } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { Card } from '@components/ui/Card'
 import { Avatar } from '@components/ui/Avatar'
 import { Badge } from '@components/ui/Badge'
@@ -7,6 +8,7 @@ import { formatDateRange } from '@utils/date'
 import { useTheme } from '@lib/theme'
 import type { TripWithCollaborators } from '@features/trips/hooks/useTrips'
 import { colors } from '@lib/colors'
+import { cardShadow } from '@lib/shadows'
 
 interface TripCardProps {
   trip: TripWithCollaborators
@@ -41,18 +43,18 @@ export function TripCard({ trip, onPress }: TripCardProps) {
   const status = getTripStatus(trip.start_date, trip.end_date)
   const daysUntil = status === 'upcoming' ? getDaysUntil(trip.start_date) : 0
 
-  const statusConfig: Record<TripStatus, { label: string; variant: 'success' | 'primary' | 'neutral' }> = {
-    active:   { label: 'En curso',          variant: 'success' },
-    upcoming: { label: `En ${daysUntil} días`, variant: 'primary'  },
-    past:     { label: 'Completado',         variant: 'neutral' },
+  const statusConfig: Record<TripStatus, { label: string; variant: 'active' | 'primary' | 'neutral' }> = {
+    active:   { label: 'En curso',             variant: 'active'  },
+    upcoming: { label: `En ${daysUntil} días`, variant: 'primary' },
+    past:     { label: 'Completado',           variant: 'neutral' },
   }
 
   const { label, variant } = statusConfig[status]
   const borderColor = isDark ? colors.surface[700] : colors.white
   const subtleColor = isDark ? colors.neutral[400] : colors.neutral[400]
 
-  return (
-    <Card onPress={onPress}>
+  const cardBody = (
+    <>
       {/* Title + Status badge */}
       <View className="flex-row items-start justify-between gap-2 mb-2">
         <Text
@@ -124,6 +126,34 @@ export function TripCard({ trip, onPress }: TripCardProps) {
         )}
         <Ionicons name="chevron-forward" size={16} color={subtleColor} />
       </View>
+    </>
+  )
+
+  if (status === 'active') {
+    return (
+      <View style={[{ borderRadius: 12, overflow: 'hidden' }, cardShadow]}>
+        <TouchableOpacity
+          onPress={onPress}
+          activeOpacity={0.8}
+          style={{ backgroundColor: isDark ? colors.surface[800] : colors.white }}
+        >
+          <LinearGradient
+            colors={[colors.primary[500], colors.secondary[500]]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ height: 3, width: '100%' }}
+          />
+          <View style={{ padding: 16 }}>
+            {cardBody}
+          </View>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
+  return (
+    <Card onPress={onPress}>
+      {cardBody}
     </Card>
   )
 }
