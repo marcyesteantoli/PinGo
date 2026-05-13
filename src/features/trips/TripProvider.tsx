@@ -62,16 +62,16 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#00b4d8" />
+      <View className="flex-1 items-center justify-center bg-neutral-100 dark:bg-surface-900">
+        <ActivityIndicator size="large" color="#4f56e8" />
       </View>
     )
   }
 
   if (error || !data?.trip) {
     return (
-      <View className="flex-1 items-center justify-center px-6 gap-4 bg-neutral-100">
-        <Text className="text-base text-neutral-600 text-center">
+      <View className="flex-1 items-center justify-center px-6 gap-4 bg-neutral-100 dark:bg-surface-900">
+        <Text className="text-base text-neutral-600 dark:text-neutral-300 text-center">
           {error ? 'Error al cargar el viaje.' : 'Este viaje no está disponible.'}
         </Text>
         <Button onPress={() => router.back()} variant="ghost">

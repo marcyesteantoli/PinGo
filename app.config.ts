@@ -33,6 +33,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-image-picker',
       { photosPermission: 'La app necesita acceso a tus fotos para añadir recuerdos.' },
     ],
+    [
+      'expo-media-library',
+      {
+        photosPermission: 'TripSync necesita acceso a tu galería para guardar fotos.',
+        savePhotosPermission: 'TripSync necesita permiso para guardar fotos en tu galería.',
+        isAccessMediaLocationEnabled: true,
+      },
+    ],
     '@react-native-community/datetimepicker',
   ],
   experiments: {

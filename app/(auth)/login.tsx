@@ -23,6 +23,7 @@ export default function LoginScreen() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await signIn.mutateAsync(data)
+      router.replace('/(app)')
     } catch {
       // El error se muestra via signIn.error
     }

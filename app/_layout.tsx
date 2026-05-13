@@ -40,7 +40,7 @@ function AppShell() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View className={`flex-1${isDark ? ' dark' : ''}`}>
+      <View className="flex-1">
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <Slot />
       </View>

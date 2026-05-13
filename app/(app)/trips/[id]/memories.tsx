@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Alert, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
+import * as FileSystem from 'expo-file-system/legacy'
+import * as MediaLibrary from 'expo-media-library'
+import * as Haptics from 'expo-haptics'
 import { useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
@@ -18,6 +21,7 @@ import { useMemories } from '@features/memories/hooks/useMemories'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { LIMITS } from '@/config/limits'
 import { DEV_MODE } from '@/dev/mockData'
+import { colors } from '@lib/colors'
 import type { Memory } from '@types/index'
 
 export default function MemoriesScreen() {
@@ -29,7 +33,11 @@ export default function MemoriesScreen() {
 
   const [captionSheetVisible, setCaptionSheetVisible] = useState(false)
   const [pendingAsset, setPendingAsset] = useState<ImagePicker.ImagePickerAsset | null>(null)
-  const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null)
+  const [viewerIndex, setViewerIndex] = useState(-1) // -1 = closed
+
+  // Multi-select
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const insets = useSafeAreaInsets()
   const count = memories?.length ?? 0
@@ -37,12 +45,97 @@ export default function MemoriesScreen() {
 
   const getUploader = (userId: string) => collaborators.find((c) => c.user_id === userId)
 
-  // Flujo: FAB → galería → preview+caption → subir
+  // ─── Selection helpers ──────────────────────────────────────────────────────
+
+  const enterSelectionMode = (memory: Memory) => {
+    setSelectionMode(true)
+    setSelectedIds(new Set([memory.id]))
+  }
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false)
+    setSelectedIds(new Set())
+  }
+
+  const toggleSelect = (memory: Memory) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(memory.id)) next.delete(memory.id)
+      else next.add(memory.id)
+      return next
+    })
+  }
+
+  const selectAll = () => {
+    setSelectedIds(new Set(memories?.map((m) => m.id) ?? []))
+  }
+
+  // ─── Bulk actions ────────────────────────────────────────────────────────────
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return
+    const count = selectedIds.size
+    Alert.alert(
+      `Eliminar ${count} foto${count > 1 ? 's' : ''}`,
+      'Esta acción no se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            selectedIds.forEach((id) => deleteMemory.mutate({ memoryId: id, tripId }))
+            exitSelectionMode()
+          },
+        },
+      ]
+    )
+  }
+
+  const handleBulkDownload = async () => {
+    if (selectedIds.size === 0 || !memories) return
+
+    const { status } = await MediaLibrary.requestPermissionsAsync()
+    if (status !== 'granted') {
+      Alert.alert(
+        'Acceso denegado',
+        'Ve a Ajustes › Privacidad › Fotos para permitir guardar imágenes.'
+      )
+      return
+    }
+
+    const toDownload = memories.filter((m) => selectedIds.has(m.id))
+    let saved = 0
+
+    for (const memory of toDownload) {
+      try {
+        const localUri = `${FileSystem.cacheDirectory}tripsync_${Date.now()}.jpg`
+        await FileSystem.downloadAsync(memory.image_url, localUri)
+        await MediaLibrary.saveToLibraryAsync(localUri)
+        await FileSystem.deleteAsync(localUri, { idempotent: true })
+        saved++
+      } catch {
+        // continue with remaining photos
+      }
+    }
+
+    if (saved > 0) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      Alert.alert(
+        'Guardado',
+        `${saved} foto${saved > 1 ? 's guardadas' : ' guardada'} en tu galería.`
+      )
+    } else {
+      Alert.alert('Error', 'No se pudo guardar ninguna imagen.')
+    }
+    exitSelectionMode()
+  }
+
+  // ─── Add photo flow ──────────────────────────────────────────────────────────
+
   const handlePickImage = async () => {
-    // 1. Verificar límite antes de abrir el picker
     if (count >= LIMITS.MAX_PHOTOS_PER_TRIP) return
 
-    // En DEV_MODE simulamos una imagen de galería con picsum para ver el flujo real
     if (DEV_MODE) {
       const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara']
       const seed = seeds[Math.floor(Math.random() * seeds.length)]
@@ -51,18 +144,16 @@ export default function MemoriesScreen() {
       return
     }
 
-    // 2. Pedir permiso
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
       Alert.alert(
         'Acceso a fotos denegado',
-        'Ve a Ajustes > Privacidad > Fotos y permite el acceso a TripSync.',
+        'Ve a Ajustes › Privacidad › Fotos y permite el acceso a TripSync.',
         [{ text: 'Entendido', style: 'default' }]
       )
       return
     }
 
-    // 3. Abrir galería
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 1,
@@ -71,7 +162,6 @@ export default function MemoriesScreen() {
 
     if (result.canceled || !result.assets[0]) return
 
-    // 4. Guardar asset y mostrar sheet de caption
     setPendingAsset(result.assets[0])
     setCaptionSheetVisible(true)
   }
@@ -82,7 +172,7 @@ export default function MemoriesScreen() {
       setCaptionSheetVisible(false)
       setPendingAsset(null)
     } catch {
-      // El error se muestra en el sheet a través de errorMessage
+      // error shown in sheet via errorMessage
     }
   }
 
@@ -98,6 +188,77 @@ export default function MemoriesScreen() {
     if (err.code === 'LIMIT_REACHED') return err.message
     return err.message ?? 'Ha ocurrido un error. Inténtalo de nuevo.'
   })()
+
+  // ─── Selection toolbar ───────────────────────────────────────────────────────
+
+  const SelectionToolbar = () => (
+    <View
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        paddingBottom: insets.bottom,
+        backgroundColor: colors.surface[800],
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255,255,255,0.08)',
+      }}
+      className="flex-row items-center justify-between px-6 pt-3 pb-2"
+    >
+      {/* Left: cancel */}
+      <TouchableOpacity onPress={exitSelectionMode} hitSlop={8} className="items-center gap-1">
+        <Ionicons name="close-circle-outline" size={26} color={colors.neutral[400]} />
+        <Text className="text-neutral-400 text-xs">Cancelar</Text>
+      </TouchableOpacity>
+
+      {/* Center: selection count + select all */}
+      <TouchableOpacity onPress={selectAll} hitSlop={8} className="items-center gap-1">
+        <Text className="text-primary-400 text-base font-semibold">
+          {selectedIds.size} {selectedIds.size === 1 ? 'seleccionada' : 'seleccionadas'}
+        </Text>
+        <Text className="text-primary-400/70 text-xs">Seleccionar todo</Text>
+      </TouchableOpacity>
+
+      {/* Right: actions */}
+      <View className="flex-row items-center gap-5">
+        <TouchableOpacity
+          onPress={handleBulkDownload}
+          hitSlop={8}
+          disabled={selectedIds.size === 0}
+          className="items-center gap-1"
+        >
+          <Ionicons
+            name="arrow-down-circle-outline"
+            size={26}
+            color={selectedIds.size === 0 ? colors.neutral[600] : colors.white}
+          />
+          <Text
+            className={`text-xs ${selectedIds.size === 0 ? 'text-neutral-600' : 'text-white'}`}
+          >
+            Guardar
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleBulkDelete}
+          hitSlop={8}
+          disabled={selectedIds.size === 0}
+          className="items-center gap-1"
+        >
+          <Ionicons
+            name="trash-outline"
+            size={26}
+            color={selectedIds.size === 0 ? colors.neutral[600] : colors.error}
+          />
+          <Text
+            className={`text-xs ${selectedIds.size === 0 ? 'text-neutral-600' : 'text-red-500'}`}
+          >
+            Eliminar
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
@@ -137,13 +298,17 @@ export default function MemoriesScreen() {
       ) : (
         <MemoryGrid
           memories={memories}
-          onPress={(m) => setSelectedMemory(m)}
+          onPress={(_, index) => setViewerIndex(index)}
+          onLongPress={enterSelectionMode}
           scrollY={scrollY}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
         />
       )}
 
-      {/* FAB */}
-      {!isLoading && count < LIMITS.MAX_PHOTOS_PER_TRIP && (
+      {/* FAB — hidden in selection mode */}
+      {!isLoading && !selectionMode && count < LIMITS.MAX_PHOTOS_PER_TRIP && (
         <TouchableOpacity
           onPress={handlePickImage}
           className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
@@ -152,6 +317,9 @@ export default function MemoriesScreen() {
           <Ionicons name="add" size={28} color="#ffffff" />
         </TouchableOpacity>
       )}
+
+      {/* Selection toolbar */}
+      {selectionMode && <SelectionToolbar />}
 
       <AddMemoryCaption
         visible={captionSheetVisible}
@@ -163,20 +331,17 @@ export default function MemoriesScreen() {
       />
 
       <MemoryDetail
-        memory={selectedMemory}
-        visible={!!selectedMemory}
-        onClose={() => setSelectedMemory(null)}
-        canDelete={isOwner || selectedMemory?.user_id === currentUser?.id}
+        memories={memories ?? []}
+        initialIndex={Math.max(0, viewerIndex)}
+        visible={viewerIndex >= 0}
+        onClose={() => setViewerIndex(-1)}
+        canDelete={(memory) => isOwner || memory.user_id === currentUser?.id}
         onDelete={(id) => {
           deleteMemory.mutate({ memoryId: id, tripId })
-          setSelectedMemory(null)
+          setViewerIndex(-1)
         }}
-        uploaderName={
-          selectedMemory ? (getUploader(selectedMemory.user_id)?.name ?? 'Desconocido') : undefined
-        }
-        uploaderAvatar={
-          selectedMemory ? getUploader(selectedMemory.user_id)?.avatar_url : undefined
-        }
+        getUploaderName={(userId) => getUploader(userId)?.name ?? 'Desconocido'}
+        getUploaderAvatar={(userId) => getUploader(userId)?.avatar_url}
       />
     </View>
   )

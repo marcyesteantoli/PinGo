@@ -23,10 +23,41 @@ export default function RegisterScreen() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      await signUp.mutateAsync(data)
+      const result = await signUp.mutateAsync(data)
+      if (!result.needsEmailConfirmation) {
+        router.replace('/(app)')
+      }
     } catch {
       // El error se muestra via signUp.error
     }
+  }
+
+  if (signUp.isSuccess && signUp.data?.needsEmailConfirmation) {
+    return (
+      <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
+        <View className="flex-1 items-center justify-center px-6 gap-6">
+          <LinearGradient
+            colors={['#4f56e8', '#f43f5e']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ width: 72, height: 72, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Ionicons name="mail-outline" size={36} color="#ffffff" />
+          </LinearGradient>
+          <View className="items-center gap-2">
+            <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 text-center">
+              Revisa tu email
+            </Text>
+            <Text className="text-base text-neutral-500 dark:text-neutral-400 text-center">
+              Hemos enviado un enlace de confirmación a {signUp.variables?.email}. Confirma tu cuenta para continuar.
+            </Text>
+          </View>
+          <Button onPress={() => router.back()} variant="ghost" size="lg" className="w-full">
+            Volver al inicio de sesión
+          </Button>
+        </View>
+      </SafeAreaView>
+    )
   }
 
   return (

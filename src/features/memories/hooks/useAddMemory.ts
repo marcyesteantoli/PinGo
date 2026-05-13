@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
+import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { compressImage } from '@utils/image'
@@ -31,13 +32,20 @@ async function uploadMemory(
   const filename = `${userId}_${Date.now()}.jpg`
   const storagePath = `memories/${tripId}/${filename}`
 
-  const response = await fetch(compressed.uri)
-  const blob = await response.blob()
+  // fetch(file://).blob() returns empty blob on iOS — read as base64 instead
+  const base64 = await FileSystem.readAsStringAsync(compressed.uri, {
+    encoding: 'base64',
+  })
+  const byteCharacters = atob(base64)
+  const byteArray = new Uint8Array(byteCharacters.length)
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteArray[i] = byteCharacters.charCodeAt(i)
+  }
 
   // 3. Subir a Storage
   const { error: uploadError } = await supabase.storage
     .from('memories')
-    .upload(storagePath, blob, { contentType: 'image/jpeg', upsert: false })
+    .upload(storagePath, byteArray, { contentType: 'image/jpeg', upsert: false })
 
   if (uploadError) {
     throw {
