@@ -6,8 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
+import { GestureDetector } from 'react-native-gesture-handler'
 import { TripHeader } from '@features/trips/components/TripHeader'
 import { useTripContext } from '@features/trips/TripProvider'
+import { useSwipeTabGesture } from '@features/trips/hooks/useSwipeTabGesture'
 import { DocumentCard } from '@features/documents/components/DocumentCard'
 import { UploadDocumentSheet } from '@features/documents/components/UploadDocumentSheet'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
@@ -24,6 +26,7 @@ export default function DocumentsScreen() {
   const insets = useSafeAreaInsets()
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
+  const { gesture, animatedStyle } = useSwipeTabGesture()
 
   const sections = Object.values(
     (documents ?? []).reduce((acc: Record<string, { title: string; data: typeof documents }>, doc) => {
@@ -46,7 +49,9 @@ export default function DocumentsScreen() {
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
       <TripHeader scrollY={scrollY} />
-
+      <View style={{ flex: 1, overflow: 'hidden' }}>
+        <GestureDetector gesture={gesture}>
+          <Animated.View style={[{ flex: 1 }, animatedStyle]}>
       {isLoading ? (
         <View className="px-5 pt-4 gap-3">
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
@@ -100,6 +105,9 @@ export default function DocumentsScreen() {
         isLoading={uploadDocument.isPending}
         error={uploadDocument.error?.message}
       />
+          </Animated.View>
+        </GestureDetector>
+      </View>
     </View>
   )
 }

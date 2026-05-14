@@ -6,8 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
+import { GestureDetector } from 'react-native-gesture-handler'
 import { TripHeader } from '@features/trips/components/TripHeader'
 import { useTripContext } from '@features/trips/TripProvider'
+import { useSwipeTabGesture } from '@features/trips/hooks/useSwipeTabGesture'
 import { AddExpenseSheet } from '@features/expenses/components/AddExpenseSheet'
 import { BalanceCard } from '@features/expenses/components/BalanceCard'
 import { ExpenseCard } from '@features/expenses/components/ExpenseCard'
@@ -47,6 +49,7 @@ export default function ExpensesScreen() {
 
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
+  const { gesture, animatedStyle } = useSwipeTabGesture()
 
   const handleCreate = async (data: CreateExpenseFormData) => {
     try {
@@ -60,7 +63,9 @@ export default function ExpensesScreen() {
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
       <TripHeader scrollY={scrollY} />
-
+      <View style={{ flex: 1, overflow: 'hidden' }}>
+        <GestureDetector gesture={gesture}>
+          <Animated.View style={[{ flex: 1 }, animatedStyle]}>
       {isLoading ? (
         <View className="px-5 pt-4 gap-3">
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
@@ -181,6 +186,9 @@ export default function ExpensesScreen() {
         error={createExpense.error?.message}
         currentUserId={currentUser?.id}
       />
+          </Animated.View>
+        </GestureDetector>
+      </View>
     </View>
   )
 }

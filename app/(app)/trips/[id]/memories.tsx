@@ -5,13 +5,15 @@ import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as MediaLibrary from 'expo-media-library'
 import * as Haptics from 'expo-haptics'
-import { useSharedValue } from 'react-native-reanimated'
+import Animated, { useSharedValue } from 'react-native-reanimated'
+import { GestureDetector } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { TripHeader } from '@features/trips/components/TripHeader'
 import { useTripContext } from '@features/trips/TripProvider'
+import { useSwipeTabGesture } from '@features/trips/hooks/useSwipeTabGesture'
 import { AddMemoryCaption } from '@features/memories/components/AddMemoryCaption'
 import { MemoryDetail } from '@features/memories/components/MemoryDetail'
 import { MemoryGrid } from '@features/memories/components/MemoryGrid'
@@ -42,6 +44,7 @@ export default function MemoriesScreen() {
   const insets = useSafeAreaInsets()
   const count = memories?.length ?? 0
   const scrollY = useSharedValue(0)
+  const { gesture, animatedStyle } = useSwipeTabGesture()
 
   const getUploader = (userId: string) => collaborators.find((c) => c.user_id === userId)
 
@@ -263,7 +266,9 @@ export default function MemoriesScreen() {
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
       <TripHeader scrollY={scrollY} />
-
+      <View style={{ flex: 1, overflow: 'hidden' }}>
+        <GestureDetector gesture={gesture}>
+          <Animated.View style={[{ flex: 1 }, animatedStyle]}>
       {/* Counter */}
       <View className="flex-row items-center justify-between px-5 py-3">
         <Text className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -343,6 +348,9 @@ export default function MemoriesScreen() {
         getUploaderName={(userId) => getUploader(userId)?.name ?? 'Desconocido'}
         getUploaderAvatar={(userId) => getUploader(userId)?.avatar_url}
       />
+          </Animated.View>
+        </GestureDetector>
+      </View>
     </View>
   )
 }
