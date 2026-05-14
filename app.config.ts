@@ -2,12 +2,12 @@ import { ExpoConfig, ConfigContext } from 'expo/config'
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'TravelApp',
-  slug: 'travel-app',
+  name: 'PinGo',
+  slug: 'pin-go',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: 'travelapp',
+  scheme: 'pingo',
   userInterfaceStyle: 'automatic',
   splash: {
     image: './assets/images/splash.png',
@@ -16,14 +16,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.tfm.travelapp',
+    bundleIdentifier: 'com.tfm.pingo',
   },
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    package: 'com.tfm.travelapp',
+    package: 'com.tfm.pingo',
   },
   plugins: [
     'expo-router',
@@ -36,12 +36,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-media-library',
       {
-        photosPermission: 'TripSync necesita acceso a tu galería para guardar fotos.',
-        savePhotosPermission: 'TripSync necesita permiso para guardar fotos en tu galería.',
+        photosPermission: 'PinGo necesita acceso a tu galería para guardar fotos.',
+        savePhotosPermission: 'PinGo necesita permiso para guardar fotos en tu galería.',
         isAccessMediaLocationEnabled: true,
       },
     ],
     '@react-native-community/datetimepicker',
+    [
+      'expo-share-intent',
+      {
+        iosActivationRules: {
+          NSExtensionActivationSupportsAttachmentsWithMaxCount: 1,
+        },
+        iosAppGroupIdentifier: 'group.com.tfm.pingo',
+        androidIntentFilters: ['image/*', '*/*'],
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, ReactNode, useContext, useEffect } from 'react'
 import { useColorScheme as useNativeWindColorScheme } from 'nativewind'
 
-const THEME_KEY = '@tripsync/theme'
+const THEME_KEY = '@pingo/theme'
 
 interface ThemeContextValue {
   isDark: boolean

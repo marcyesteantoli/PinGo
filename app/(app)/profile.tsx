@@ -208,7 +208,7 @@ export default function ProfileScreen() {
               color={isDark ? '#64748b' : '#94a3b8'}
               style={{ marginRight: 12 }}
             />
-            <Text className={`${labelBase} flex-1`}>TripSync</Text>
+            <Text className={`${labelBase} flex-1`}>PinGo</Text>
             <Text className={valueBase}>TFM 2026</Text>
           </View>
         </View>

@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from 'react'
+import { createContext, useContext, useEffect, ReactNode } from 'react'
 import { ActivityIndicator, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
@@ -6,6 +6,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, DEMO_USER_ID, mockTrips, mockCollaborators } from '@/dev/mockData'
 import { Button } from '@components/ui/Button'
+import { saveLastActiveTripId } from '@lib/lastActiveTrip'
 import type { Collaborator, TripRole, Trip } from '@types/index'
 
 type CollaboratorRow = {
@@ -33,6 +34,10 @@ export function useTripContext() {
 }
 
 export function TripProvider({ tripId, children }: { tripId: string; children: ReactNode }) {
+  useEffect(() => {
+    saveLastActiveTripId(tripId)
+  }, [tripId])
+
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.collaborators.byTrip(tripId),
     queryFn: async () => {

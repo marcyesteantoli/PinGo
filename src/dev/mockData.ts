@@ -37,7 +37,7 @@ export const DEMO_USER = {
   id: DEMO_USER_ID,
   aud: 'authenticated',
   role: 'authenticated',
-  email: 'demo@tripsync.app',
+  email: 'demo@pingo.app',
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
   app_metadata: { provider: 'email' },

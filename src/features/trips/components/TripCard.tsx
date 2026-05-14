@@ -199,7 +199,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
           <TouchableOpacity
             onPress={() =>
               Share.share({
-                message: `Únete a "${trip.title}" en TripSync con el código: ${trip.join_code}`,
+                message: `Únete a "${trip.title}" en PinGo con el código: ${trip.join_code}`,
               })
             }
             hitSlop={8}

@@ -196,7 +196,7 @@ export function MemoryDetail({
 
     setDownloading(true)
     try {
-      const localUri = `${FileSystem.cacheDirectory}tripsync_${Date.now()}.jpg`
+      const localUri = `${FileSystem.cacheDirectory}pingo_${Date.now()}.jpg`
       await FileSystem.downloadAsync(currentMemory.image_url, localUri)
       await MediaLibrary.saveToLibraryAsync(localUri)
       await FileSystem.deleteAsync(localUri, { idempotent: true })

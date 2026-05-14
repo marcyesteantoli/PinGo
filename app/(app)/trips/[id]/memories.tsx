@@ -112,7 +112,7 @@ export default function MemoriesScreen() {
 
     for (const memory of toDownload) {
       try {
-        const localUri = `${FileSystem.cacheDirectory}tripsync_${Date.now()}.jpg`
+        const localUri = `${FileSystem.cacheDirectory}pingo_${Date.now()}.jpg`
         await FileSystem.downloadAsync(memory.image_url, localUri)
         await MediaLibrary.saveToLibraryAsync(localUri)
         await FileSystem.deleteAsync(localUri, { idempotent: true })
@@ -151,7 +151,7 @@ export default function MemoriesScreen() {
     if (status !== 'granted') {
       Alert.alert(
         'Acceso a fotos denegado',
-        'Ve a Ajustes › Privacidad › Fotos y permite el acceso a TripSync.',
+        'Ve a Ajustes › Privacidad › Fotos y permite el acceso a PinGo.',
         [{ text: 'Entendido', style: 'default' }]
       )
       return

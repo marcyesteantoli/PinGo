@@ -75,7 +75,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center gap-2 flex-1 overflow-hidden mr-2">
             <Text className="text-base font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
-              TripSync
+              PinGo
             </Text>
             <Animated.Text
               className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 flex-shrink"
@@ -227,7 +227,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
             <TouchableOpacity
               onPress={() =>
                 Share.share({
-                  message: `Únete a "${trip.title}" en TripSync con el código: ${trip.join_code}`,
+                  message: `Únete a "${trip.title}" en PinGo con el código: ${trip.join_code}`,
                 })
               }
               className="bg-primary-500 rounded-2xl py-3.5 flex-row items-center gap-2 justify-center mb-2"
@@ -272,7 +272,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
           <TouchableOpacity
             onPress={() =>
               Share.share({
-                message: `Únete a "${trip.title}" en TripSync con el código: ${trip.join_code}`,
+                message: `Únete a "${trip.title}" en PinGo con el código: ${trip.join_code}`,
               })
             }
             className="bg-primary-500 rounded-2xl py-4 flex-row items-center gap-2 justify-center mb-2"
