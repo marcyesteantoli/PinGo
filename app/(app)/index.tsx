@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { FlatList, Text, TouchableOpacity, View } from 'react-native'
+import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Avatar } from '@components/ui/Avatar'
 import { BottomSheet } from '@components/ui/BottomSheet'
@@ -57,8 +57,12 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-5 py-4">
-        <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50">Mis viajes</Text>
+      <View className="flex-row items-center justify-between px-5 pt-2 pb-1">
+        <Image
+          source={require('../../assets/images/logo.png')}
+          style={{ width: 32, height: 32 }}
+          resizeMode="contain"
+        />
         <TouchableOpacity
           onPress={() => router.push('/(app)/profile')}
           className="w-11 h-11 rounded-full overflow-hidden"
@@ -70,6 +74,7 @@ export default function DashboardScreen() {
           />
         </TouchableOpacity>
       </View>
+      <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 px-5 pb-4">Mis viajes</Text>
 
       {/* Segmented control */}
       <View className="mx-5 mb-4 flex-row bg-neutral-200 dark:bg-surface-700 rounded-[10px] p-1">

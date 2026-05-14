@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from 'expo-router'
-import { Share, Text, TouchableOpacity, View } from 'react-native'
+import { Image, Share, Text, TouchableOpacity, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import Animated, {
   interpolate,
@@ -74,9 +74,11 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
       <View className="px-5 pt-2">
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center gap-2 flex-1 overflow-hidden mr-2">
-            <Text className="text-base font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
-              PinGo
-            </Text>
+            <Image
+              source={require('../../../../assets/images/logo.png')}
+              style={{ width: 24, height: 24 }}
+              resizeMode="contain"
+            />
             <Animated.Text
               className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 flex-shrink"
               numberOfLines={1}
