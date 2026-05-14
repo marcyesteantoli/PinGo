@@ -24,8 +24,9 @@ export function useCreateTrip() {
         return newTrip
       }
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('No hay sesión activa')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('No hay sesión activa')
+      const user = session.user
 
       const { data: trip, error: tripError } = await supabase
         .from('trips')
@@ -39,12 +40,6 @@ export function useCreateTrip() {
         .single()
 
       if (tripError) throw new Error(tripError.message)
-
-      const { error: collabError } = await supabase
-        .from('trip_collaborators')
-        .insert({ trip_id: trip.id, user_id: user.id, role: 'owner' })
-
-      if (collabError) throw new Error(collabError.message)
 
       return trip
     },

@@ -4,7 +4,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button } from '@components/ui/Button'
-import { DatePickerInput } from '@components/ui/DatePickerInput'
+import { DateRangePicker } from '@components/ui/DateRangePicker'
 import { Input } from '@components/ui/Input'
 import { useCreateTrip } from '@features/trips/hooks/useCreateTrip'
 import { createTripSchema, type CreateTripFormData } from '@features/trips/types'
@@ -13,9 +13,12 @@ export default function NewTripScreen() {
   const router = useRouter()
   const createTrip = useCreateTrip()
 
-  const { control, handleSubmit, formState: { errors } } = useForm<CreateTripFormData>({
+  const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm<CreateTripFormData>({
     resolver: zodResolver(createTripSchema),
   })
+
+  const startDate = watch('start_date')
+  const endDate = watch('end_date')
 
   const onSubmit = async (data: CreateTripFormData) => {
     try {
@@ -59,30 +62,13 @@ export default function NewTripScreen() {
             )}
           />
 
-          <Controller
-            control={control}
-            name="start_date"
-            render={({ field: { onChange, value } }) => (
-              <DatePickerInput
-                label="Fecha de inicio"
-                value={value}
-                onChange={onChange}
-                error={errors.start_date?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="end_date"
-            render={({ field: { onChange, value } }) => (
-              <DatePickerInput
-                label="Fecha de fin"
-                value={value}
-                onChange={onChange}
-                error={errors.end_date?.message}
-              />
-            )}
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={(d) => setValue('start_date', d, { shouldValidate: true })}
+            onEndDateChange={(d) => setValue('end_date', d, { shouldValidate: true })}
+            startError={errors.start_date?.message}
+            endError={errors.end_date?.message}
           />
 
           {createTrip.error && (

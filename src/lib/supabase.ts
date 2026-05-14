@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { Platform } from 'react-native'
+import { AppState, Platform } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
 import type { Database } from '../types/database'
 
@@ -12,7 +12,9 @@ const LargeSecureStore = {
     if (!chunkCount) return null
     let value = ''
     for (let i = 0; i < parseInt(chunkCount); i++) {
-      value += await SecureStore.getItemAsync(`${key}_chunk_${i}`)
+      const chunk = await SecureStore.getItemAsync(`${key}_chunk_${i}`)
+      if (chunk === null) return null
+      value += chunk
     }
     return value
   },
@@ -58,4 +60,12 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: false,
   },
+})
+
+AppState.addEventListener('change', (state) => {
+  if (state === 'active') {
+    supabase.auth.startAutoRefresh()
+  } else {
+    supabase.auth.stopAutoRefresh()
+  }
 })

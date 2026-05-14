@@ -18,11 +18,19 @@ export function useTrips() {
       }
       const { data, error } = await supabase
         .from('trips')
-        .select('*')
+        .select('*, trip_collaborators(user_id, role, profiles(name, avatar_url))')
         .order('start_date', { ascending: true })
 
       if (error) throw new Error(error.message)
-      return (data ?? []).map(trip => ({ ...trip, collaborators: [] }))
+      return (data ?? []).map(({ trip_collaborators, ...trip }) => ({
+        ...trip,
+        collaborators: (trip_collaborators ?? []).map((c: any) => ({
+          user_id: c.user_id,
+          role: c.role,
+          name: c.profiles?.name ?? '',
+          avatar_url: c.profiles?.avatar_url ?? null,
+        })),
+      }))
     },
   })
 }
