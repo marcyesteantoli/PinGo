@@ -6,6 +6,7 @@ import { Button } from '@components/ui/Button'
 import { DatePickerInput } from '@components/ui/DatePickerInput'
 import { Input } from '@components/ui/Input'
 import { ExperienceTypePicker } from './ExperienceTypePicker'
+import { LocationPicker } from './LocationPicker'
 import { TimeRangePicker } from './TimeRangePicker'
 import { createExperienceSchema, type CreateExperienceFormData } from '../types'
 
@@ -15,6 +16,8 @@ interface AddExperienceSheetProps {
   onSubmit: (data: CreateExperienceFormData) => Promise<void>
   isLoading?: boolean
   error?: string | null
+  minDate?: Date
+  maxDate?: Date
 }
 
 export function AddExperienceSheet({
@@ -23,6 +26,8 @@ export function AddExperienceSheet({
   onSubmit,
   isLoading,
   error,
+  minDate,
+  maxDate,
 }: AddExperienceSheetProps) {
   const { control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<CreateExperienceFormData>({
     resolver: zodResolver(createExperienceSchema),
@@ -79,6 +84,8 @@ export function AddExperienceSheet({
                   value={value}
                   onChange={onChange}
                   error={errors.date?.message}
+                  minimumDate={minDate}
+                  maximumDate={maxDate}
                 />
               )}
             />
@@ -102,6 +109,18 @@ export function AddExperienceSheet({
                   value={value ?? ''}
                   onChangeText={onChange}
                   autoCapitalize="characters"
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="location"
+              render={({ field: { onChange, value } }) => (
+                <LocationPicker
+                  value={value}
+                  onChange={onChange}
+                  error={errors.location?.message}
                 />
               )}
             />

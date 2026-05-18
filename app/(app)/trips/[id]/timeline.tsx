@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'expo-router'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
@@ -80,8 +81,9 @@ interface DeleteSheetState {
 }
 
 export default function TimelineScreen() {
+  const router = useRouter()
   const insets = useSafeAreaInsets()
-  const { tripId, isOwner } = useTripContext()
+  const { tripId, trip, isOwner } = useTripContext()
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
   const { gesture, animatedStyle } = useSwipeTabGesture()
@@ -223,6 +225,10 @@ export default function TimelineScreen() {
             experience={entry.experience}
             canDelete={isOwner}
             onDelete={() => handleDeleteIntent(entry.experience)}
+            onPress={() => router.push({
+                pathname: '/(app)/trips/experience/[experienceId]',
+                params: { experienceId: entry.experience.id, tripId },
+              })}
           />
         </View>
       </View>
@@ -290,6 +296,8 @@ export default function TimelineScreen() {
         onSubmit={handleCreate}
         isLoading={createExperience.isPending}
         error={createExperience.error?.message}
+        minDate={trip?.start_date ? new Date(trip.start_date + 'T00:00:00Z') : undefined}
+        maxDate={trip?.end_date ? new Date(trip.end_date + 'T00:00:00Z') : undefined}
       />
 
       <DeleteExperienceSheet

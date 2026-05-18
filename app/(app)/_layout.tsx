@@ -7,6 +7,7 @@ export default function AppLayout() {
       <Stack.Screen name="profile" options={{ presentation: 'modal' }} />
       <Stack.Screen name="trips/new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="trips/[id]" />
+      <Stack.Screen name="trips/experience/[experienceId]" options={{ headerShown: false }} />
     </Stack>
   )
 }

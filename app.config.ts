@@ -42,6 +42,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     '@react-native-community/datetimepicker',
+    // TODO: when adding Google Maps API key, add the react-native-maps plugin here:
+    // ['react-native-maps', { googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }]
     [
       'expo-share-intent',
       {
