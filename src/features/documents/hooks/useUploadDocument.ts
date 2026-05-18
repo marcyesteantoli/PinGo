@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import * as DocumentPicker from 'expo-document-picker'
+import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, DEMO_USER_ID, mockDocuments, mockExperiences } from '@/dev/mockData'
@@ -45,12 +46,19 @@ export function useUploadDocument() {
       const filename = `${user.id}_${Date.now()}.${ext}`
       const storagePath = `documents/${tripId}/${experience_id}/${filename}`
 
-      const response = await fetch(asset.uri)
-      const blob = await response.blob()
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      })
+      const binary = atob(base64)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
 
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(storagePath, blob, { upsert: false })
+        .upload(storagePath, bytes, {
+          upsert: false,
+          contentType: asset.mimeType ?? 'application/pdf',
+        })
 
       if (uploadError) throw new Error('Error al subir el archivo. Inténtalo de nuevo.')
 

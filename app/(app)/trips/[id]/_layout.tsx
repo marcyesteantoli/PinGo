@@ -36,11 +36,11 @@ export default function TripLayout() {
           }}
         />
         <Tabs.Screen
-          name="documents"
+          name="memories"
           options={{
-            title: 'Documentos',
+            title: 'Recuerdos',
             tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons name={focused ? 'document-text' : 'document-text-outline'} size={size} color={color} />
+              <Ionicons name={focused ? 'images' : 'images-outline'} size={size} color={color} />
             ),
           }}
         />
@@ -54,11 +54,11 @@ export default function TripLayout() {
           }}
         />
         <Tabs.Screen
-          name="memories"
+          name="documents"
           options={{
-            title: 'Recuerdos',
+            title: 'Documentos',
             tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons name={focused ? 'images' : 'images-outline'} size={size} color={color} />
+              <Ionicons name={focused ? 'document-text' : 'document-text-outline'} size={size} color={color} />
             ),
           }}
         />

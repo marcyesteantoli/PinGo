@@ -11,10 +11,16 @@ import { TripHeader } from '@features/trips/components/TripHeader'
 import { useTripContext } from '@features/trips/TripProvider'
 import { useSwipeTabGesture } from '@features/trips/hooks/useSwipeTabGesture'
 import { DocumentCard } from '@features/documents/components/DocumentCard'
+import { DocumentViewer } from '@features/documents/components/DocumentViewer'
 import { UploadDocumentSheet } from '@features/documents/components/UploadDocumentSheet'
+import { DeleteDocumentSheet } from '@features/documents/components/DeleteDocumentSheet'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
 import { useUploadDocument } from '@features/documents/hooks/useUploadDocument'
+import { useDeleteDocument } from '@features/documents/hooks/useDeleteDocument'
 import type { UploadDocumentFormData } from '@features/documents/types'
+import type { Document } from '@types/index'
+
+type DocumentWithExperience = Document & { experience_title: string | null }
 
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList)
 
@@ -22,7 +28,10 @@ export default function DocumentsScreen() {
   const { tripId } = useTripContext()
   const { data: documents, isLoading, isFetching, refetch } = useDocuments(tripId)
   const uploadDocument = useUploadDocument()
+  const deleteDocument = useDeleteDocument()
   const [sheetVisible, setSheetVisible] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState<DocumentWithExperience | null>(null)
+  const [documentToDelete, setDocumentToDelete] = useState<DocumentWithExperience | null>(null)
   const insets = useSafeAreaInsets()
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
@@ -42,7 +51,21 @@ export default function DocumentsScreen() {
       await uploadDocument.mutateAsync({ ...data, tripId })
       setSheetVisible(false)
     } catch {
-      // Error se muestra en el sheet
+      // error shown in sheet
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!documentToDelete) return
+    try {
+      await deleteDocument.mutateAsync({
+        documentId: documentToDelete.id,
+        tripId,
+        fileUrl: documentToDelete.file_url,
+      })
+      setDocumentToDelete(null)
+    } catch {
+      // silent — could add toast here
     }
   }
 
@@ -52,62 +75,82 @@ export default function DocumentsScreen() {
       <View style={{ flex: 1, overflow: 'hidden' }}>
         <GestureDetector gesture={gesture}>
           <Animated.View style={[{ flex: 1 }, animatedStyle]}>
-      {isLoading ? (
-        <View className="px-5 pt-4 gap-3">
-          {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
-        </View>
-      ) : (
-        <AnimatedSectionList
-          sections={sections}
-          keyExtractor={(item) => (item as { id: string }).id}
-          contentContainerClassName="px-5 pb-24"
-          renderSectionHeader={({ section }) => (
-            <View className="pt-4 pb-2">
-              <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">{(section as { title: string }).title}</Text>
-            </View>
-          )}
-          renderItem={({ item }) => (
-            <View className="mb-3">
-              <DocumentCard document={item as any} />
-            </View>
-          )}
-          ListEmptyComponent={
-            <EmptyState
-              icon="document-text-outline"
-              title="Sin documentos"
-              subtitle="Sube reservas, entradas y confirmaciones"
-              actionLabel="Subir documento"
-              onAction={() => setSheetVisible(true)}
+            {isLoading ? (
+              <View className="px-5 pt-4 gap-3">
+                {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
+              </View>
+            ) : (
+              <AnimatedSectionList
+                sections={sections}
+                keyExtractor={(item) => (item as { id: string }).id}
+                contentContainerClassName="px-5 pb-24"
+                renderSectionHeader={({ section }) => (
+                  <View className="pt-4 pb-2">
+                    <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">
+                      {(section as { title: string }).title}
+                    </Text>
+                  </View>
+                )}
+                renderItem={({ item }) => (
+                  <View className="mb-3">
+                    <DocumentCard
+                      document={item as DocumentWithExperience}
+                      onPress={() => setSelectedDocument(item as DocumentWithExperience)}
+                      onDelete={() => setDocumentToDelete(item as DocumentWithExperience)}
+                    />
+                  </View>
+                )}
+                ListEmptyComponent={
+                  <EmptyState
+                    icon="document-text-outline"
+                    title="Sin documentos"
+                    subtitle="Sube reservas, entradas y confirmaciones"
+                    actionLabel="Subir documento"
+                    onAction={() => setSheetVisible(true)}
+                  />
+                }
+                onRefresh={refetch}
+                refreshing={isFetching && !isLoading}
+                stickySectionHeadersEnabled={false}
+                onScroll={scrollHandler}
+                scrollEventThrottle={16}
+              />
+            )}
+
+            {!isLoading && (
+              <TouchableOpacity
+                onPress={() => setSheetVisible(true)}
+                className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+                style={{ bottom: insets.bottom + 16, ...fabShadow }}
+              >
+                <Ionicons name="add" size={28} color="#ffffff" />
+              </TouchableOpacity>
+            )}
+
+            <UploadDocumentSheet
+              visible={sheetVisible}
+              onClose={() => setSheetVisible(false)}
+              onSubmit={handleUpload}
+              isLoading={uploadDocument.isPending}
+              error={uploadDocument.error?.message}
             />
-          }
-          onRefresh={refetch}
-          refreshing={isFetching && !isLoading}
-          stickySectionHeadersEnabled={false}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-        />
-      )}
 
-      {!isLoading && (
-        <TouchableOpacity
-          onPress={() => setSheetVisible(true)}
-          className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-          style={{ bottom: insets.bottom + 16, ...fabShadow }}
-        >
-          <Ionicons name="add" size={28} color="#ffffff" />
-        </TouchableOpacity>
-      )}
-
-      <UploadDocumentSheet
-        visible={sheetVisible}
-        onClose={() => setSheetVisible(false)}
-        onSubmit={handleUpload}
-        isLoading={uploadDocument.isPending}
-        error={uploadDocument.error?.message}
-      />
+            <DeleteDocumentSheet
+              visible={documentToDelete !== null}
+              documentName={documentToDelete?.name}
+              onClose={() => setDocumentToDelete(null)}
+              onConfirm={handleDeleteConfirm}
+              isLoading={deleteDocument.isPending}
+            />
           </Animated.View>
         </GestureDetector>
       </View>
+
+      <DocumentViewer
+        document={selectedDocument}
+        visible={selectedDocument !== null}
+        onClose={() => setSelectedDocument(null)}
+      />
     </View>
   )
 }

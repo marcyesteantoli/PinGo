@@ -10,7 +10,7 @@ import {
   withTiming,
 } from 'react-native-reanimated'
 
-const TAB_ROUTES = ['timeline', 'documents', 'expenses', 'memories']
+const TAB_ROUTES = ['timeline', 'memories', 'expenses', 'documents']
 
 export function useSwipeTabGesture() {
   const { id } = useLocalSearchParams<{ id: string }>()
