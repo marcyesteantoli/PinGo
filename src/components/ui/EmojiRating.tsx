@@ -1,14 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { colors } from '@lib/colors'
-
-const EMOJIS: Record<number, string> = {
-  1: '😞', 2: '😞',
-  3: '😕', 4: '😕',
-  5: '🙂', 6: '🙂',
-  7: '😄', 8: '😄',
-  9: '🤩', 10: '🤩',
-}
+import { RatingFace } from './RatingFace'
 
 const LABELS: Record<number, string> = {
   1: 'Decepcionante', 2: 'Muy malo',
@@ -24,10 +17,12 @@ function getTileColor(n: number): string {
   return '#22c55e'
 }
 
-function getEmoji(value: number | null): string {
-  if (!value) return '—'
-  const clamped = Math.max(1, Math.min(10, Math.round(value)))
-  return EMOJIS[clamped]
+function getLevel(rating: number): 1 | 2 | 3 | 4 | 5 {
+  if (rating <= 2) return 1
+  if (rating <= 4) return 2
+  if (rating <= 6) return 3
+  if (rating <= 8) return 4
+  return 5
 }
 
 interface EmojiRatingProps {
@@ -39,10 +34,10 @@ interface EmojiRatingProps {
 export function EmojiRating({ value, onChange, size = 'md' }: EmojiRatingProps) {
   if (size === 'sm') {
     if (!value) return null
-    const emoji = getEmoji(value)
+    const clamped = Math.max(1, Math.min(10, Math.round(value)))
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-        <Text style={{ fontSize: 13 }}>{emoji}</Text>
+        <RatingFace level={getLevel(clamped)} size={18} color={getTileColor(clamped)} />
         <Text style={{ fontSize: 13, fontWeight: '600', color: colors.neutral[600] }}>
           {Number.isInteger(value) ? value : value.toFixed(1)}
         </Text>
@@ -91,7 +86,7 @@ export function EmojiRating({ value, onChange, size = 'md' }: EmojiRatingProps) 
 
       {rounded !== null && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text style={{ fontSize: 24 }}>{EMOJIS[rounded]}</Text>
+          <RatingFace level={getLevel(rounded)} size={36} color={getTileColor(rounded)} />
           <Text style={{ fontSize: 15, fontWeight: '500', color: colors.neutral[700] }}>
             {LABELS[rounded]}
           </Text>
