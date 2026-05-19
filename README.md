@@ -1,4 +1,4 @@
-# TripSync
+# PinGo
 
 App móvil colaborativa para gestión de viajes. Permite organizar itinerarios, centralizar documentación, gestionar gastos compartidos y construir un diario colectivo.
 

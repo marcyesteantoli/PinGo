@@ -19,6 +19,7 @@ import { ExperienceCard } from '@features/timeline/components/ExperienceCard'
 import { useCreateExperience } from '@features/timeline/hooks/useCreateExperience'
 import { useDeleteExperience } from '@features/timeline/hooks/useDeleteExperience'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
+import { useRatingsForTrip } from '@features/timeline/hooks/useRatingsForTrip'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
 import { queryKeys } from '@lib/queryKeys'
 import type { Experience } from '@types/index'
@@ -87,6 +88,8 @@ export default function TimelineScreen() {
   const queryClient = useQueryClient()
   const { data: experiences, isLoading, error, refetch } = useExperiences(tripId)
   const { data: documents } = useDocuments(tripId)
+  const experienceIds = useMemo(() => experiences?.map(e => e.id) ?? [], [experiences])
+  const { data: ratingsMap } = useRatingsForTrip(tripId, experienceIds)
   const createExperience = useCreateExperience(tripId)
   const deleteExperience = useDeleteExperience(tripId)
   const [sheetVisible, setSheetVisible] = useState(false)
@@ -209,6 +212,8 @@ export default function TimelineScreen() {
       )
     }
 
+    const ratingData = ratingsMap?.[entry.experience.id]
+
     return (
       <View className="flex-row">
         <View className="w-10 items-center">
@@ -220,6 +225,8 @@ export default function TimelineScreen() {
         <View className="flex-1 pr-4 pb-3">
           <ExperienceCard
             experience={entry.experience}
+            ratingAvg={ratingData?.avg ?? null}
+            ratingCount={ratingData?.count ?? 0}
             canDelete={isOwner}
             onDelete={() => handleDeleteIntent(entry.experience)}
             onPress={() => router.push({
@@ -230,7 +237,7 @@ export default function TimelineScreen() {
         </View>
       </View>
     )
-  }, [isOwner, handleDeleteIntent])
+  }, [isOwner, handleDeleteIntent, ratingsMap])
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">

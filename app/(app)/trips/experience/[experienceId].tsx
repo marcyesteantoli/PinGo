@@ -1,14 +1,24 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 // TODO: import PROVIDER_GOOGLE and set provider={PROVIDER_GOOGLE} on MapView when Google Maps API key is configured
 import MapView, { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
+import { useRatings } from '@features/timeline/hooks/useRatings'
+import { useUpsertRating } from '@features/timeline/hooks/useUpsertRating'
+import { useIsSaved } from '@features/saved/hooks/useIsSaved'
+import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExperience'
+import { useSavedNote } from '@features/saved/hooks/useSavedNote'
+import { useUpsertSavedNote } from '@features/saved/hooks/useUpsertSavedNote'
+import { AttributeRatingSection } from '@features/timeline/components/AttributeRatingSection'
 import { DocumentViewer } from '@features/documents/components/DocumentViewer'
 import { Badge } from '@components/ui/Badge'
+import { EmojiRating } from '@components/ui/EmojiRating'
+import { UndoToast } from '@components/ui/UndoToast'
 import { EXPERIENCE_TYPE_LABELS, formatTimeRange } from '@features/timeline/types'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
@@ -71,9 +81,32 @@ export default function ExperienceDetailScreen() {
   const { experienceId, tripId } = useLocalSearchParams<{ experienceId: string; tripId: string }>()
   const { isDark } = useTheme()
   const [viewerDoc, setViewerDoc] = useState<DocumentWithExperience | null>(null)
+  const [saveToast, setSaveToast] = useState(false)
+  const saveToastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const { data: experiences } = useExperiences(tripId)
   const { data: allDocuments } = useDocuments(tripId)
+  const { data: ratingsData } = useRatings(experienceId)
+  const upsertRating = useUpsertRating(experienceId)
+  const { data: isSaved = false } = useIsSaved(experienceId)
+  const toggleSave = useToggleSaveExperience(experienceId)
+  const { data: savedNote } = useSavedNote(experienceId)
+  const upsertNote = useUpsertSavedNote(experienceId)
+  const [noteText, setNoteText] = useState<string | undefined>(undefined)
+  const noteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  function handleToggleSave() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+    toggleSave.mutate(isSaved, {
+      onSuccess: () => {
+        if (!isSaved) {
+          clearTimeout(saveToastTimer.current)
+          setSaveToast(true)
+          saveToastTimer.current = setTimeout(() => setSaveToast(false), 4000)
+        }
+      },
+    })
+  }
 
   const experience = experiences?.find(e => e.id === experienceId)
   const experienceDocs = (allDocuments?.filter(d => d.experience_id === experienceId) ?? []) as DocumentWithExperience[]
@@ -94,7 +127,6 @@ export default function ExperienceDetailScreen() {
   const bg = isDark ? colors.surface[900] : '#f2f2f7'
   const cardBg = isDark ? colors.surface[800] : colors.white
   const labelColor = isDark ? colors.neutral[500] : colors.neutral[400]
-  const borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)'
 
   if (!experience) {
     return (
@@ -128,6 +160,17 @@ export default function ExperienceDetailScreen() {
           <Ionicons name="chevron-back" size={22} color={colors.primary[500]} />
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
+        <TouchableOpacity
+          onPress={handleToggleSave}
+          hitSlop={8}
+          style={{ paddingHorizontal: 12, paddingVertical: 6 }}
+        >
+          <Ionicons
+            name={isSaved ? 'bookmark' : 'bookmark-outline'}
+            size={22}
+            color={isSaved ? colors.primary[500] : (isDark ? colors.neutral[400] : colors.neutral[500])}
+          />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -153,6 +196,123 @@ export default function ExperienceDetailScreen() {
             {experience.title}
           </Text>
         </View>
+
+        {/* Ratings card */}
+        <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '600',
+              color: labelColor,
+              paddingHorizontal: 16,
+              paddingTop: 14,
+              paddingBottom: 6,
+              textTransform: 'uppercase',
+              letterSpacing: 0.6,
+            }}
+          >
+            {ratingsData && ratingsData.count > 0
+              ? `Valoraciones · ${ratingsData.count}`
+              : 'Valoraciones'}
+          </Text>
+
+          {ratingsData && ratingsData.count > 0 && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                paddingVertical: 10,
+                gap: 10,
+                borderTopWidth: 0.5,
+                borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+              }}
+            >
+              <EmojiRating value={ratingsData.avg} size="sm" />
+              <Text style={{ fontSize: 15, fontWeight: '600', color: isDark ? colors.neutral[50] : colors.neutral[900] }}>
+                {ratingsData.avg?.toFixed(1)}
+              </Text>
+            </View>
+          )}
+
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              borderTopWidth: 0.5,
+              borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+            }}
+          >
+            <Text style={{ fontSize: 12, color: labelColor, marginBottom: 8 }}>
+              Tu valoración
+            </Text>
+            <EmojiRating
+              value={ratingsData?.userRating ?? null}
+              onChange={(rating) => upsertRating.mutate(rating)}
+            />
+          </View>
+        </View>
+
+        {/* Attribute ratings + note — only when saved */}
+        {isSaved && (
+          <>
+            <AttributeRatingSection
+              experienceId={experienceId}
+              experienceType={experience.type}
+              cardBg={cardBg}
+              labelColor={labelColor}
+              borderColor={isDark ? colors.surface[700] : colors.neutral[100]}
+            />
+
+            <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: labelColor,
+                  paddingHorizontal: 16,
+                  paddingTop: 14,
+                  paddingBottom: 6,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.6,
+                }}
+              >
+                Mi nota
+              </Text>
+              <View
+                style={{
+                  borderTopWidth: 0.5,
+                  borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                }}
+              >
+                <TextInput
+                  value={noteText ?? savedNote ?? ''}
+                  onChangeText={(text) => {
+                    setNoteText(text)
+                    clearTimeout(noteTimer.current)
+                    noteTimer.current = setTimeout(() => upsertNote.mutate(text), 800)
+                  }}
+                  onBlur={() => {
+                    clearTimeout(noteTimer.current)
+                    upsertNote.mutate(noteText ?? savedNote ?? '')
+                  }}
+                  placeholder="Escribe algo sobre esta experiencia..."
+                  placeholderTextColor={labelColor}
+                  multiline
+                  style={{
+                    fontSize: 15,
+                    color: isDark ? colors.neutral[50] : colors.neutral[900],
+                    minHeight: 80,
+                    textAlignVertical: 'top',
+                    padding: 0,
+                  }}
+                />
+              </View>
+            </View>
+          </>
+        )}
 
         {/* Details card */}
         {hasDetails && (
@@ -326,6 +486,15 @@ export default function ExperienceDetailScreen() {
         document={viewerDoc}
         visible={viewerDoc !== null}
         onClose={() => setViewerDoc(null)}
+      />
+
+      <UndoToast
+        visible={saveToast}
+        message="¡Añadida a Mis Joyas! Valora los atributos 👇"
+        onUndo={() => {
+          setSaveToast(false)
+          toggleSave.mutate(true)
+        }}
       />
     </SafeAreaView>
   )

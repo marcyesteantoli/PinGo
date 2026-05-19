@@ -24,6 +24,16 @@ export const queryKeys = {
   },
   ratings: {
     byExperience: (experienceId: string) => ['ratings', experienceId] as const,
+    byTrip: (tripId: string) => ['ratings', 'trip', tripId] as const,
+  },
+  attributeRatings: {
+    byExperience: (experienceId: string) => ['attributeRatings', experienceId] as const,
+  },
+  savedExperiences: {
+    byUser: () => ['savedExperiences'] as const,
+    isSaved: (experienceId: string) => ['savedExperiences', 'isSaved', experienceId] as const,
+    note: (experienceId: string) => ['savedExperiences', 'note', experienceId] as const,
+    detail: (experienceId: string) => ['savedExperiences', 'detail', experienceId] as const,
   },
   collaborators: {
     byTrip: (tripId: string) => ['collaborators', tripId] as const,

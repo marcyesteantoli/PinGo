@@ -36,6 +36,33 @@ export type ExperienceWithRating = Experience & {
   rating_count: number
 }
 
+export type AttributeRating = {
+  experience_id: string
+  user_id: string
+  attribute: string
+  value: number
+}
+
+export type AttributeRatingsData = {
+  userValues: Record<string, number>
+  groupAvg: Record<string, number>
+  count: number
+}
+
+export type UserSavedExperience = {
+  user_id: string
+  experience_id: string
+  saved_at: string
+}
+
+export type SavedExperienceItem = {
+  saved_at: string
+  experience: Experience & {
+    trip: { name: string } | null
+    attribute_ratings: Array<{ attribute: string; value: number }>
+  }
+}
+
 // Balance calculado por usuario en un viaje
 export type UserBalance = {
   user_id: string

@@ -8,6 +8,8 @@ export default function AppLayout() {
       <Stack.Screen name="trips/new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="trips/[id]" />
       <Stack.Screen name="trips/experience/[experienceId]" options={{ headerShown: false }} />
+      <Stack.Screen name="saved-experiences" options={{ headerShown: false }} />
+      <Stack.Screen name="saved-experiences/[experienceId]" options={{ headerShown: false }} />
     </Stack>
   )
 }

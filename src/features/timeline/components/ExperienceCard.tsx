@@ -5,6 +5,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from '
 import { Text, TouchableOpacity, View } from 'react-native'
 import { Badge } from '@components/ui/Badge'
 import type { BadgeVariant } from '@components/ui/Badge'
+import { EmojiRating } from '@components/ui/EmojiRating'
 import { EXPERIENCE_TYPE_LABELS, formatTimeRange } from '../types'
 import type { Experience } from '@types/index'
 import { colors } from '@lib/colors'
@@ -21,12 +22,14 @@ const DELETE_WIDTH = 76
 
 interface ExperienceCardProps {
   experience: Experience
+  ratingAvg?: number | null
+  ratingCount?: number
   canDelete?: boolean
   onDelete?: () => void
   onPress?: () => void
 }
 
-export const ExperienceCard = memo(function ExperienceCard({ experience, canDelete, onDelete, onPress }: ExperienceCardProps) {
+export const ExperienceCard = memo(function ExperienceCard({ experience, ratingAvg, canDelete, onDelete, onPress }: ExperienceCardProps) {
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
   const [containerWidth, setContainerWidth] = useState(0)
@@ -68,7 +71,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
     onDelete?.()
   }
 
-  const hasBottomRow = !!(timeRange || experience.confirmation_code)
+  const hasBottomRow = !!(timeRange || experience.confirmation_code || ratingAvg)
 
   // Width only known after first layout — card is hidden until then to avoid flash
   const rowWidth = containerWidth > 0 ? containerWidth + (canDelete ? DELETE_WIDTH : 0) : undefined
@@ -125,9 +128,17 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, canDele
                   </View>
                 )}
 
-                {/* Bottom row: time range + confirmation code */}
+                {/* Bottom row: rating + time range + confirmation code */}
                 {hasBottomRow && (
                   <View className="flex-row items-center gap-2 mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-surface-700">
+                    {ratingAvg != null && (
+                      <>
+                        <EmojiRating value={ratingAvg} size="sm" />
+                        {(timeRange || experience.confirmation_code) && (
+                          <Text className="text-neutral-300 dark:text-neutral-600 text-sm">•</Text>
+                        )}
+                      </>
+                    )}
                     {timeRange && (
                       <View className="flex-row items-center gap-1">
                         <Ionicons name="time-outline" size={12} color={colors.neutral[400]} />

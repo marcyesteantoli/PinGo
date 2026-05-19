@@ -17,6 +17,7 @@ import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useProfile } from '@features/auth/hooks/useProfile'
 import { useSignOut } from '@features/auth/hooks/useSignOut'
 import { useUpdateProfile } from '@features/auth/hooks/useUpdateProfile'
+import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
 import { useTheme } from '@lib/theme'
 
 export default function ProfileScreen() {
@@ -26,6 +27,7 @@ export default function ProfileScreen() {
   const { data: profile } = useProfile(user?.id)
   const updateProfile = useUpdateProfile()
   const signOut = useSignOut()
+  const { data: saved = [] } = useSavedExperiences()
 
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState('')
@@ -167,6 +169,34 @@ export default function ProfileScreen() {
             <Text className={`${labelBase} flex-1`}>Email</Text>
             <Text className={valueBase}>{email}</Text>
           </View>
+        </View>
+
+        {/* Sección: Mis Joyas */}
+        <Text className={sectionLabel}>Mis Joyas</Text>
+        <View className={sectionCard}>
+          <TouchableOpacity
+            onPress={() => router.push('/saved-experiences')}
+            className={rowBase}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="bookmark"
+              size={20}
+              color={isDark ? '#7b82f5' : '#4f56e8'}
+              style={{ marginRight: 12 }}
+            />
+            <Text className={`${labelBase} flex-1`}>Mis Joyas</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              {saved.length > 0 && (
+                <Text className={valueBase}>{saved.length}</Text>
+              )}
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={isDark ? '#64748b' : '#94a3b8'}
+              />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Sección: Apariencia */}
