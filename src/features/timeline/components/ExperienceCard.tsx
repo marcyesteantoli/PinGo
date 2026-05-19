@@ -128,34 +128,31 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
                   </View>
                 )}
 
-                {/* Bottom row: rating + time range + confirmation code */}
+                {/* Bottom row: time/confirmation left · rating right */}
                 {hasBottomRow && (
-                  <View className="flex-row items-center gap-2 mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-surface-700">
+                  <View className="flex-row items-center justify-between mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-surface-700">
+                    <View className="flex-row items-center gap-2">
+                      {timeRange && (
+                        <View className="flex-row items-center gap-1">
+                          <Ionicons name="time-outline" size={12} color={colors.neutral[400]} />
+                          <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+                            {timeRange}
+                          </Text>
+                        </View>
+                      )}
+                      {experience.confirmation_code && (
+                        <>
+                          {timeRange && (
+                            <Text className="text-neutral-300 dark:text-neutral-600 text-sm">•</Text>
+                          )}
+                          <Text className="text-xs text-neutral-400 dark:text-neutral-500">
+                            + Reserva {experience.confirmation_code}
+                          </Text>
+                        </>
+                      )}
+                    </View>
                     {ratingAvg != null && (
-                      <>
-                        <EmojiRating value={ratingAvg} size="sm" />
-                        {(timeRange || experience.confirmation_code) && (
-                          <Text className="text-neutral-300 dark:text-neutral-600 text-sm">•</Text>
-                        )}
-                      </>
-                    )}
-                    {timeRange && (
-                      <View className="flex-row items-center gap-1">
-                        <Ionicons name="time-outline" size={12} color={colors.neutral[400]} />
-                        <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
-                          {timeRange}
-                        </Text>
-                      </View>
-                    )}
-                    {experience.confirmation_code && (
-                      <>
-                        {timeRange && (
-                          <Text className="text-neutral-300 dark:text-neutral-600 text-sm">•</Text>
-                        )}
-                        <Text className="text-xs text-neutral-400 dark:text-neutral-500">
-                          + Reserva {experience.confirmation_code}
-                        </Text>
-                      </>
+                      <EmojiRating value={ratingAvg} size="lg" />
                     )}
                   </View>
                 )}

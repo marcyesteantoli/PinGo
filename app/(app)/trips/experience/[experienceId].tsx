@@ -87,7 +87,7 @@ export default function ExperienceDetailScreen() {
   const { data: experiences } = useExperiences(tripId)
   const { data: allDocuments } = useDocuments(tripId)
   const { data: ratingsData } = useRatings(experienceId)
-  const upsertRating = useUpsertRating(experienceId)
+  const upsertRating = useUpsertRating(experienceId, tripId)
   const { data: isSaved = false } = useIsSaved(experienceId)
   const toggleSave = useToggleSaveExperience(experienceId)
   const { data: savedNote } = useSavedNote(experienceId)
