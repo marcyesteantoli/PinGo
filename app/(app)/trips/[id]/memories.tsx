@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, Text, TouchableOpacity, View, useColorScheme } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -17,7 +17,7 @@ import { useSwipeTabGesture } from '@features/trips/hooks/useSwipeTabGesture'
 import { AddMemoryCaption } from '@features/memories/components/AddMemoryCaption'
 import { MemoryDetail } from '@features/memories/components/MemoryDetail'
 import { MemoryGrid } from '@features/memories/components/MemoryGrid'
-import { useAddMemory } from '@features/memories/hooks/useAddMemory'
+import { useAddMemory, useAddMemories } from '@features/memories/hooks/useAddMemory'
 import { useDeleteMemory } from '@features/memories/hooks/useDeleteMemory'
 import { useMemories } from '@features/memories/hooks/useMemories'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
@@ -30,6 +30,7 @@ export default function MemoriesScreen() {
   const { tripId, isOwner, collaborators } = useTripContext()
   const { data: memories, isLoading } = useMemories(tripId)
   const addMemory = useAddMemory()
+  const addMemories = useAddMemories()
   const deleteMemory = useDeleteMemory()
   const { data: currentUser } = useCurrentUser()
 
@@ -42,6 +43,7 @@ export default function MemoriesScreen() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const insets = useSafeAreaInsets()
+  const isDark = useColorScheme() === 'dark'
   const count = memories?.length ?? 0
   const scrollY = useSharedValue(0)
   const { gesture, animatedStyle } = useSwipeTabGesture()
@@ -137,7 +139,8 @@ export default function MemoriesScreen() {
   // ─── Add photo flow ──────────────────────────────────────────────────────────
 
   const handlePickImage = async () => {
-    if (count >= LIMITS.MAX_PHOTOS_PER_TRIP) return
+    const remaining = LIMITS.MAX_PHOTOS_PER_TRIP - count
+    if (remaining <= 0) return
 
     if (DEV_MODE) {
       const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara']
@@ -161,12 +164,25 @@ export default function MemoriesScreen() {
       mediaTypes: ['images'],
       quality: 1,
       allowsEditing: false,
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
     })
 
-    if (result.canceled || !result.assets[0]) return
+    if (result.canceled || !result.assets.length) return
 
-    setPendingAsset(result.assets[0])
-    setCaptionSheetVisible(true)
+    if (result.assets.length === 1) {
+      setPendingAsset(result.assets[0])
+      setCaptionSheetVisible(true)
+    } else {
+      addMemories.mutate(
+        { tripId, assets: result.assets },
+        {
+          onError: () => {
+            Alert.alert('Error', 'Algunas fotos no se pudieron subir. Inténtalo de nuevo.')
+          },
+        }
+      )
+    }
   }
 
   const handleAddMemory = async (caption?: string) => {
@@ -202,16 +218,13 @@ export default function MemoriesScreen() {
         left: 0,
         right: 0,
         paddingBottom: insets.bottom,
-        backgroundColor: colors.surface[800],
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.08)',
       }}
-      className="flex-row items-center justify-between px-6 pt-3 pb-2"
+      className="flex-row items-center justify-between px-6 pt-3 pb-2 bg-white dark:bg-surface-800 border-t border-neutral-200 dark:border-white/[0.08]"
     >
       {/* Left: cancel */}
       <TouchableOpacity onPress={exitSelectionMode} hitSlop={8} className="items-center gap-1">
-        <Ionicons name="close-circle-outline" size={26} color={colors.neutral[400]} />
-        <Text className="text-neutral-400 text-xs">Cancelar</Text>
+        <Ionicons name="close-circle-outline" size={26} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
+        <Text className="text-neutral-500 dark:text-neutral-400 text-xs">Cancelar</Text>
       </TouchableOpacity>
 
       {/* Center: selection count + select all */}
@@ -233,10 +246,10 @@ export default function MemoriesScreen() {
           <Ionicons
             name="arrow-down-circle-outline"
             size={26}
-            color={selectedIds.size === 0 ? colors.neutral[600] : colors.white}
+            color={selectedIds.size === 0 ? colors.neutral[400] : isDark ? colors.white : colors.neutral[800]}
           />
           <Text
-            className={`text-xs ${selectedIds.size === 0 ? 'text-neutral-600' : 'text-white'}`}
+            className={`text-xs ${selectedIds.size === 0 ? 'text-neutral-400' : 'text-neutral-800 dark:text-white'}`}
           >
             Guardar
           </Text>
@@ -251,10 +264,10 @@ export default function MemoriesScreen() {
           <Ionicons
             name="trash-outline"
             size={26}
-            color={selectedIds.size === 0 ? colors.neutral[600] : colors.error}
+            color={selectedIds.size === 0 ? colors.neutral[400] : colors.error}
           />
           <Text
-            className={`text-xs ${selectedIds.size === 0 ? 'text-neutral-600' : 'text-red-500'}`}
+            className={`text-xs ${selectedIds.size === 0 ? 'text-neutral-400' : 'text-red-500'}`}
           >
             Eliminar
           </Text>
@@ -313,14 +326,28 @@ export default function MemoriesScreen() {
       )}
 
       {/* FAB — hidden in selection mode */}
-      {!isLoading && !selectionMode && count < LIMITS.MAX_PHOTOS_PER_TRIP && (
-        <TouchableOpacity
-          onPress={handlePickImage}
-          className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-          style={{ bottom: insets.bottom + 16, ...fabShadow }}
-        >
-          <Ionicons name="add" size={28} color="#ffffff" />
-        </TouchableOpacity>
+      {!isLoading && !selectionMode && (
+        addMemories.isPending && addMemories.progress ? (
+          <View
+            className="absolute right-5 h-14 px-4 rounded-full bg-white dark:bg-surface-800 flex-row items-center gap-2"
+            style={{ bottom: insets.bottom + 16, ...fabShadow }}
+          >
+            <ActivityIndicator size="small" color={colors.primary[500]} />
+            <Text className="text-neutral-900 dark:text-white text-sm font-medium">
+              {addMemories.progress.done}/{addMemories.progress.total}
+            </Text>
+          </View>
+        ) : (
+          count < LIMITS.MAX_PHOTOS_PER_TRIP && (
+            <TouchableOpacity
+              onPress={handlePickImage}
+              className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+              style={{ bottom: insets.bottom + 16, ...fabShadow }}
+            >
+              <Ionicons name="add" size={28} color="#ffffff" />
+            </TouchableOpacity>
+          )
+        )
       )}
 
       {/* Selection toolbar */}

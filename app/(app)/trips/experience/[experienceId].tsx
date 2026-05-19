@@ -117,9 +117,7 @@ export default function ExperienceDetailScreen() {
           alignItems: 'center',
           paddingHorizontal: 8,
           paddingVertical: 10,
-          backgroundColor: cardBg,
-          borderBottomWidth: 0.5,
-          borderBottomColor: borderColor,
+          backgroundColor: bg,
         }}
       >
         <TouchableOpacity

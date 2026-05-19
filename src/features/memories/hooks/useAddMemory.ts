@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -12,6 +13,11 @@ export type AddMemoryParams = {
   tripId: string
   caption?: string
   asset?: ImagePicker.ImagePickerAsset // undefined en DEV_MODE
+}
+
+export type AddMemoriesParams = {
+  tripId: string
+  assets: ImagePicker.ImagePickerAsset[]
 }
 
 type AddMemoryError =
@@ -76,6 +82,67 @@ async function uploadMemory(
   }
 
   return data
+}
+
+export function useAddMemories() {
+  const queryClient = useQueryClient()
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+
+  const mutation = useMutation({
+    mutationFn: async ({ tripId, assets }: AddMemoriesParams): Promise<number> => {
+      if (DEV_MODE) {
+        const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara', 'nikko', 'hakone']
+        setProgress({ done: 0, total: assets.length })
+        for (let i = 0; i < assets.length; i++) {
+          const seed = seeds[Math.floor(Math.random() * seeds.length)]
+          const newMemory: Memory = {
+            id: `demo-mem-${Date.now()}-${i}`,
+            trip_id: tripId,
+            user_id: DEMO_USER_ID,
+            image_url: `https://picsum.photos/seed/${seed}${Date.now() + i}/800/600`,
+            caption: null,
+            created_at: new Date().toISOString(),
+          }
+          if (!mockMemories[tripId]) mockMemories[tripId] = []
+          mockMemories[tripId].unshift(newMemory)
+          queryClient.setQueryData<Memory[]>(
+            queryKeys.memories.all(tripId),
+            (old = []) => [newMemory, ...old]
+          )
+          setProgress({ done: i + 1, total: assets.length })
+        }
+        return assets.length
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user)
+        throw { code: 'DB_FAILED', message: 'No hay sesión activa.' } satisfies AddMemoryError
+
+      setProgress({ done: 0, total: assets.length })
+      let uploaded = 0
+
+      for (const asset of assets) {
+        const memory = await uploadMemory(asset, tripId, user.id)
+        queryClient.setQueryData<Memory[]>(
+          queryKeys.memories.all(tripId),
+          (old = []) => [memory, ...old]
+        )
+        uploaded++
+        setProgress({ done: uploaded, total: assets.length })
+      }
+
+      return uploaded
+    },
+    onSettled: (_, __, variables) => {
+      setProgress(null)
+      if (DEV_MODE) return
+      queryClient.invalidateQueries({ queryKey: queryKeys.memories.all(variables.tripId) })
+    },
+  })
+
+  return { ...mutation, progress }
 }
 
 export function useAddMemory() {
