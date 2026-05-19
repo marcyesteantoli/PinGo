@@ -10,10 +10,8 @@ import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { UndoToast } from '@components/ui/UndoToast'
-import { GestureDetector } from 'react-native-gesture-handler'
 import { TripHeader } from '@features/trips/components/TripHeader'
 import { useTripContext } from '@features/trips/TripProvider'
-import { useSwipeTabGesture } from '@features/trips/hooks/useSwipeTabGesture'
 import { AddExperienceSheet } from '@features/timeline/components/AddExperienceSheet'
 import { DeleteExperienceSheet } from '@features/timeline/components/DeleteExperienceSheet'
 import { DaySection } from '@features/timeline/components/DaySection'
@@ -86,7 +84,6 @@ export default function TimelineScreen() {
   const { tripId, trip, isOwner } = useTripContext()
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
-  const { gesture, animatedStyle } = useSwipeTabGesture()
   const queryClient = useQueryClient()
   const { data: experiences, isLoading, error, refetch } = useExperiences(tripId)
   const { data: documents } = useDocuments(tripId)
@@ -238,9 +235,7 @@ export default function TimelineScreen() {
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
       <TripHeader scrollY={scrollY} />
-      <View style={{ flex: 1, overflow: 'hidden' }}>
-        <GestureDetector gesture={gesture}>
-          <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+      <View style={{ flex: 1 }}>
       {isLoading ? (
         <View className="px-5 pt-4 gap-3">
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
@@ -306,8 +301,6 @@ export default function TimelineScreen() {
         onClose={() => setDeleteSheet(prev => ({ ...prev, visible: false }))}
         onConfirm={handleDeleteWithDocuments}
       />
-          </Animated.View>
-        </GestureDetector>
       </View>
     </View>
   )
