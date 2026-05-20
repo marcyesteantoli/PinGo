@@ -30,31 +30,7 @@ export function useUpsertAttributeRating(experienceId: string) {
 
       queryClient.setQueryData<AttributeRatingsData>(qKey, (old) => {
         if (!old) return old
-
-        const prevUserVal = old.userValues[attribute] ?? null
-        const newUserValues = { ...old.userValues, [attribute]: value }
-
-        // Recalculate groupAvg for this attribute optimistically
-        const prevGroupAvg = old.groupAvg[attribute] ?? null
-        let newGroupAvg: number
-
-        if (prevGroupAvg === null) {
-          newGroupAvg = value
-        } else if (prevUserVal === null) {
-          // User adding new rating for this attribute
-          const total = prevGroupAvg * old.count + value
-          newGroupAvg = Math.round((total / (old.count + 1)) * 10) / 10
-        } else {
-          // User updating existing rating
-          const total = prevGroupAvg * old.count - prevUserVal + value
-          newGroupAvg = Math.round((total / old.count) * 10) / 10
-        }
-
-        return {
-          ...old,
-          userValues: newUserValues,
-          groupAvg: { ...old.groupAvg, [attribute]: newGroupAvg },
-        }
+        return { ...old, userValues: { ...old.userValues, [attribute]: value } }
       })
 
       return { snapshot }

@@ -253,7 +253,7 @@ export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps)
                       zIndex: 3,
                     }}
                   >
-                    <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 }}>
+                    <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 }}>
                       {getFileLabel(document.file_type)}
                     </Text>
                   </View>
@@ -281,13 +281,13 @@ export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps)
                     {document.experience_title && (
                       <Text
                         numberOfLines={1}
-                        style={{ fontSize: 11, color: subtitleColor, marginTop: 1 }}
+                        style={{ fontSize: 13, color: subtitleColor, marginTop: 1 }}
                       >
                         {document.experience_title}
                       </Text>
                     )}
                   </View>
-                  <Ionicons name="chevron-forward" size={14} color={colors.neutral[300]} />
+                  <Ionicons name="chevron-forward" size={16} color={colors.neutral[300]} />
                 </View>
               </TouchableOpacity>
             </View>

@@ -140,7 +140,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
       </View>
 
       <View className="flex-row items-center gap-1.5 mb-3">
-        <Ionicons name="calendar-outline" size={13} color={subtleColor} />
+        <Ionicons name="calendar-outline" size={15} color={subtleColor} />
         <Text className="text-[13px] text-neutral-500 dark:text-neutral-400">
           {formatDateRange(trip.start_date, trip.end_date)}
         </Text>
@@ -262,7 +262,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               activeOpacity={0.8}
             >
               <Ionicons name="pencil-outline" size={20} color={colors.white} />
-              <Text style={{ color: colors.white, fontSize: 11, fontWeight: '600' }}>Editar</Text>
+              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>Editar</Text>
             </TouchableOpacity>
 
             {/* Delete action */}
@@ -273,7 +273,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               activeOpacity={0.8}
             >
               <Ionicons name="trash-outline" size={20} color={colors.white} />
-              <Text style={{ color: colors.white, fontSize: 11, fontWeight: '600' }}>Eliminar</Text>
+              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>Eliminar</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>

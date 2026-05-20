@@ -60,7 +60,7 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
 
             {/* Amount - big and prominent */}
             <View className="items-center py-2">
-              <Text className="text-xs text-neutral-400 mb-3 uppercase tracking-wide">Importe</Text>
+              <Text className="text-[13px] text-neutral-400 mb-3 uppercase tracking-wide">Importe</Text>
               <Controller
                 control={control}
                 name="amount"

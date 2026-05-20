@@ -105,6 +105,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
                 {/* Badge row */}
                 <View className="flex-row gap-1.5 mb-2">
                   <Badge
+                  scheme="A"
                     label={EXPERIENCE_TYPE_LABELS[experience.type]}
                     variant={TYPE_BADGE_VARIANT[experience.type]}
                   />
@@ -121,8 +122,8 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
                 {/* Location subtitle */}
                 {location?.name && (
                   <View className="flex-row items-center gap-1 mt-0.5">
-                    <Ionicons name="location-outline" size={12} color={colors.neutral[400]} />
-                    <Text className="text-xs text-neutral-400 dark:text-neutral-500 flex-1" numberOfLines={1}>
+                    <Ionicons name="location-outline" size={14} color={colors.neutral[400]} />
+                    <Text className="text-sm text-neutral-400 dark:text-neutral-500 flex-1" numberOfLines={1}>
                       {location.name}
                     </Text>
                   </View>
@@ -134,7 +135,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
                     <View className="flex-row items-center gap-2">
                       {timeRange && (
                         <View className="flex-row items-center gap-1">
-                          <Ionicons name="time-outline" size={12} color={colors.neutral[400]} />
+                          <Ionicons name="time-outline" size={14} color={colors.neutral[400]} />
                           <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
                             {timeRange}
                           </Text>
@@ -145,14 +146,14 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
                           {timeRange && (
                             <Text className="text-neutral-300 dark:text-neutral-600 text-sm">•</Text>
                           )}
-                          <Text className="text-xs text-neutral-400 dark:text-neutral-500">
+                          <Text className="text-sm text-neutral-400 dark:text-neutral-500">
                             + Reserva {experience.confirmation_code}
                           </Text>
                         </>
                       )}
                     </View>
                     {ratingAvg != null && (
-                      <EmojiRating value={ratingAvg} size="lg" />
+                      <EmojiRating value={ratingAvg} size="sm" />
                     )}
                   </View>
                 )}

@@ -171,7 +171,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
               <Text className="text-[13px] text-neutral-400 dark:text-neutral-500">
                 {travelerCount} {travelerCount === 1 ? 'viajero' : 'viajeros'}
               </Text>
-              <Ionicons name="chevron-forward" size={13} color={subtleColor} />
+              <Ionicons name="chevron-forward" size={15} color={subtleColor} />
             </TouchableOpacity>
           </View>
         </Animated.View>

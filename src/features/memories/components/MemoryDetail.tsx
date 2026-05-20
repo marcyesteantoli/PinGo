@@ -210,9 +210,9 @@ export function MemoryDetail({
   if (!visible || memories.length === 0) return null
 
   const btnStyle = {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: theme.btnBg,
     borderWidth: 0.5,
     borderColor: theme.btnBorder,

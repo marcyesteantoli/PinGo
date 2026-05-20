@@ -16,37 +16,23 @@ export function useAttributeRatings(experienceId: string) {
         return { userValues: {}, groupAvg: {}, count: 0 }
       }
 
-      type Row = { user_id: string; attribute: string; value: number }
+      if (!userId) return { userValues: {}, groupAvg: {}, count: 0 }
+
+      type Row = { attribute: string; value: number }
       const { data: rawData, error } = await (supabase as any)
         .from('experience_attribute_ratings')
-        .select('user_id, attribute, value')
+        .select('attribute, value')
         .eq('experience_id', experienceId)
+        .eq('user_id', userId)
 
       if (error) throw new Error(error.message)
 
       const rows: Row[] = rawData ?? []
-
       const userValues: Record<string, number> = {}
-      rows
-        .filter((r) => r.user_id === userId)
-        .forEach((r) => { userValues[r.attribute] = r.value })
+      rows.forEach((r) => { userValues[r.attribute] = r.value })
 
-      const grouped: Record<string, number[]> = {}
-      rows.forEach((r) => {
-        if (!grouped[r.attribute]) grouped[r.attribute] = []
-        grouped[r.attribute].push(r.value)
-      })
-
-      const groupAvg: Record<string, number> = {}
-      Object.entries(grouped).forEach(([attr, vals]) => {
-        groupAvg[attr] = Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10
-      })
-
-      const userIds = new Set(rows.map((r) => r.user_id))
-      const count = userIds.size
-
-      return { userValues, groupAvg, count }
+      return { userValues, groupAvg: {}, count: 0 }
     },
-    enabled: !!experienceId,
+    enabled: !!experienceId && !!userId,
   })
 }

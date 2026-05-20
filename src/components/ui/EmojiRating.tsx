@@ -114,8 +114,8 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
   const fillAnimStyle = useAnimatedStyle(() => {
     const fillColor = interpolateColor(
       colorProgress.value,
-      [0, 0.25, 0.5, 1],
-      ['#ef4444', '#ef4444', '#f59e0b', '#22c55e'],
+      [0, 0.25, 0.5, 0.75, 1],
+      ['#4a5568', '#2f3aa3', '#e11d48', '#F77737', '#FFC837'],
     )
     return {
       backgroundColor: fillColor,
@@ -130,8 +130,8 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
   const thumbColorStyle = useAnimatedStyle(() => {
     const borderColor = interpolateColor(
       colorProgress.value,
-      [0, 0.25, 0.5, 1],
-      ['#ef4444', '#ef4444', '#f59e0b', '#22c55e'],
+      [0, 0.25, 0.5, 0.75, 1],
+      ['#4a5568', '#2f3aa3', '#e11d48', '#F77737', '#FFC837'],
     )
     return { borderColor }
   })
@@ -207,13 +207,13 @@ export function EmojiRating({ value, onChange, size = 'md' }: EmojiRatingProps) 
   if (size === 'sm' || size === 'lg') {
     if (!value) return null
     const clamped = Math.max(1, Math.min(10, Math.round(value)))
-    const faceSize = size === 'lg' ? 28 : 18
-    const fontSize = size === 'lg' ? 16 : 13
+    const faceSize = size === 'lg' ? 28 : 22
+    const fontSize = size === 'lg' ? 16 : 14
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: size === 'lg' ? 5 : 3 }}>
         <RatingFace level={getLevel(clamped)} size={faceSize} />
         <Text style={{ fontSize, fontWeight: '600', color: colors.neutral[600] }}>
-          {Number.isInteger(value) ? value : value.toFixed(1)}
+          {`${Number.isInteger(value) ? value : value.toFixed(1)}/10`}
         </Text>
       </View>
     )

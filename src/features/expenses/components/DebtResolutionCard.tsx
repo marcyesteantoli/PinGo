@@ -56,7 +56,8 @@ export function DebtResolutionCard({
           onPress={onSettle}
           disabled={isSettling}
           activeOpacity={0.8}
-          className="mx-4 mb-4 flex-row items-center justify-center gap-2 rounded-xl py-2.5 border border-neutral-200 dark:border-surface-600 active:bg-neutral-100 dark:active:bg-surface-700"
+          className="mx-4 mb-4 flex-row items-center justify-center gap-2 rounded-xl py-3 border border-neutral-200 dark:border-surface-600 active:bg-neutral-100 dark:active:bg-surface-700"
+          style={{ minHeight: 44 }}
           style={{ opacity: isSettling ? 0.6 : 1 }}
         >
           {isSettling ? (

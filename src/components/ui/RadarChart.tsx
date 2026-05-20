@@ -1,6 +1,6 @@
 import React from 'react'
-import { View } from 'react-native'
-import Svg, { G, Line, Polygon, Text as SvgText } from 'react-native-svg'
+import { useWindowDimensions, View } from 'react-native'
+import Svg, { Circle, Defs, G, Line, Polygon, RadialGradient, Stop, Text as SvgText } from 'react-native-svg'
 import { colors } from '@lib/colors'
 
 interface RadarChartProps {
@@ -9,6 +9,7 @@ interface RadarChartProps {
   groupAvg: Record<string, number>
   size?: number
   isDark?: boolean
+  showLabels?: boolean
 }
 
 function polarToCartesian(cx: number, cy: number, r: number, angleRad: number) {
@@ -33,39 +34,34 @@ function buildPolygonPoints(
     .join(' ')
 }
 
-function buildRingPoints(
-  n: number,
-  fraction: number,
-  radius: number,
-  cx: number,
-  cy: number,
-): string {
-  return Array.from({ length: n }, (_, i) => {
-    const angle = (2 * Math.PI * i) / n - Math.PI / 2
-    const { x, y } = polarToCartesian(cx, cy, radius * fraction, angle)
-    return `${x},${y}`
-  }).join(' ')
-}
-
 export function RadarChart({
   attributes,
   userValues,
   groupAvg,
-  size = 180,
+  size: sizeProp,
   isDark = false,
+  showLabels = true,
 }: RadarChartProps) {
+  const { width: screenW } = useWindowDimensions()
+
+  const hPad = 76
+  const vPad = 52
+  const size = sizeProp ?? Math.min(screenW - 32 - hPad * 2, 220)
+
   if (attributes.length < 3) return null
 
-  const padding = 44
-  const svgSize = size + padding * 2
-  const cx = svgSize / 2
-  const cy = svgSize / 2
+  const svgW = size + hPad * 2
+  const svgH = size + vPad * 2
+  const cx = svgW / 2
+  const cy = svgH / 2
   const radius = size / 2
 
-  const gridColor = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'
-  const axisColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'
+  const ringStroke = isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.07)'
+  const axisColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
   const labelColor = isDark ? colors.neutral[400] : colors.neutral[500]
-  const userLabelColor = colors.secondary[400]
+  const primaryColor = colors.primary[500]
+  const primaryFill = isDark ? `${colors.primary[500]}28` : `${colors.primary[500]}1A`
+  const scoreColor = colors.primary[400]
 
   const vertexAngles = attributes.map(
     (_, i) => (2 * Math.PI * i) / attributes.length - Math.PI / 2,
@@ -81,17 +77,42 @@ export function RadarChart({
     ? buildPolygonPoints(attributes, userValues, radius, cx, cy)
     : null
 
+  const userVertices = hasUserData
+    ? attributes.map((attr, i) => {
+        const angle = vertexAngles[i]
+        const val = Math.max(1, Math.min(10, userValues[attr] ?? 1))
+        const r = (val / 10) * radius
+        return {
+          x: cx + r * Math.cos(angle),
+          y: cy + r * Math.sin(angle),
+          hasVal: userValues[attr] !== undefined,
+        }
+      })
+    : []
+
   return (
     <View style={{ alignItems: 'center' }}>
-      <Svg width={svgSize} height={svgSize}>
-        {/* Concentric grid rings */}
-        {[0.33, 0.66, 1.0].map((fraction, idx) => (
-          <Polygon
-            key={idx}
-            points={buildRingPoints(attributes.length, fraction, radius, cx, cy)}
+      <Svg width={svgW} height={svgH}>
+        <Defs>
+          <RadialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor={primaryColor} stopOpacity="0.10" />
+            <Stop offset="100%" stopColor={primaryColor} stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+
+        {/* Subtle radial background glow */}
+        <Circle cx={cx} cy={cy} r={radius} fill="url(#bgGlow)" />
+
+        {/* Circular grid rings */}
+        {[0.25, 0.5, 0.75, 1.0].map((frac, i) => (
+          <Circle
+            key={i}
+            cx={cx}
+            cy={cy}
+            r={radius * frac}
             fill="none"
-            stroke={gridColor}
-            strokeWidth={1}
+            stroke={ringStroke}
+            strokeWidth={i === 3 ? 1.5 : 0.75}
           />
         ))}
 
@@ -99,15 +120,7 @@ export function RadarChart({
         {vertexAngles.map((angle, i) => {
           const { x, y } = polarToCartesian(cx, cy, radius, angle)
           return (
-            <Line
-              key={i}
-              x1={cx}
-              y1={cy}
-              x2={x}
-              y2={y}
-              stroke={axisColor}
-              strokeWidth={1}
-            />
+            <Line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke={axisColor} strokeWidth={1} />
           )
         })}
 
@@ -115,9 +128,10 @@ export function RadarChart({
         {groupPoints && (
           <Polygon
             points={groupPoints}
-            fill={`${colors.primary[500]}30`}
-            stroke={colors.primary[400]}
+            fill={`${colors.neutral[500]}15`}
+            stroke={colors.neutral[400]}
             strokeWidth={1.5}
+            strokeDasharray="4,3"
           />
         )}
 
@@ -125,54 +139,66 @@ export function RadarChart({
         {userPoints && (
           <Polygon
             points={userPoints}
-            fill={`${colors.secondary[500]}20`}
-            stroke={colors.secondary[400]}
+            fill={primaryFill}
+            stroke={primaryColor}
             strokeWidth={2}
-            strokeDasharray="5,3"
+            strokeLinejoin="round"
           />
         )}
 
+        {/* Vertex dots */}
+        {userVertices.map((v, i) =>
+          v.hasVal ? (
+            <Circle key={i} cx={v.x} cy={v.y} r={4.5} fill={primaryColor} />
+          ) : null,
+        )}
+
+        {/* Center dot */}
+        <Circle
+          cx={cx}
+          cy={cy}
+          r={3}
+          fill={isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)'}
+        />
+
         {/* Vertex labels */}
-        {attributes.map((attr, i) => {
-          const angle = vertexAngles[i]
-          const labelR = radius + 16
-          const lx = cx + labelR * Math.cos(angle)
-          const ly = cy + labelR * Math.sin(angle)
+        {showLabels &&
+          attributes.map((attr, i) => {
+            const angle = vertexAngles[i]
+            const labelR = radius + 20
+            const lx = cx + labelR * Math.cos(angle)
+            const ly = cy + labelR * Math.sin(angle)
+            const cosA = Math.cos(angle)
+            const textAnchor = cosA > 0.3 ? 'start' : cosA < -0.3 ? 'end' : 'middle'
+            const userVal = userValues[attr]
 
-          const cosA = Math.cos(angle)
-          const textAnchor =
-            cosA > 0.3 ? 'start' : cosA < -0.3 ? 'end' : 'middle'
-
-          const userVal = userValues[attr]
-          const groupVal = groupAvg[attr]
-
-          return (
-            <G key={i}>
-              <SvgText
-                x={lx}
-                y={ly - (userVal !== undefined || groupVal !== undefined ? 6 : 0)}
-                textAnchor={textAnchor}
-                fontSize={10}
-                fontWeight="600"
-                fill={labelColor}
-              >
-                {attr}
-              </SvgText>
-              {userVal !== undefined && (
+            return (
+              <G key={i}>
                 <SvgText
                   x={lx}
-                  y={ly + 8}
+                  y={ly - (userVal !== undefined ? 6 : 0)}
                   textAnchor={textAnchor}
                   fontSize={10}
-                  fontWeight="700"
-                  fill={userLabelColor}
+                  fontWeight="500"
+                  fill={labelColor}
                 >
-                  {userVal}
+                  {attr}
                 </SvgText>
-              )}
-            </G>
-          )
-        })}
+                {userVal !== undefined && (
+                  <SvgText
+                    x={lx}
+                    y={ly + 8}
+                    textAnchor={textAnchor}
+                    fontSize={11}
+                    fontWeight="700"
+                    fill={scoreColor}
+                  >
+                    {userVal}
+                  </SvgText>
+                )}
+              </G>
+            )
+          })}
       </Svg>
     </View>
   )

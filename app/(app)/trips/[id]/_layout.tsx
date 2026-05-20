@@ -13,7 +13,7 @@ export default function TripLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: colors.secondary[500],
+          tabBarActiveTintColor: colors.primary[500],
           tabBarInactiveTintColor: isDark ? colors.neutral[500] : colors.neutral[400],
           tabBarStyle: {
             backgroundColor: isDark ? 'rgba(20,32,51,0.97)' : 'rgba(255,255,255,0.97)',

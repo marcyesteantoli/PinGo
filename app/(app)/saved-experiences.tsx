@@ -86,7 +86,7 @@ function SavedExperienceCard({ item, isDark, onPress }: SavedExperienceCardProps
           {experience.trip?.name && (
             <Text
               numberOfLines={1}
-              style={{ fontSize: 12, color: labelColor, flexShrink: 1, marginLeft: 8 }}
+              style={{ fontSize: 13, color: labelColor, flexShrink: 1, marginLeft: 8 }}
             >
               {experience.trip.name}
             </Text>
@@ -107,7 +107,7 @@ function SavedExperienceCard({ item, isDark, onPress }: SavedExperienceCardProps
 
         {locationText && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Ionicons name="location-outline" size={13} color={labelColor} />
+            <Ionicons name="location-outline" size={15} color={labelColor} />
             <Text
               numberOfLines={1}
               style={{ fontSize: 13, color: labelColor, flex: 1 }}

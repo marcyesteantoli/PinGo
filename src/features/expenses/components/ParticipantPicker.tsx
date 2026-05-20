@@ -36,13 +36,13 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
         <Text className="text-sm font-medium text-neutral-700">
           Participantes{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
         </Text>
-        <TouchableOpacity onPress={toggleAll} className="flex-row items-center gap-1 px-2 py-1 rounded-lg active:bg-neutral-100">
+        <TouchableOpacity onPress={toggleAll} hitSlop={8} className="flex-row items-center gap-1 px-3 py-2 rounded-lg active:bg-neutral-100">
           <Ionicons
             name={allSelected ? 'checkbox' : 'checkbox-outline'}
-            size={14}
+            size={16}
             color={allSelected ? colors.primary[500] : colors.neutral[400]}
           />
-          <Text className={`text-xs font-medium ${allSelected ? 'text-secondary-600' : 'text-neutral-500'}`}>
+          <Text className={`text-sm font-medium ${allSelected ? 'text-secondary-600' : 'text-neutral-500'}`}>
             {allSelected ? 'Deseleccionar todo' : 'Seleccionar todo'}
           </Text>
         </TouchableOpacity>

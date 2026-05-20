@@ -22,6 +22,14 @@ interface ExperienceTypePickerProps {
 
 const TYPES: ExperienceType[] = ['transport', 'accommodation', 'activity', 'restaurant', 'other']
 
+const TYPE_SELECTED_CLASSES: Record<ExperienceType, string> = {
+  transport:     'bg-cyan-500 border-cyan-500',
+  accommodation: 'bg-purple-500 border-purple-500',
+  activity:      'bg-lime-600 border-lime-600',
+  restaurant:    'bg-red-500 border-red-500',
+  other:         'bg-stone-500 border-stone-500',
+}
+
 export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypePickerProps) {
   return (
     <View className="gap-1">
@@ -36,7 +44,7 @@ export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypeP
                 onPress={() => onChange(type)}
                 className={`flex-row items-center gap-1.5 px-3 py-2 rounded-xl border ${
                   isSelected
-                    ? 'bg-secondary-500 border-secondary-500'
+                    ? TYPE_SELECTED_CLASSES[type]
                     : 'bg-white dark:bg-surface-700 border-neutral-200 dark:border-surface-600'
                 }`}
               >

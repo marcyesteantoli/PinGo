@@ -43,7 +43,7 @@ export function BalanceCard({ balance, isCurrentUser }: BalanceCardProps) {
           <Text className="text-sm font-semibold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
             {isCurrentUser ? `${balance.name} (tú)` : balance.name}
           </Text>
-          <Text className="text-xs text-neutral-400 dark:text-neutral-500">
+          <Text className="text-[13px] text-neutral-400 dark:text-neutral-500">
             Ha pagado: {formatCurrency(balance.paid)} · Su parte: {formatCurrency(balance.owes)}
           </Text>
         </View>

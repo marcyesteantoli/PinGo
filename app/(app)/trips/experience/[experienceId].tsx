@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 // TODO: import PROVIDER_GOOGLE and set provider={PROVIDER_GOOGLE} on MapView when Google Maps API key is configured
@@ -64,7 +64,7 @@ function DetailRow({ icon, label, value, isDark, isFirst }: DetailRowProps) {
       />
       <View style={{ flex: 1 }}>
         {label && (
-          <Text style={{ fontSize: 12, color: isDark ? colors.neutral[500] : colors.neutral[400], marginBottom: 1 }}>
+          <Text style={{ fontSize: 13, color: isDark ? colors.neutral[500] : colors.neutral[400], marginBottom: 1 }}>
             {label}
           </Text>
         )}
@@ -88,12 +88,21 @@ export default function ExperienceDetailScreen() {
   const { data: allDocuments } = useDocuments(tripId)
   const { data: ratingsData } = useRatings(experienceId)
   const upsertRating = useUpsertRating(experienceId, tripId)
-  const { data: isSaved = false } = useIsSaved(experienceId)
+  const { data: isSaved = false, isSuccess: isSavedLoaded } = useIsSaved(experienceId)
   const toggleSave = useToggleSaveExperience(experienceId)
   const { data: savedNote } = useSavedNote(experienceId)
   const upsertNote = useUpsertSavedNote(experienceId)
   const [noteText, setNoteText] = useState<string | undefined>(undefined)
   const noteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [ratingsExpanded, setRatingsExpanded] = useState(false)
+  const initialSavedRef = useRef(false)
+
+  useEffect(() => {
+    if (isSavedLoaded && !initialSavedRef.current) {
+      initialSavedRef.current = true
+      if (isSaved) setRatingsExpanded(true)
+    }
+  }, [isSavedLoaded, isSaved])
 
   function handleToggleSave() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -142,7 +151,6 @@ export default function ExperienceDetailScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
-      {/* iOS-style nav header */}
       <View
         style={{
           flexDirection: 'row',
@@ -196,123 +204,6 @@ export default function ExperienceDetailScreen() {
             {experience.title}
           </Text>
         </View>
-
-        {/* Ratings card */}
-        <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: '600',
-              color: labelColor,
-              paddingHorizontal: 16,
-              paddingTop: 14,
-              paddingBottom: 6,
-              textTransform: 'uppercase',
-              letterSpacing: 0.6,
-            }}
-          >
-            {ratingsData && ratingsData.count > 0
-              ? `Valoraciones · ${ratingsData.count}`
-              : 'Valoraciones'}
-          </Text>
-
-          {ratingsData && ratingsData.count > 0 && (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                gap: 10,
-                borderTopWidth: 0.5,
-                borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-              }}
-            >
-              <EmojiRating value={ratingsData.avg} size="sm" />
-              <Text style={{ fontSize: 15, fontWeight: '600', color: isDark ? colors.neutral[50] : colors.neutral[900] }}>
-                {ratingsData.avg?.toFixed(1)}
-              </Text>
-            </View>
-          )}
-
-          <View
-            style={{
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              borderTopWidth: 0.5,
-              borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-            }}
-          >
-            <Text style={{ fontSize: 12, color: labelColor, marginBottom: 8 }}>
-              Tu valoración
-            </Text>
-            <EmojiRating
-              value={ratingsData?.userRating ?? null}
-              onChange={(rating) => upsertRating.mutate(rating)}
-            />
-          </View>
-        </View>
-
-        {/* Attribute ratings + note — only when saved */}
-        {isSaved && (
-          <>
-            <AttributeRatingSection
-              experienceId={experienceId}
-              experienceType={experience.type}
-              cardBg={cardBg}
-              labelColor={labelColor}
-              borderColor={isDark ? colors.surface[700] : colors.neutral[100]}
-            />
-
-            <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: labelColor,
-                  paddingHorizontal: 16,
-                  paddingTop: 14,
-                  paddingBottom: 6,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.6,
-                }}
-              >
-                Mi nota
-              </Text>
-              <View
-                style={{
-                  borderTopWidth: 0.5,
-                  borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                }}
-              >
-                <TextInput
-                  value={noteText ?? savedNote ?? ''}
-                  onChangeText={(text) => {
-                    setNoteText(text)
-                    clearTimeout(noteTimer.current)
-                    noteTimer.current = setTimeout(() => upsertNote.mutate(text), 800)
-                  }}
-                  onBlur={() => {
-                    clearTimeout(noteTimer.current)
-                    upsertNote.mutate(noteText ?? savedNote ?? '')
-                  }}
-                  placeholder="Escribe algo sobre esta experiencia..."
-                  placeholderTextColor={labelColor}
-                  multiline
-                  style={{
-                    fontSize: 15,
-                    color: isDark ? colors.neutral[50] : colors.neutral[900],
-                    minHeight: 80,
-                    textAlignVertical: 'top',
-                    padding: 0,
-                  }}
-                />
-              </View>
-            </View>
-          </>
-        )}
 
         {/* Details card */}
         {hasDetails && (
@@ -406,7 +297,7 @@ export default function ExperienceDetailScreen() {
               >
                 {location.name}
               </Text>
-              <Ionicons name="open-outline" size={14} color={colors.neutral[400]} />
+              <Ionicons name="open-outline" size={16} color={colors.neutral[400]} />
             </View>
           </TouchableOpacity>
         )}
@@ -480,6 +371,149 @@ export default function ExperienceDetailScreen() {
             ))}
           </View>
         )}
+
+        {/* Ratings card */}
+        <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '600',
+              color: labelColor,
+              paddingHorizontal: 16,
+              paddingTop: 14,
+              paddingBottom: 6,
+              textTransform: 'uppercase',
+              letterSpacing: 0.6,
+            }}
+          >
+            {ratingsData && ratingsData.count > 0
+              ? `Valoraciones · ${ratingsData.count}`
+              : 'Valoraciones'}
+          </Text>
+
+          {ratingsData && ratingsData.count > 0 && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                paddingVertical: 10,
+                gap: 10,
+                borderTopWidth: 0.5,
+                borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+              }}
+            >
+              <EmojiRating value={ratingsData.avg} size="sm" />
+              <Text style={{ fontSize: 15, fontWeight: '600', color: isDark ? colors.neutral[50] : colors.neutral[900] }}>
+                {ratingsData.avg?.toFixed(1)}
+              </Text>
+            </View>
+          )}
+
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              borderTopWidth: 0.5,
+              borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+            }}
+          >
+            <Text style={{ fontSize: 12, color: labelColor, marginBottom: 8 }}>
+              Tu valoración
+            </Text>
+            <EmojiRating
+              value={ratingsData?.userRating ?? null}
+              onChange={(rating) => upsertRating.mutate(rating)}
+            />
+          </View>
+        </View>
+
+        {/* Attribute ratings + note — only when saved */}
+        {isSaved && !ratingsExpanded && (
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              setRatingsExpanded(true)
+            }}
+            activeOpacity={0.7}
+            style={{
+              backgroundColor: cardBg,
+              borderRadius: 14,
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              marginBottom: 12,
+              gap: 12,
+            }}
+          >
+            <Ionicons name="star-outline" size={18} color={colors.primary[500]} />
+            <Text style={{ flex: 1, fontSize: 15, color: isDark ? colors.neutral[100] : colors.neutral[800] }}>
+              Valorar atributos
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={isDark ? colors.neutral[600] : colors.neutral[400]} />
+          </TouchableOpacity>
+        )}
+
+        {isSaved && ratingsExpanded && (
+          <AttributeRatingSection
+            experienceId={experienceId}
+            experienceType={experience.type}
+            cardBg={cardBg}
+            labelColor={labelColor}
+            borderColor={isDark ? colors.surface[700] : colors.neutral[100]}
+          />
+        )}
+
+        {isSaved && (
+          <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '600',
+                color: labelColor,
+                paddingHorizontal: 16,
+                paddingTop: 14,
+                paddingBottom: 6,
+                textTransform: 'uppercase',
+                letterSpacing: 0.6,
+              }}
+            >
+              Mi nota
+            </Text>
+            <View
+              style={{
+                borderTopWidth: 0.5,
+                borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+            >
+              <TextInput
+                value={noteText ?? savedNote ?? ''}
+                onChangeText={(text) => {
+                  setNoteText(text)
+                  clearTimeout(noteTimer.current)
+                  noteTimer.current = setTimeout(() => upsertNote.mutate(text), 800)
+                }}
+                onBlur={() => {
+                  clearTimeout(noteTimer.current)
+                  upsertNote.mutate(noteText ?? savedNote ?? '')
+                }}
+                placeholder="Escribe algo sobre esta experiencia..."
+                placeholderTextColor={labelColor}
+                multiline
+                style={{
+                  fontSize: 15,
+                  color: isDark ? colors.neutral[50] : colors.neutral[900],
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                  padding: 0,
+                }}
+              />
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       <DocumentViewer
@@ -490,7 +524,7 @@ export default function ExperienceDetailScreen() {
 
       <UndoToast
         visible={saveToast}
-        message="¡Añadida a Mis Joyas! Valora los atributos 👇"
+        message="¡Añadida a Mis Joyas!"
         onUndo={() => {
           setSaveToast(false)
           toggleSave.mutate(true)

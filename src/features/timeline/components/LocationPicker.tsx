@@ -179,7 +179,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
           )}
         </Pressable>
         {error && (
-          <Text style={{ fontSize: 13, color: colors.error }}>{error}</Text>
+          <Text style={{ fontSize: 14, color: colors.error }}>{error}</Text>
         )}
       </View>
 

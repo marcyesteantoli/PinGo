@@ -1,6 +1,13 @@
-import React, { useCallback, useRef, useState } from 'react'
-import { PanResponder, Text, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { Text, View } from 'react-native'
 import * as Haptics from 'expo-haptics'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated'
 import { RadarChart } from '@components/ui/RadarChart'
 import { useAttributeRatings } from '@features/timeline/hooks/useAttributeRatings'
 import { useUpsertAttributeRating } from '@features/timeline/hooks/useUpsertAttributeRating'
@@ -8,6 +15,22 @@ import { EXPERIENCE_ATTRIBUTES } from '@features/timeline/config/experienceAttri
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import type { Experience } from '@types/index'
+
+const THUMB = 22
+
+function posToValue(thumbLeft: number, trackWidth: number): number {
+  'worklet'
+  const range = trackWidth - THUMB
+  if (range <= 0) return 1
+  return Math.round((thumbLeft / range) * 9 + 1)
+}
+
+function valueToPos(value: number, trackWidth: number): number {
+  'worklet'
+  const range = trackWidth - THUMB
+  if (range <= 0) return 0
+  return ((value - 1) / 9) * range
+}
 
 interface AttributeSliderProps {
   label: string
@@ -18,123 +41,145 @@ interface AttributeSliderProps {
 
 function AttributeSlider({ label, value, onChange, isDark }: AttributeSliderProps) {
   const [trackWidth, setTrackWidth] = useState(0)
-  const lastEmittedRef = useRef<number | null>(null)
+  const trackWidthSV = useSharedValue(0)
+  const thumbX = useSharedValue(0)
+  const lastHapticValue = useRef<number | null>(null)
+  const [displayValue, setDisplayValue] = useState<number | undefined>(value)
 
-  const getValueFromX = useCallback(
-    (x: number): number => {
-      if (trackWidth === 0) return 1
-      const clamped = Math.max(0, Math.min(trackWidth, x))
-      return Math.round((clamped / trackWidth) * 9) + 1
-    },
-    [trackWidth],
-  )
+  useEffect(() => {
+    if (trackWidth <= 0 || value === undefined) return
+    const clamped = Math.max(1, Math.min(10, Math.round(value)))
+    thumbX.value = valueToPos(clamped, trackWidth)
+    setDisplayValue(clamped)
+    lastHapticValue.current = clamped
+  }, [value, trackWidth])
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (e) => {
-        const v = getValueFromX(e.nativeEvent.locationX)
-        if (v !== lastEmittedRef.current) {
-          lastEmittedRef.current = v
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-          onChange(v)
-        }
-      },
-      onPanResponderMove: (e) => {
-        const v = getValueFromX(e.nativeEvent.locationX)
-        if (v !== lastEmittedRef.current) {
-          lastEmittedRef.current = v
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-          onChange(v)
-        }
-      },
-    }),
-  ).current
+  function onDisplayChange(v: number) { setDisplayValue(v) }
+  function triggerHaptic() { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) }
 
-  const fillPct = value !== undefined ? (value - 1) / 9 : 0
-  const thumbVisible = value !== undefined
+  const applyPosition = (x: number) => {
+    'worklet'
+    const tw = trackWidthSV.value
+    if (tw <= 0) return
+    const range = tw - THUMB
+    const newLeft = Math.max(0, Math.min(range, x - THUMB / 2))
+    thumbX.value = newLeft
+    const v = posToValue(newLeft, tw)
+    runOnJS(onDisplayChange)(v)
+    if (lastHapticValue.current !== v) {
+      lastHapticValue.current = v
+      runOnJS(triggerHaptic)()
+    }
+  }
+
+  const pan = Gesture.Pan()
+    .activeOffsetX([-5, 5])
+    .failOffsetY([-15, 15])
+    .onStart((e) => { 'worklet'; applyPosition(e.x) })
+    .onUpdate((e) => { 'worklet'; applyPosition(e.x) })
+    .onEnd(() => {
+      'worklet'
+      const tw = trackWidthSV.value
+      if (tw <= 0) return
+      const finalValue = posToValue(thumbX.value, tw)
+      thumbX.value = withSpring(valueToPos(finalValue, tw), { damping: 20, stiffness: 300 })
+      runOnJS(onDisplayChange)(finalValue)
+      runOnJS(onChange)(finalValue)
+    })
+
+  const tap = Gesture.Tap()
+    .onEnd((e) => {
+      'worklet'
+      const tw = trackWidthSV.value
+      if (tw <= 0) return
+      const range = tw - THUMB
+      const newLeft = Math.max(0, Math.min(range, e.x - THUMB / 2))
+      const v = posToValue(newLeft, tw)
+      thumbX.value = withSpring(valueToPos(v, tw), { damping: 20, stiffness: 300 })
+      runOnJS(onDisplayChange)(v)
+      runOnJS(triggerHaptic)()
+      runOnJS(onChange)(v)
+    })
+
+  const gesture = Gesture.Race(pan, tap)
+
+  const fillStyle = useAnimatedStyle(() => ({
+    width: Math.max(0, thumbX.value + THUMB / 2),
+  }))
+
+  const thumbStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: thumbX.value }],
+  }))
 
   const trackBg = isDark ? colors.surface[700] : colors.neutral[200]
   const textColor = isDark ? colors.neutral[200] : colors.neutral[800]
   const mutedColor = isDark ? colors.neutral[600] : colors.neutral[400]
+  const hasValue = displayValue !== undefined
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        paddingVertical: 10,
-      }}
-    >
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 }}>
       <Text
-        style={{
-          width: 84,
-          fontSize: 13,
-          fontWeight: '500',
-          color: textColor,
-        }}
+        style={{ width: 92, fontSize: 14, fontWeight: '500', color: textColor }}
         numberOfLines={1}
       >
         {label}
       </Text>
 
-      <View
-        style={{ flex: 1, height: 28, justifyContent: 'center' }}
-        onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
-        {...panResponder.panHandlers}
-      >
-        {/* Track */}
+      <GestureDetector gesture={gesture}>
         <View
-          style={{
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: trackBg,
-            overflow: 'hidden',
+          style={{ flex: 1, height: 44, justifyContent: 'center' }}
+          onLayout={(e) => {
+            const w = e.nativeEvent.layout.width
+            setTrackWidth(w)
+            trackWidthSV.value = w
           }}
         >
           <View
             style={{
-              width: `${fillPct * 100}%`,
-              height: '100%',
-              backgroundColor: colors.primary[500],
+              height: 4,
               borderRadius: 2,
+              backgroundColor: trackBg,
+              overflow: 'hidden',
+              marginHorizontal: THUMB / 2,
             }}
-          />
-        </View>
+          >
+            <Animated.View
+              style={[{ height: '100%', borderRadius: 2, backgroundColor: colors.primary[500] }, fillStyle]}
+            />
+          </View>
 
-        {/* Thumb */}
-        {thumbVisible && (
-          <View
-            style={{
-              position: 'absolute',
-              left: `${fillPct * 100}%` as unknown as number,
-              marginLeft: -11,
-              width: 22,
-              height: 22,
-              borderRadius: 11,
-              backgroundColor: colors.primary[500],
-              shadowColor: colors.primary[500],
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.35,
-              shadowRadius: 4,
-              elevation: 3,
-            }}
-          />
-        )}
-      </View>
+          {hasValue && (
+            <Animated.View
+              style={[
+                {
+                  position: 'absolute',
+                  width: THUMB,
+                  height: THUMB,
+                  borderRadius: THUMB / 2,
+                  backgroundColor: colors.primary[500],
+                  shadowColor: colors.primary[500],
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.35,
+                  shadowRadius: 4,
+                  elevation: 3,
+                },
+                thumbStyle,
+              ]}
+            />
+          )}
+        </View>
+      </GestureDetector>
 
       <Text
         style={{
           width: 22,
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: '700',
-          color: thumbVisible ? colors.secondary[400] : mutedColor,
+          color: hasValue ? colors.secondary[400] : mutedColor,
           textAlign: 'right',
         }}
       >
-        {value ?? '—'}
+        {displayValue ?? '—'}
       </Text>
     </View>
   )
@@ -164,11 +209,7 @@ export function AttributeRatingSection({
   if (attributes.length === 0) return null
 
   const userValues = data?.userValues ?? {}
-  const groupAvg = data?.groupAvg ?? {}
-  const count = data?.count ?? 0
-
   const hasAnyUserValue = attributes.some((a) => userValues[a] !== undefined)
-  const hasGroupData = count > 0
 
   return (
     <View
@@ -179,7 +220,6 @@ export function AttributeRatingSection({
         marginBottom: 12,
       }}
     >
-      {/* Section header */}
       <Text
         style={{
           fontSize: 12,
@@ -192,69 +232,13 @@ export function AttributeRatingSection({
           letterSpacing: 0.6,
         }}
       >
-        {count > 0 ? `Atributos · ${count} valoración${count !== 1 ? 'es' : ''}` : 'Atributos'}
+        Atributos
       </Text>
 
-      {/* Radar chart */}
-      {(hasAnyUserValue || hasGroupData) && (
-        <View
-          style={{
-            paddingVertical: 8,
-            borderTopWidth: 0.5,
-            borderTopColor: borderColor,
-          }}
-        >
-          <RadarChart
-            attributes={attributes}
-            userValues={userValues}
-            groupAvg={groupAvg}
-            isDark={isDark}
-          />
-
-          {/* Legend */}
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              gap: 20,
-              paddingBottom: 4,
-            }}
-          >
-            {hasGroupData && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <View
-                  style={{
-                    width: 12,
-                    height: 3,
-                    borderRadius: 1.5,
-                    backgroundColor: colors.primary[400],
-                  }}
-                />
-                <Text style={{ fontSize: 11, color: labelColor }}>Grupo</Text>
-              </View>
-            )}
-            {hasAnyUserValue && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <View
-                  style={{
-                    width: 12,
-                    height: 3,
-                    borderRadius: 1.5,
-                    backgroundColor: colors.secondary[400],
-                  }}
-                />
-                <Text style={{ fontSize: 11, color: labelColor }}>Tú</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      )}
-
-      {/* Sliders */}
       <View
         style={{
           paddingHorizontal: 16,
-          paddingBottom: 12,
+          paddingBottom: 8,
           paddingTop: 4,
           borderTopWidth: 0.5,
           borderTopColor: borderColor,
@@ -262,15 +246,15 @@ export function AttributeRatingSection({
       >
         <Text
           style={{
-            fontSize: 12,
+            fontSize: 13,
             color: labelColor,
-            marginBottom: 4,
-            marginTop: 8,
+            marginBottom: 2,
+            marginTop: 6,
           }}
         >
           Tu valoración
         </Text>
-        {attributes.map((attr, idx) => (
+        {attributes.map((attr) => (
           <AttributeSlider
             key={attr}
             label={attr}
@@ -280,6 +264,23 @@ export function AttributeRatingSection({
           />
         ))}
       </View>
+
+      {hasAnyUserValue && (
+        <View
+          style={{
+            paddingVertical: 4,
+            borderTopWidth: 0.5,
+            borderTopColor: borderColor,
+          }}
+        >
+          <RadarChart
+            attributes={attributes}
+            userValues={userValues}
+            groupAvg={{}}
+            isDark={isDark}
+          />
+        </View>
+      )}
     </View>
   )
 }
