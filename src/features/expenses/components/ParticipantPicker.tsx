@@ -42,7 +42,7 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
             size={16}
             color={allSelected ? colors.primary[500] : colors.neutral[400]}
           />
-          <Text className={`text-sm font-medium ${allSelected ? 'text-secondary-600' : 'text-neutral-500'}`}>
+          <Text className={`text-sm font-medium ${allSelected ? 'text-primary-600' : 'text-neutral-500'}`}>
             {allSelected ? 'Deseleccionar todo' : 'Seleccionar todo'}
           </Text>
         </TouchableOpacity>
@@ -57,16 +57,16 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
               onPress={() => toggle(c.user_id)}
               activeOpacity={0.7}
               className={`flex-row items-center gap-3 p-3 rounded-xl border ${
-                isSelected ? 'border-secondary-400 bg-secondary-50' : 'border-neutral-200 bg-white'
+                isSelected ? 'border-primary-300 bg-primary-50' : 'border-neutral-200 bg-white'
               }`}
             >
               <Avatar uri={c.avatar_url} name={c.name} size="sm" />
-              <Text className={`flex-1 text-sm font-medium ${isSelected ? 'text-secondary-700' : 'text-neutral-700'}`}>
+              <Text className={`flex-1 text-sm font-medium ${isSelected ? 'text-primary-700' : 'text-neutral-700'}`}>
                 {c.name}
               </Text>
               <View
                 className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
-                  isSelected ? 'border-secondary-500 bg-secondary-500' : 'border-neutral-300 bg-white'
+                  isSelected ? 'border-primary-500 bg-primary-500' : 'border-neutral-300 bg-white'
                 }`}
               >
                 {isSelected && <Ionicons name="checkmark" size={12} color={colors.white} />}

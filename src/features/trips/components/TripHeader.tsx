@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from 'expo-router'
-import { Image, Share, Text, TouchableOpacity, View } from 'react-native'
+import { Share, Text, TouchableOpacity, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import Animated, {
   interpolate,
@@ -71,14 +71,16 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
 
   return (
     <SafeAreaView className="bg-white dark:bg-surface-800" edges={['top']}>
-      <View className="px-5 pt-2">
-        <View className="flex-row items-center justify-between mb-3">
+      <View className="px-5 pt-1">
+        <View className="flex-row items-center justify-between mb-2">
           <View className="flex-row items-center gap-2 flex-1 overflow-hidden mr-2">
-            <Image
-              source={require('../../../../assets/images/logo.png')}
-              style={{ width: 24, height: 24 }}
-              resizeMode="contain"
-            />
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="w-8 h-8 items-center justify-center -ml-1"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="chevron-back" size={24} color={subtleColor} />
+            </TouchableOpacity>
             <Animated.Text
               className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 flex-shrink"
               numberOfLines={1}
@@ -118,13 +120,13 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
           }}
         >
           <Text
-            className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 leading-tight mb-1"
-            numberOfLines={3}
+            className="text-[26px] font-bold text-neutral-900 dark:text-neutral-50 leading-tight mb-1"
+            numberOfLines={2}
           >
             {trip.title}
           </Text>
 
-          <View className="flex-row items-center justify-between pb-5">
+          <View className="flex-row items-center justify-between pb-3">
             <Text className="text-[15px] font-medium text-primary-500">{dateRange}</Text>
 
             <TouchableOpacity

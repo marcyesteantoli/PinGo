@@ -114,9 +114,9 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
             />
 
             {/* Payer selector */}
-            <View className="gap-2">
+            <View className="gap-3">
               <Text className="text-sm font-medium text-neutral-700">¿Quién pagó?</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-2">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-4 px-1">
                 {collaborators.map((c) => {
                   const isSelected = selectedPayerId === c.user_id
                   return (
@@ -124,14 +124,20 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
                       key={c.user_id}
                       onPress={() => setValue('payer_id', c.user_id)}
                       activeOpacity={0.7}
-                      className={`items-center gap-1.5 px-3 py-2.5 rounded-2xl border min-w-16 ${
-                        isSelected ? 'border-secondary-400 bg-secondary-50' : 'border-neutral-200 bg-white'
-                      }`}
+                      className="items-center gap-1.5"
                     >
-                      <View style={isSelected ? { borderWidth: 2, borderColor: colors.primary[400], borderRadius: 22, padding: 1 } : {}}>
+                      <View style={{
+                        borderWidth: 2.5,
+                        borderColor: isSelected ? colors.primary[500] : 'transparent',
+                        borderRadius: 26,
+                        padding: 2,
+                      }}>
                         <Avatar uri={c.avatar_url} name={c.name} size="sm" />
                       </View>
-                      <Text className={`text-xs font-medium text-center max-w-16 ${isSelected ? 'text-secondary-700' : 'text-neutral-600'}`} numberOfLines={1}>
+                      <Text
+                        className={`text-xs text-center max-w-[64px] ${isSelected ? 'text-primary-600 font-semibold' : 'text-neutral-500 font-medium'}`}
+                        numberOfLines={1}
+                      >
                         {c.user_id === currentUserId ? 'Tú' : c.name.split(' ')[0]}
                       </Text>
                     </TouchableOpacity>
@@ -166,7 +172,7 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
             <Button
               onPress={handleSubmit(handleSubmitForm)}
               isLoading={isLoading}
-              variant="secondary"
+              variant="primary"
               size="lg"
             >
               Añadir gasto
