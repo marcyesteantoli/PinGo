@@ -182,7 +182,7 @@ export default function ProfileScreen() {
             <Ionicons
               name="bookmark"
               size={20}
-              color={isDark ? '#7b82f5' : '#4f56e8'}
+              color={isDark ? '#7b82f5' : '#0046de'}
               style={{ marginRight: 12 }}
             />
             <Text className={`${labelBase} flex-1`}>Mis Joyas</Text>

@@ -68,7 +68,7 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-neutral-100 dark:bg-surface-900">
-        <ActivityIndicator size="large" color="#4f56e8" />
+        <ActivityIndicator size="large" color="#0046de" />
       </View>
     )
   }

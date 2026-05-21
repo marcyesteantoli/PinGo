@@ -2,7 +2,7 @@ import { ReactNode } from 'react'
 import { ActivityIndicator, Text, TouchableOpacity } from 'react-native'
 import { colors } from '@lib/colors'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'destructive'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 interface ButtonProps {
@@ -30,6 +30,11 @@ const variantClasses: Record<ButtonVariant, { container: string; text: string; s
     container: 'border border-neutral-300 bg-transparent active:bg-neutral-100 dark:border-neutral-600 dark:active:bg-neutral-800',
     text: 'text-neutral-700 dark:text-neutral-200',
     spinner: colors.neutral[600],
+  },
+  outline: {
+    container: 'border-2 border-primary-500 bg-transparent active:bg-primary-50 dark:active:bg-primary-950',
+    text: 'text-primary-500',
+    spinner: colors.primary[500],
   },
   destructive: {
     container: 'bg-error active:opacity-90',

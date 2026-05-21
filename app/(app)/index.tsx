@@ -58,11 +58,14 @@ export default function DashboardScreen() {
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 pt-2 pb-1">
-        <Image
-          source={require('../../assets/images/logo.png')}
-          style={{ width: 32, height: 32 }}
-          resizeMode="contain"
-        />
+        <View className="flex-row items-center">
+          <Text className="text-[32px] font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">PinG</Text>
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={{ width: 26, height: 26, marginBottom: 1 }}
+            resizeMode="contain"
+          />
+        </View>
         <TouchableOpacity
           onPress={() => router.push('/(app)/profile')}
           className="w-11 h-11 rounded-full overflow-hidden"
@@ -121,11 +124,11 @@ export default function DashboardScreen() {
         </Button>
         <Button
           onPress={() => setJoinSheetVisible(true)}
-          variant="ghost"
+          variant="outline"
           className="flex-1"
         >
-          <Ionicons name="enter-outline" size={18} color="#4f56e8" />
-          <Text className="text-neutral-700 dark:text-neutral-200 text-[17px] font-semibold ml-1.5">Unirse</Text>
+          <Ionicons name="enter-outline" size={18} color="#0046de" />
+          <Text className="text-primary-500 text-[17px] font-semibold ml-1.5">Unirse</Text>
         </Button>
       </View>
 

@@ -41,7 +41,7 @@ export default function LoginScreen() {
         >
           <View className="items-center mb-10 gap-3">
             <LinearGradient
-              colors={['#4f56e8', '#f43f5e']}
+              colors={['#0046de', '#f43f5e']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={{ width: 64, height: 64, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}

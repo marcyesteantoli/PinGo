@@ -1,14 +1,14 @@
 // Palette constants mirroring tailwind.config.js — use in inline style props where className won't work
 export const colors = {
   primary: {
-    400: '#7b82f5',
-    500: '#4f56e8',
-    600: '#2f3aa3',
+    400: '#3375ff',
+    500: '#0046de',
+    600: '#0037b0',
   },
   secondary: {
-    400: '#fb7185',
-    500: '#f43f5e',
-    600: '#e11d48',
+    400: '#ff4068',
+    500: '#ff1744',
+    600: '#d60037',
   },
   tertiary: {
     400: '#FCAF45',
