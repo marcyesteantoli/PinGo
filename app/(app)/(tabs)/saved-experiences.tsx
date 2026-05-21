@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'expo-router'
 import {
-  ScrollView,
+  Animated,
   Text,
   TextInput,
   TouchableOpacity,
@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import { AppHeader, AppLargeTitle, useAppHeader } from '@components/ui/AppHeader'
 import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
 import { Badge } from '@components/ui/Badge'
 import { RadarChart } from '@components/ui/RadarChart'
@@ -152,6 +153,7 @@ function SavedExperienceCard({ item, isDark, onPress }: SavedExperienceCardProps
 export default function SavedExperiencesScreen() {
   const router = useRouter()
   const { isDark } = useTheme()
+  const { scrollY, onScroll } = useAppHeader()
   const [search, setSearch] = useState('')
 
   const { data: saved = [], isLoading } = useSavedExperiences()
@@ -166,44 +168,25 @@ export default function SavedExperiencesScreen() {
     })
   }, [saved, search])
 
-  const bg = isDark ? colors.surface[900] : '#f2f2f7'
+  const bg = isDark ? colors.surface[900] : colors.neutral[100]
   const searchBg = isDark ? colors.surface[800] : colors.white
   const labelColor = isDark ? colors.neutral[500] : colors.neutral[400]
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top', 'bottom']}>
-      {/* Header */}
-      <View
+    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
+      <AppHeader title="Mis joyas" scrollY={scrollY} />
+      <Animated.View
         style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: 16,
-          paddingVertical: 12,
+          overflow: 'hidden',
+          height: scrollY.interpolate({
+            inputRange: [0, 44],
+            outputRange: [57, 0],
+            extrapolate: 'clamp',
+          }),
         }}
       >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={24}
-            color={isDark ? colors.neutral[200] : colors.neutral[800]}
-          />
-        </TouchableOpacity>
-        <Text
-          style={{
-            fontSize: 17,
-            fontWeight: '600',
-            color: isDark ? colors.neutral[50] : colors.neutral[900],
-          }}
-        >
-          Mis Joyas
-        </Text>
-        <View style={{ width: 36 }} />
-      </View>
+        <AppLargeTitle title="Mis joyas" scrollY={scrollY} />
+      </Animated.View>
 
       {/* Search bar */}
       <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
@@ -260,11 +243,13 @@ export default function SavedExperiencesScreen() {
           </Text>
         </View>
       ) : (
-        <ScrollView
+        <Animated.ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16, paddingTop: 4 }}
+          contentContainerStyle={{ padding: 16, paddingTop: 4, paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          onScroll={onScroll}
+          scrollEventThrottle={16}
         >
           {filtered.length === 0 ? (
             <View style={{ alignItems: 'center', paddingTop: 32 }}>
@@ -284,7 +269,7 @@ export default function SavedExperiencesScreen() {
               />
             ))
           )}
-        </ScrollView>
+        </Animated.ScrollView>
       )}
     </SafeAreaView>
   )

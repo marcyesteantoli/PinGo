@@ -109,7 +109,7 @@ export function TimeRangePicker({
           placeholder="09:00"
           error={startTimeError}
         />
-        <Text className="text-neutral-400 dark:text-neutral-500 text-base" style={{ paddingTop: 10 }}>—</Text>
+        <Text className="text-neutral-500 dark:text-neutral-400 text-base" style={{ paddingTop: 10 }}>—</Text>
         <TimePickerInput
           value={endTime}
           onChange={onEndTimeChange}

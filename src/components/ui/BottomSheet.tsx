@@ -125,7 +125,7 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
               <View className="flex-row items-center justify-between mb-5">
                 <Text className="text-[20px] font-semibold text-neutral-900 dark:text-neutral-50">{title}</Text>
                 <TouchableOpacity onPress={() => { Keyboard.dismiss(); onClose() }} className="p-2 -mr-1">
-                  <Text className="text-[17px] text-primary-500 dark:text-primary-400">Cerrar</Text>
+                  <Text className="text-[17px] text-primary-500 dark:text-primary-300">Cerrar</Text>
                 </TouchableOpacity>
               </View>
             )}

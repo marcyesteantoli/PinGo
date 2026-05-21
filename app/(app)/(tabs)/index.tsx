@@ -3,16 +3,14 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
+import { Animated, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Avatar } from '@components/ui/Avatar'
+import { AppHeader, AppLargeTitle, useAppHeader } from '@components/ui/AppHeader'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { EmptyState } from '@components/ui/EmptyState'
 import { Input } from '@components/ui/Input'
 import { SkeletonCard } from '@components/ui/Skeleton'
-import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
-import { useProfile } from '@features/auth/hooks/useProfile'
 import { TripCard } from '@features/trips/components/TripCard'
 import { useJoinTrip } from '@features/trips/hooks/useJoinTrip'
 import { useTrips } from '@features/trips/hooks/useTrips'
@@ -29,10 +27,9 @@ export default function DashboardScreen() {
   const router = useRouter()
   const { data: trips, isLoading, error, refetch } = useTrips()
   const joinTrip = useJoinTrip()
-  const { data: user } = useCurrentUser()
-  const { data: profile } = useProfile(user?.id)
   const [joinSheetVisible, setJoinSheetVisible] = useState(false)
   const [segment, setSegment] = useState<Segment>('upcoming')
+  const { scrollY, onScroll } = useAppHeader()
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<JoinTripFormData>({
     resolver: zodResolver(joinTripSchema),
@@ -56,28 +53,8 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-5 pt-2 pb-1">
-        <View className="flex-row items-center">
-          <Text className="text-[32px] font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">PinG</Text>
-          <Image
-            source={require('../../assets/images/logo.png')}
-            style={{ width: 26, height: 26, marginBottom: 1 }}
-            resizeMode="contain"
-          />
-        </View>
-        <TouchableOpacity
-          onPress={() => router.push('/(app)/profile')}
-          className="w-11 h-11 rounded-full overflow-hidden"
-        >
-          <Avatar
-            uri={profile?.avatar_url}
-            name={profile?.name ?? user?.user_metadata?.name ?? 'U'}
-            size="md"
-          />
-        </TouchableOpacity>
-      </View>
-      <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 px-5 pb-4">Mis viajes</Text>
+      <AppHeader title="Mis viajes" scrollY={scrollY} />
+      <AppLargeTitle title="Mis viajes" scrollY={scrollY} />
 
       {/* Segmented control */}
       <View className="mx-5 mb-4 flex-row bg-neutral-200 dark:bg-surface-700 rounded-[10px] p-1">
@@ -143,10 +120,12 @@ export default function DashboardScreen() {
           <Button onPress={() => refetch()} variant="ghost">Reintentar</Button>
         </View>
       ) : (
-        <FlatList
+        <Animated.FlatList
           data={displayedTrips}
           keyExtractor={(item) => item.id}
           contentContainerClassName="px-5 gap-3 pb-8"
+          onScroll={onScroll}
+          scrollEventThrottle={16}
           renderItem={({ item }) => (
             <TripCard
               trip={item}

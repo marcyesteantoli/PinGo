@@ -123,7 +123,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
                 {location?.name && (
                   <View className="flex-row items-center gap-1 mt-0.5">
                     <Ionicons name="location-outline" size={14} color={colors.neutral[400]} />
-                    <Text className="text-sm text-neutral-400 dark:text-neutral-500 flex-1" numberOfLines={1}>
+                    <Text className="text-sm text-neutral-500 dark:text-neutral-400 flex-1" numberOfLines={1}>
                       {location.name}
                     </Text>
                   </View>
@@ -146,7 +146,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
                           {timeRange && (
                             <Text className="text-neutral-300 dark:text-neutral-600 text-sm">•</Text>
                           )}
-                          <Text className="text-sm text-neutral-400 dark:text-neutral-500">
+                          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                             + Reserva {experience.confirmation_code}
                           </Text>
                         </>

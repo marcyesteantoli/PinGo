@@ -5,8 +5,12 @@ import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { DEV_MODE, DEMO_USER_ID } from '@/dev/mockData'
 import type { ExperienceRating } from '@types/index'
 
+export type RatingWithProfile = ExperienceRating & {
+  profiles: { name: string; avatar_url: string | null } | null
+}
+
 export type RatingsData = {
-  ratings: ExperienceRating[]
+  ratings: RatingWithProfile[]
   userRating: number | null
   avg: number | null
   count: number
@@ -25,12 +29,12 @@ export function useRatings(experienceId: string) {
 
       const { data, error } = await supabase
         .from('experience_ratings')
-        .select('*')
+        .select('*, profiles(name, avatar_url)')
         .eq('experience_id', experienceId)
 
       if (error) throw new Error(error.message)
 
-      const ratings = data ?? []
+      const ratings = (data ?? []) as RatingWithProfile[]
       const count = ratings.length
       const avg = count > 0
         ? Math.round((ratings.reduce((sum, r) => sum + r.rating, 0) / count) * 10) / 10

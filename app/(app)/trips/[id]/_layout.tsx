@@ -16,7 +16,7 @@ export default function TripLayout() {
           tabBarActiveTintColor: colors.primary[500],
           tabBarInactiveTintColor: isDark ? colors.neutral[500] : colors.neutral[400],
           tabBarStyle: {
-            backgroundColor: isDark ? 'rgba(20,32,51,0.97)' : 'rgba(255,255,255,0.97)',
+            backgroundColor: isDark ? 'rgba(23,45,72, 1)' : 'rgba(255,255,255,1)',
             borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
             borderTopWidth: 0.5,
           },

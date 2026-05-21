@@ -6,6 +6,7 @@ import MapView, { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
+import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
 import { useRatings } from '@features/timeline/hooks/useRatings'
@@ -16,6 +17,7 @@ import { useSavedNote } from '@features/saved/hooks/useSavedNote'
 import { useUpsertSavedNote } from '@features/saved/hooks/useUpsertSavedNote'
 import { AttributeRatingSection } from '@features/timeline/components/AttributeRatingSection'
 import { DocumentViewer } from '@features/documents/components/DocumentViewer'
+import { Avatar } from '@components/ui/Avatar'
 import { Badge } from '@components/ui/Badge'
 import { EmojiRating } from '@components/ui/EmojiRating'
 import { UndoToast } from '@components/ui/UndoToast'
@@ -86,6 +88,7 @@ export default function ExperienceDetailScreen() {
 
   const { data: experiences } = useExperiences(tripId)
   const { data: allDocuments } = useDocuments(tripId)
+  const { data: currentUser } = useCurrentUser()
   const { data: ratingsData } = useRatings(experienceId)
   const upsertRating = useUpsertRating(experienceId, tripId)
   const { data: isSaved = false, isSuccess: isSavedLoaded } = useIsSaved(experienceId)
@@ -133,7 +136,7 @@ export default function ExperienceDetailScreen() {
 
   const timeRange = experience ? formatTimeRange(experience.start_time, experience.end_time) : null
 
-  const bg = isDark ? colors.surface[900] : '#f2f2f7'
+  const bg = isDark ? colors.surface[900] : colors.neutral[100]
   const cardBg = isDark ? colors.surface[800] : colors.white
   const labelColor = isDark ? colors.neutral[500] : colors.neutral[400]
 
@@ -203,6 +206,11 @@ export default function ExperienceDetailScreen() {
           >
             {experience.title}
           </Text>
+          {ratingsData?.avg != null && (
+            <View style={{ marginTop: 10 }}>
+              <EmojiRating value={ratingsData.avg} size="sm" />
+            </View>
+          )}
         </View>
 
         {/* Details card */}
@@ -374,42 +382,92 @@ export default function ExperienceDetailScreen() {
 
         {/* Ratings card */}
         <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-          <Text
+          <View
             style={{
-              fontSize: 12,
-              fontWeight: '600',
-              color: labelColor,
+              flexDirection: 'row',
+              alignItems: 'center',
               paddingHorizontal: 16,
               paddingTop: 14,
               paddingBottom: 6,
-              textTransform: 'uppercase',
-              letterSpacing: 0.6,
             }}
           >
-            {ratingsData && ratingsData.count > 0
-              ? `Valoraciones · ${ratingsData.count}`
-              : 'Valoraciones'}
-          </Text>
-
-          {ratingsData && ratingsData.count > 0 && (
-            <View
+            <Text
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                gap: 10,
-                borderTopWidth: 0.5,
-                borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+                flex: 1,
+                fontSize: 12,
+                fontWeight: '600',
+                color: labelColor,
+                textTransform: 'uppercase',
+                letterSpacing: 0.6,
               }}
             >
+              {ratingsData && ratingsData.count > 0
+                ? `Valoraciones · ${ratingsData.count}`
+                : 'Valoraciones'}
+            </Text>
+            {ratingsData?.avg != null && (
               <EmojiRating value={ratingsData.avg} size="sm" />
-              <Text style={{ fontSize: 15, fontWeight: '600', color: isDark ? colors.neutral[50] : colors.neutral[900] }}>
-                {ratingsData.avg?.toFixed(1)}
-              </Text>
-            </View>
-          )}
+            )}
+          </View>
 
+          {/* All ratings list (excluding current user) */}
+          {(() => {
+            const otherRatings = ratingsData?.ratings.filter(r => r.user_id !== currentUser?.id) ?? []
+            return (
+              <ScrollView
+                style={{
+                  maxHeight: 220,
+                  borderTopWidth: 0.5,
+                  borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+                }}
+                scrollEnabled
+                showsVerticalScrollIndicator={false}
+                nestedScrollEnabled
+              >
+                {otherRatings.length > 0 ? (
+                  otherRatings.map((r, i) => (
+                    <View
+                      key={r.user_id}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        gap: 12,
+                        borderTopWidth: i === 0 ? 0 : 0.5,
+                        borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+                      }}
+                    >
+                      <Avatar
+                        name={r.profiles?.name ?? 'Usuario'}
+                        uri={r.profiles?.avatar_url}
+                        size="sm"
+                      />
+                      <Text
+                        style={{
+                          flex: 1,
+                          fontSize: 15,
+                          color: isDark ? colors.neutral[100] : colors.neutral[800],
+                        }}
+                        numberOfLines={1}
+                      >
+                        {r.profiles?.name ?? 'Usuario'}
+                      </Text>
+                      <EmojiRating value={r.rating} size="sm" />
+                    </View>
+                  ))
+                ) : (
+                  <View style={{ paddingHorizontal: 16, paddingVertical: 14 }}>
+                    <Text style={{ fontSize: 14, color: labelColor }}>
+                      Nadie más ha valorado aún
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
+            )
+          })()}
+
+          {/* User's own rating */}
           <View
             style={{
               paddingHorizontal: 16,

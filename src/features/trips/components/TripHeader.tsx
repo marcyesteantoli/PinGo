@@ -50,7 +50,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
   const dateRange = `${formatShortDate(trip.start_date)} - ${formatShortDate(trip.end_date)}`
   const travelerCount = collaborators.length
   const borderColor = isDark ? colors.surface[800] : colors.white
-  const subtleColor = isDark ? colors.neutral[500] : colors.neutral[400]
+  const subtleColor = isDark ? colors.neutral[200] : colors.neutral[400]
 
   const detailAnimStyle = useAnimatedStyle(() => {
     if (!isMeasured.value) return {}
@@ -79,7 +79,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
               className="w-8 h-8 items-center justify-center -ml-1"
               activeOpacity={0.7}
             >
-              <Ionicons name="chevron-back" size={24} color={subtleColor} />
+              <Ionicons name="chevron-back" size={24} color={colors.primary[500]} />
             </TouchableOpacity>
             <Animated.Text
               className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 flex-shrink"
@@ -170,7 +170,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
                   </View>
                 )}
               </View>
-              <Text className="text-[13px] text-neutral-400 dark:text-neutral-500">
+              <Text className="text-[13px] text-neutral-400 dark:text-neutral-200">
                 {travelerCount} {travelerCount === 1 ? 'viajero' : 'viajeros'}
               </Text>
               <Ionicons name="chevron-forward" size={15} color={subtleColor} />

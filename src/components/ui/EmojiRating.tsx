@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Text, View } from 'react-native'
+import { Text, View, useColorScheme } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
@@ -52,6 +52,8 @@ interface RatingSliderProps {
 }
 
 function RatingSlider({ value, onChange }: RatingSliderProps) {
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
   const [trackWidth, setTrackWidth] = useState(0)
   const trackWidthSV = useSharedValue(0)
   const thumbX = useSharedValue(0)
@@ -151,7 +153,7 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
             style={{
               height: 6,
               borderRadius: 3,
-              backgroundColor: colors.neutral[200],
+              backgroundColor: isDark ? colors.neutral[700] : colors.neutral[200],
               overflow: 'hidden',
               marginHorizontal: THUMB_SIZE / 2,
             }}
@@ -166,7 +168,7 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
                 width: THUMB_SIZE,
                 height: THUMB_SIZE,
                 borderRadius: THUMB_SIZE / 2,
-                backgroundColor: '#ffffff',
+                backgroundColor: isDark ? colors.neutral[800] : '#ffffff',
                 borderWidth: 2.5,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -180,7 +182,7 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
               thumbColorStyle,
             ]}
           >
-            <Text style={{ fontSize: 11, fontWeight: '700', color: colors.neutral[700] }}>
+            <Text className="text-xs font-bold text-neutral-700 dark:text-neutral-200">
               {displayValue}
             </Text>
           </Animated.View>
@@ -189,7 +191,7 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <RatingFace level={getLevel(displayValue)} size={36} />
-        <Text style={{ fontSize: 15, fontWeight: '500', color: colors.neutral[700] }}>
+        <Text className="text-base font-medium text-neutral-700 dark:text-neutral-200">
           {LABELS[displayValue]}
         </Text>
       </View>
@@ -208,11 +210,10 @@ export function EmojiRating({ value, onChange, size = 'md' }: EmojiRatingProps) 
     if (!value) return null
     const clamped = Math.max(1, Math.min(10, Math.round(value)))
     const faceSize = size === 'lg' ? 28 : 22
-    const fontSize = size === 'lg' ? 16 : 14
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: size === 'lg' ? 5 : 3 }}>
         <RatingFace level={getLevel(clamped)} size={faceSize} />
-        <Text style={{ fontSize, fontWeight: '600', color: colors.neutral[600] }}>
+        <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
           {`${Number.isInteger(value) ? value : value.toFixed(1)}/10`}
         </Text>
       </View>

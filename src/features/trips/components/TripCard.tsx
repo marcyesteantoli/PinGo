@@ -129,9 +129,9 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
 
   const cardBody = (
     <>
-      <View className="flex-row items-start justify-between gap-2 mb-2">
+      <View className="flex-row items-start justify-between gap-3 mb-2.5">
         <Text
-          className="flex-1 text-[17px] font-semibold text-neutral-900 dark:text-neutral-50"
+          className="flex-1 text-[20px] font-bold text-neutral-900 dark:text-neutral-50"
           numberOfLines={1}
         >
           {trip.title}
@@ -139,14 +139,23 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
         <Badge label={label} variant={variant} />
       </View>
 
-      <View className="flex-row items-center gap-1.5 mb-3">
-        <Ionicons name="calendar-outline" size={15} color={subtleColor} />
+      <View className="flex-row items-center gap-1.5 mb-3.5">
+        <Ionicons name="calendar-outline" size={14} color={subtleColor} />
         <Text className="text-[13px] text-neutral-500 dark:text-neutral-400">
           {formatDateRange(trip.start_date, trip.end_date)}
         </Text>
-        <Text className="text-[13px] text-neutral-400 dark:text-neutral-500">
-          · {days} {days === 1 ? 'día' : 'días'}
-        </Text>
+        <View
+          style={{
+            backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+            borderRadius: 6,
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+          }}
+        >
+          <Text className="text-[12px] font-medium text-neutral-500 dark:text-neutral-400">
+            {days} {days === 1 ? 'día' : 'días'}
+          </Text>
+        </View>
       </View>
 
       <View className="flex-row items-center justify-between pt-3 mt-1 border-t border-neutral-100 dark:border-surface-700">
@@ -188,26 +197,31 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
                 </View>
               )}
             </View>
-            <Text className="text-[13px] text-neutral-400 dark:text-neutral-500">
+            <Text className="text-[12px] font-medium text-neutral-500 dark:text-neutral-400">
               {collaborators.length} {collaborators.length === 1 ? 'persona' : 'personas'}
             </Text>
           </View>
         ) : (
           <View />
         )}
-        <View className="flex-row items-center gap-3">
-          <TouchableOpacity
-            onPress={() =>
-              Share.share({
-                message: `Únete a "${trip.title}" en PinGo con el código: ${trip.join_code}`,
-              })
-            }
-            hitSlop={8}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="share-outline" size={16} color={subtleColor} />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          onPress={() =>
+            Share.share({
+              message: `Únete a "${trip.title}" en PinGo con el código: ${trip.join_code}`,
+            })
+          }
+          activeOpacity={0.7}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Ionicons name="share-outline" size={18} color={subtleColor} />
+        </TouchableOpacity>
       </View>
     </>
   )

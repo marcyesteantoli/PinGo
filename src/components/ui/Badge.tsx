@@ -23,18 +23,18 @@ interface BadgeProps {
 }
 
 const variantClasses: Record<BadgeVariant, { container: string; text: string }> = {
-  primary:   { container: 'bg-primary-100',   text: 'text-primary-700'   },
-  secondary: { container: 'bg-secondary-100', text: 'text-secondary-700' },
-  active:    { container: 'bg-secondary-500', text: 'text-white'          },
-  success:   { container: 'bg-green-100',     text: 'text-green-700'     },
-  warning:   { container: 'bg-amber-100',     text: 'text-amber-700'     },
-  error:     { container: 'bg-red-100',       text: 'text-red-700'       },
-  neutral:   { container: 'bg-neutral-100',   text: 'text-neutral-700'   },
-  transport:     { container: 'bg-cyan-100 dark:bg-cyan-900/40',     text: 'text-cyan-800 dark:text-cyan-300'     },
-  accommodation: { container: 'bg-purple-100 dark:bg-purple-900/40', text: 'text-purple-800 dark:text-purple-300' },
-  activity:      { container: 'bg-lime-100 dark:bg-lime-900/40',     text: 'text-lime-800 dark:text-lime-300'     },
-  restaurant:    { container: 'bg-red-100 dark:bg-red-900/40',       text: 'text-red-800 dark:text-red-300'       },
-  other:         { container: 'bg-stone-100 dark:bg-stone-800',      text: 'text-stone-600 dark:text-stone-400'   },
+  primary:   { container: 'bg-primary-100 dark:bg-primary-600/40',     text: 'text-primary-700 dark:text-primary-300'     },
+  secondary: { container: 'bg-secondary-100 dark:bg-secondary-600/40', text: 'text-secondary-700 dark:text-secondary-300' },
+  active:    { container: 'bg-secondary-500 dark:bg-secondary-600',    text: 'text-white'                                 },
+  success:   { container: 'bg-green-100 dark:bg-green-700/40',         text: 'text-green-700 dark:text-green-300'         },
+  warning:   { container: 'bg-amber-100 dark:bg-amber-700/40',         text: 'text-amber-700 dark:text-amber-300'         },
+  error:     { container: 'bg-red-100 dark:bg-red-700/40',             text: 'text-red-700 dark:text-red-300'             },
+  neutral:   { container: 'bg-neutral-200 dark:bg-surface-700',        text: 'text-neutral-700 dark:text-neutral-300'     },
+  transport:     { container: 'bg-cyan-100 dark:bg-cyan-700/40',     text: 'text-cyan-800 dark:text-cyan-300'     },
+  accommodation: { container: 'bg-purple-100 dark:bg-purple-700/40', text: 'text-purple-800 dark:text-purple-300' },
+  activity:      { container: 'bg-lime-100 dark:bg-lime-700/40',     text: 'text-lime-800 dark:text-lime-300'     },
+  restaurant:    { container: 'bg-red-100 dark:bg-red-700/40',       text: 'text-red-800 dark:text-red-300'       },
+  other:         { container: 'bg-stone-100 dark:bg-stone-700',      text: 'text-stone-600 dark:text-stone-400'   },
 }
 
 type CategoryType = 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'other'
@@ -59,15 +59,15 @@ export function Badge({ label, variant = 'neutral', className = '' }: BadgeProps
   const iconDef = categorySet.has(variant) ? CATEGORY_ICONS[variant as CategoryType] : null
 
   return (
-    <View className={`px-2.5 py-1.5 rounded-full self-start flex-row items-center gap-1 ${v.container} ${className}`}>
+    <View className={`px-2 py-1 rounded-full self-start flex-row items-center gap-1 ${v.container} ${className}`}>
       {iconDef && (
         <Ionicons
           name={iconDef.name}
-          size={14}
+          size={12}
           color={colorScheme === 'dark' ? iconDef.dark : iconDef.light}
         />
       )}
-      <Text className={`text-sm font-medium ${v.text}`}>{label}</Text>
+      <Text className={`text-[12px] font-medium ${v.text}`}>{label}</Text>
     </View>
   )
 }

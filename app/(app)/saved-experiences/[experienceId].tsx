@@ -46,7 +46,7 @@ export default function SavedExperienceDetailScreen() {
     })
   }
 
-  const bg = isDark ? colors.surface[900] : '#f2f2f7'
+  const bg = isDark ? colors.surface[900] : colors.neutral[100]
   const cardBg = isDark ? colors.surface[800] : colors.white
   const labelColor = isDark ? colors.neutral[500] : colors.neutral[400]
   const borderColor = isDark ? colors.surface[700] : colors.neutral[100]

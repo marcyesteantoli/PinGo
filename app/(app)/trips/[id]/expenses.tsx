@@ -91,7 +91,7 @@ export default function ExpensesScreen() {
                 <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                   Ajustes recomendados
                 </Text>
-                <Text className="text-xs text-neutral-400 dark:text-neutral-500">{debtTransactions.length} pendiente{debtTransactions.length !== 1 ? 's' : ''}</Text>
+                <Text className="text-xs text-neutral-500 dark:text-neutral-400">{debtTransactions.length} pendiente{debtTransactions.length !== 1 ? 's' : ''}</Text>
               </View>
               {debtTransactions.map((tx, i) => (
                 <DebtResolutionCard
