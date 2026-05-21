@@ -298,8 +298,8 @@ export default function TimelineScreen() {
         onSubmit={handleCreate}
         isLoading={createExperience.isPending}
         error={createExperience.error?.message}
-        minDate={trip?.start_date ? new Date(trip.start_date + 'T00:00:00Z') : undefined}
-        maxDate={trip?.end_date ? new Date(trip.end_date + 'T00:00:00Z') : undefined}
+        minDate={trip?.start_date ? (() => { const [y, m, d] = trip.start_date.split('-').map(Number); return new Date(y, m - 1, d) })() : undefined}
+        maxDate={trip?.end_date ? (() => { const [y, m, d] = trip.end_date.split('-').map(Number); return new Date(y, m - 1, d) })() : undefined}
       />
 
       <DeleteExperienceSheet

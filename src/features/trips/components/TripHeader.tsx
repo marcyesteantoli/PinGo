@@ -82,7 +82,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
               <Ionicons name="chevron-back" size={24} color={colors.primary[500]} />
             </TouchableOpacity>
             <Animated.Text
-              className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 flex-shrink"
+              className="text-lg font-semibold text-neutral-500 dark:text-neutral-400 flex-shrink"
               numberOfLines={1}
               style={compactTitleAnimStyle}
             >
@@ -90,13 +90,6 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
             </Animated.Text>
           </View>
           <View className="flex-row items-center gap-2">
-            <TouchableOpacity
-              onPress={() => setJoinCodeVisible(true)}
-              className="w-8 h-8 items-center justify-center"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="person-add-outline" size={20} color={subtleColor} />
-            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push('/(app)/profile')}
               className="w-8 h-8 rounded-full overflow-hidden"

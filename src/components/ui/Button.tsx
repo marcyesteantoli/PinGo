@@ -32,7 +32,7 @@ const variantClasses: Record<ButtonVariant, { container: string; text: string; s
     spinner: colors.neutral[600],
   },
   outline: {
-    container: 'border-2 border-primary-500 bg-transparent active:bg-primary-50 dark:active:bg-primary-950',
+    container: 'border-2 border-primary-500 bg-white dark:bg-surface-900 active:bg-primary-50 dark:active:bg-primary-950',
     text: 'text-primary-500',
     spinner: colors.primary[500],
   },

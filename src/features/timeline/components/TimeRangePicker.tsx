@@ -10,6 +10,7 @@ interface TimePickerInputProps {
   onChange: (value: string) => void
   placeholder?: string
   error?: string
+  minTime?: string
 }
 
 function parseTime(s?: string): Date {
@@ -25,20 +26,34 @@ function dateToTime(d: Date): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-function TimePickerInput({ value, onChange, placeholder = '--:--', error }: TimePickerInputProps) {
+function TimePickerInput({ value, onChange, placeholder = '--:--', error, minTime }: TimePickerInputProps) {
   const [show, setShow] = useState(false)
   const pickerDate = parseTime(value)
   const { isDark } = useTheme()
+
+  const handleOpen = () => {
+    onChange(dateToTime(pickerDate))
+    setShow(true)
+  }
 
   const handleChange = (_event: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === 'android') setShow(false)
     if (selected) onChange(dateToTime(selected))
   }
 
+  const minimumDate = minTime
+    ? (() => {
+        const [h, m] = minTime.split(':').map(Number)
+        return new Date(pickerDate.getFullYear(), pickerDate.getMonth(), pickerDate.getDate(), h, m, 0, 0)
+      })()
+    : new Date(pickerDate.getFullYear(), pickerDate.getMonth(), pickerDate.getDate(), 0, 0, 0, 0)
+
+  const maximumDate = new Date(pickerDate.getFullYear(), pickerDate.getMonth(), pickerDate.getDate(), 23, 59, 59, 999)
+
   return (
     <View className="gap-1 flex-1">
       <Pressable
-        onPress={() => setShow(true)}
+        onPress={handleOpen}
         className={`border rounded-xl px-3 flex-row items-center justify-between bg-white dark:bg-surface-800 ${error ? 'border-error' : 'border-neutral-200 dark:border-surface-600'}`}
         style={{ paddingVertical: 12 }}
       >
@@ -50,7 +65,7 @@ function TimePickerInput({ value, onChange, placeholder = '--:--', error }: Time
       {error && <Text className="text-xs text-error">{error}</Text>}
 
       {Platform.OS === 'ios' ? (
-        <Modal visible={show} transparent animationType="slide">
+        <Modal visible={show} transparent animationType="none">
           <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
             <View style={{ backgroundColor: isDark ? colors.surface[800] : colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
               <View className="flex-row justify-end px-4 pt-3 pb-1">
@@ -58,14 +73,18 @@ function TimePickerInput({ value, onChange, placeholder = '--:--', error }: Time
                   <Text className="text-base font-semibold" style={{ color: colors.primary[500] }}>Listo</Text>
                 </TouchableOpacity>
               </View>
-              <DateTimePicker
-                value={pickerDate}
-                mode="time"
-                display="spinner"
-                onChange={handleChange}
-                is24Hour
-                themeVariant={isDark ? 'dark' : 'light'}
-              />
+              {show && (
+                <DateTimePicker
+                  value={pickerDate}
+                  mode="time"
+                  display="spinner"
+                  onChange={handleChange}
+                  is24Hour
+                  minimumDate={minimumDate}
+                  maximumDate={maximumDate}
+                  themeVariant={isDark ? 'dark' : 'light'}
+                />
+              )}
             </View>
           </View>
         </Modal>
@@ -76,6 +95,8 @@ function TimePickerInput({ value, onChange, placeholder = '--:--', error }: Time
           display="default"
           onChange={handleChange}
           is24Hour
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
         />
       )}
     </View>
@@ -115,6 +136,7 @@ export function TimeRangePicker({
           onChange={onEndTimeChange}
           placeholder="18:00"
           error={endTimeError}
+          minTime={startTime}
         />
       </View>
     </View>

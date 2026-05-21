@@ -15,6 +15,14 @@ export const createExperienceSchema = z.object({
   end_time: optionalTime,
   confirmation_code: z.string().optional(),
   location: z.object({ name: z.string(), lat: z.number(), lng: z.number() }).optional(),
+}).superRefine((data, ctx) => {
+  if (data.start_time && data.end_time && data.end_time <= data.start_time) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'La hora de fin debe ser posterior a la de inicio',
+      path: ['end_time'],
+    })
+  }
 })
 
 export type CreateExperienceFormData = z.infer<typeof createExperienceSchema>
