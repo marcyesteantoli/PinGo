@@ -1,7 +1,13 @@
-import { useRef } from 'react'
-import { Animated, Image, Text, TouchableOpacity, View } from 'react-native'
+import { Image, Text, TouchableOpacity, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import Animated, {
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated'
+import type { SharedValue } from 'react-native-reanimated'
 import { Avatar } from '@components/ui/Avatar'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useProfile } from '@features/auth/hooks/useProfile'
@@ -15,39 +21,37 @@ export interface HeaderAction {
 }
 
 export function useAppHeader() {
-  const scrollY = useRef(new Animated.Value(0)).current
-  const onScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { useNativeDriver: false }
-  )
-  return { scrollY, onScroll }
+  const scrollY = useSharedValue(0)
+  const scrollHandler = useAnimatedScrollHandler(e => {
+    scrollY.value = e.contentOffset.y
+  })
+  return { scrollY, scrollHandler }
 }
 
 interface AppHeaderProps {
   title: string
-  scrollY: Animated.Value
+  scrollY: SharedValue<number>
+  expandProgress?: SharedValue<number>
   rightActions?: HeaderAction[]
 }
 
-export function AppHeader({ title, scrollY, rightActions }: AppHeaderProps) {
+export function AppHeader({ title, scrollY, expandProgress, rightActions }: AppHeaderProps) {
   const router = useRouter()
   const { data: user } = useCurrentUser()
   const { data: profile } = useProfile(user?.id)
   const { isDark } = useTheme()
 
-  const smallTitleOpacity = scrollY.interpolate({
-    inputRange: [22, 52],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  })
+  const smallTitleStyle = useAnimatedStyle(() => ({
+    opacity: expandProgress
+      ? expandProgress.value
+      : interpolate(scrollY.value, [22, 52], [0, 1], 'clamp'),
+  }))
 
-  const actionsOpacity = rightActions?.length
-    ? scrollY.interpolate({
-        inputRange: [70, 110],
-        outputRange: [0, 1],
-        extrapolate: 'clamp',
-      })
-    : null
+  const actionsStyle = useAnimatedStyle(() => ({
+    opacity: expandProgress
+      ? expandProgress.value
+      : interpolate(scrollY.value, [70, 110], [0, 1], 'clamp'),
+  }))
 
   return (
     <View
@@ -80,25 +84,27 @@ export function AppHeader({ title, scrollY, rightActions }: AppHeaderProps) {
 
       <Animated.Text
         numberOfLines={1}
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          fontSize: 17,
-          fontWeight: '600',
-          color: isDark ? colors.neutral[50] : colors.neutral[900],
-          opacity: smallTitleOpacity,
-        }}
+        style={[
+          {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            fontSize: 17,
+            fontWeight: '600',
+            color: isDark ? colors.neutral[50] : colors.neutral[900],
+          },
+          smallTitleStyle,
+        ]}
         pointerEvents="none"
       >
         {title}
       </Animated.Text>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        {rightActions && actionsOpacity && (
+        {rightActions && (
           <Animated.View
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 2, opacity: actionsOpacity }}
+            style={[{ flexDirection: 'row', alignItems: 'center', gap: 2 }, actionsStyle]}
           >
             {rightActions.map((action, i) => (
               <TouchableOpacity
@@ -155,22 +161,22 @@ export function AppHeader({ title, scrollY, rightActions }: AppHeaderProps) {
 export function AppLargeTitle({ title, scrollY }: AppHeaderProps) {
   const { isDark } = useTheme()
 
-  const opacity = scrollY.interpolate({
-    inputRange: [0, 44],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  })
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [0, 44], [1, 0], 'clamp'),
+  }))
 
   return (
     <Animated.Text
-      style={{
-        fontSize: 34,
-        fontWeight: '700',
-        color: isDark ? colors.neutral[50] : colors.neutral[900],
-        paddingHorizontal: 20,
-        paddingBottom: 16,
-        opacity,
-      }}
+      style={[
+        {
+          fontSize: 34,
+          fontWeight: '700',
+          color: isDark ? colors.neutral[50] : colors.neutral[900],
+          paddingHorizontal: 20,
+          paddingBottom: 16,
+        },
+        animStyle,
+      ]}
     >
       {title}
     </Animated.Text>
