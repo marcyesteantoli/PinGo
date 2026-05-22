@@ -203,7 +203,8 @@ export default function SavedExperiencesScreen() {
             fontWeight: '700',
             color: isDark ? colors.neutral[50] : colors.neutral[900],
             paddingHorizontal: 20,
-            paddingBottom: 16,
+            paddingTop: 8,
+            paddingBottom: 12,
           }}
         >
           Mis joyas
