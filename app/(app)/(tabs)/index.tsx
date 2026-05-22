@@ -3,9 +3,10 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Animated, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
+import Animated from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { AppHeader, AppLargeTitle, useAppHeader } from '@components/ui/AppHeader'
+import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { EmptyState } from '@components/ui/EmptyState'
@@ -29,7 +30,7 @@ export default function DashboardScreen() {
   const joinTrip = useJoinTrip()
   const [joinSheetVisible, setJoinSheetVisible] = useState(false)
   const [segment, setSegment] = useState<Segment>('upcoming')
-  const { scrollY, onScroll } = useAppHeader()
+  const { scrollY, scrollHandler } = useAppHeader()
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<JoinTripFormData>({
     resolver: zodResolver(joinTripSchema),
@@ -51,12 +52,6 @@ export default function DashboardScreen() {
   const pastTrips    = trips?.filter(t => t.end_date <  today) ?? []
   const displayedTrips = segment === 'upcoming' ? upcomingTrips : pastTrips
 
-  const expandedHeight = scrollY.interpolate({
-    inputRange: [0, 130],
-    outputRange: [172, 0],
-    extrapolate: 'clamp',
-  })
-
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       <AppHeader
@@ -67,63 +62,6 @@ export default function DashboardScreen() {
           { icon: 'enter-outline', onPress: () => setJoinSheetVisible(true), variant: 'outline' },
         ]}
       />
-
-      <Animated.View style={{ overflow: 'hidden', height: expandedHeight }}>
-        <AppLargeTitle title="Mis viajes" scrollY={scrollY} />
-
-        {/* Segmented control */}
-        <View className="mx-5 mb-4 flex-row bg-neutral-200 dark:bg-surface-700 rounded-[10px] p-1">
-          {SEGMENTS.map(({ key, label }) => {
-            const isActive = segment === key
-            return (
-              <TouchableOpacity
-                key={key}
-                onPress={() => setSegment(key)}
-                activeOpacity={0.8}
-                className={`flex-1 py-[7px] rounded-[8px] items-center ${
-                  isActive ? 'bg-white dark:bg-surface-600' : ''
-                }`}
-                style={isActive ? {
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.08,
-                  shadowRadius: 2,
-                  elevation: 2,
-                } : undefined}
-              >
-                <Text
-                  className={`text-[13px] font-semibold ${
-                    isActive
-                      ? 'text-neutral-900 dark:text-neutral-50'
-                      : 'text-neutral-500 dark:text-neutral-400'
-                  }`}
-                >
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
-        </View>
-
-        {/* Action buttons */}
-        <View className="flex-row gap-3 mx-5 mb-4">
-          <Button
-            onPress={() => router.push('/(app)/trips/new')}
-            className="flex-1"
-          >
-            <Ionicons name="add" size={18} color="#ffffff" />
-            <Text className="text-white text-[17px] font-semibold ml-1.5">Crear viaje</Text>
-          </Button>
-          <Button
-            onPress={() => setJoinSheetVisible(true)}
-            variant="outline"
-            className="flex-1"
-          >
-            <Ionicons name="enter-outline" size={18} color="#0046de" />
-            <Text className="text-primary-500 text-[17px] font-semibold ml-1.5">Unirse</Text>
-          </Button>
-        </View>
-      </Animated.View>
 
       {/* Lista */}
       {isLoading ? (
@@ -139,15 +77,72 @@ export default function DashboardScreen() {
         <Animated.FlatList
           data={displayedTrips}
           keyExtractor={(item) => item.id}
-          contentContainerClassName="px-5 gap-3 pb-8"
-          onScroll={onScroll}
+          contentContainerClassName="px-5 pb-8"
+          onScroll={scrollHandler}
           scrollEventThrottle={16}
+          ListHeaderComponent={
+            <View>
+              <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
+                Mis viajes
+              </Text>
+              <View className="mb-4 flex-row bg-neutral-200 dark:bg-surface-700 rounded-[10px] p-1">
+                {SEGMENTS.map(({ key, label }) => {
+                  const isActive = segment === key
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      onPress={() => setSegment(key)}
+                      activeOpacity={0.8}
+                      className={`flex-1 py-[7px] rounded-[8px] items-center ${
+                        isActive ? 'bg-white dark:bg-surface-600' : ''
+                      }`}
+                      style={isActive ? {
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.08,
+                        shadowRadius: 2,
+                        elevation: 2,
+                      } : undefined}
+                    >
+                      <Text
+                        className={`text-[13px] font-semibold ${
+                          isActive
+                            ? 'text-neutral-900 dark:text-neutral-50'
+                            : 'text-neutral-500 dark:text-neutral-400'
+                        }`}
+                      >
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+              <View className="flex-row gap-3 mb-3">
+                <Button
+                  onPress={() => router.push('/(app)/trips/new')}
+                  className="flex-1"
+                >
+                  <Ionicons name="add" size={18} color="#ffffff" />
+                  <Text className="text-white text-[17px] font-semibold ml-1.5">Crear viaje</Text>
+                </Button>
+                <Button
+                  onPress={() => setJoinSheetVisible(true)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Ionicons name="enter-outline" size={18} color="#0046de" />
+                  <Text className="text-primary-500 text-[17px] font-semibold ml-1.5">Unirse</Text>
+                </Button>
+              </View>
+            </View>
+          }
           renderItem={({ item }) => (
             <TripCard
               trip={item}
               onPress={() => router.push(`/(app)/trips/${item.id}/timeline`)}
             />
           )}
+          ItemSeparatorComponent={() => <View className="h-3" />}
           ListEmptyComponent={
             segment === 'upcoming' ? (
               <EmptyState

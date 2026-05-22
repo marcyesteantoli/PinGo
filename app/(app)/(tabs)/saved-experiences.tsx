@@ -1,15 +1,21 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'expo-router'
 import {
-  Animated,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
+import Animated, {
+  interpolate,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { AppHeader, AppLargeTitle, useAppHeader } from '@components/ui/AppHeader'
+import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
 import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
 import { Badge } from '@components/ui/Badge'
 import { RadarChart } from '@components/ui/RadarChart'
@@ -153,7 +159,22 @@ function SavedExperienceCard({ item, isDark, onPress }: SavedExperienceCardProps
 export default function SavedExperiencesScreen() {
   const router = useRouter()
   const { isDark } = useTheme()
-  const { scrollY, onScroll } = useAppHeader()
+  const { scrollY, scrollHandler } = useAppHeader()
+  const sectionProgress = useSharedValue(0)
+  useAnimatedReaction(
+    () => scrollY.value,
+    (y) => {
+      if (y > 44 && sectionProgress.value < 0.5) {
+        sectionProgress.value = withTiming(1, { duration: 180 })
+      } else if (y < 18 && sectionProgress.value > 0.5) {
+        sectionProgress.value = withTiming(0, { duration: 180 })
+      }
+    }
+  )
+  const expandedSectionStyle = useAnimatedStyle(() => ({
+    height: interpolate(sectionProgress.value, [0, 1], [57, 0]),
+    overflow: 'hidden',
+  }))
   const [search, setSearch] = useState('')
 
   const { data: saved = [], isLoading } = useSavedExperiences()
@@ -174,18 +195,20 @@ export default function SavedExperiencesScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
-      <AppHeader title="Mis joyas" scrollY={scrollY} />
-      <Animated.View
-        style={{
-          overflow: 'hidden',
-          height: scrollY.interpolate({
-            inputRange: [0, 44],
-            outputRange: [57, 0],
-            extrapolate: 'clamp',
-          }),
-        }}
-      >
-        <AppLargeTitle title="Mis joyas" scrollY={scrollY} />
+      <AppHeader title="Mis joyas" scrollY={scrollY} expandProgress={sectionProgress} />
+      <Animated.View style={expandedSectionStyle}>
+        <Text
+          style={{
+            fontSize: 34,
+            fontWeight: '700',
+            color: isDark ? colors.neutral[50] : colors.neutral[900],
+            paddingHorizontal: 20,
+            paddingTop: 8,
+            paddingBottom: 12,
+          }}
+        >
+          Mis joyas
+        </Text>
       </Animated.View>
 
       {/* Search bar */}
@@ -248,7 +271,7 @@ export default function SavedExperiencesScreen() {
           contentContainerStyle={{ padding: 16, paddingTop: 4, paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          onScroll={onScroll}
+          onScroll={scrollHandler}
           scrollEventThrottle={16}
         >
           {filtered.length === 0 ? (

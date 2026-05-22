@@ -4,8 +4,10 @@ import { Share, Text, TouchableOpacity, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import Animated, {
   interpolate,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
+  withTiming,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -46,6 +48,18 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
 
   const isMeasured = useSharedValue(false)
   const detailHeightSV = useSharedValue(0)
+  const headerProgress = useSharedValue(0)
+
+  useAnimatedReaction(
+    () => activeScrollY.value,
+    (y) => {
+      if (y > COLLAPSE_THRESHOLD && headerProgress.value < 0.5) {
+        headerProgress.value = withTiming(1, { duration: 180 })
+      } else if (y < COLLAPSE_THRESHOLD * 0.4 && headerProgress.value > 0.5) {
+        headerProgress.value = withTiming(0, { duration: 180 })
+      }
+    }
+  )
 
   const dateRange = `${formatShortDate(trip.start_date)} - ${formatShortDate(trip.end_date)}`
   const travelerCount = collaborators.length
@@ -54,20 +68,16 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
 
   const detailAnimStyle = useAnimatedStyle(() => {
     if (!isMeasured.value) return {}
-    const progress = interpolate(activeScrollY.value, [0, COLLAPSE_THRESHOLD], [0, 1], 'clamp')
     return {
-      height: interpolate(progress, [0, 1], [detailHeightSV.value, 0]),
-      opacity: interpolate(progress, [0, 0.6], [1, 0]),
+      height: interpolate(headerProgress.value, [0, 1], [detailHeightSV.value, 0]),
+      opacity: interpolate(headerProgress.value, [0, 0.6], [1, 0]),
     }
   })
 
-  const compactTitleAnimStyle = useAnimatedStyle(() => {
-    const progress = interpolate(activeScrollY.value, [20, COLLAPSE_THRESHOLD], [0, 1], 'clamp')
-    return {
-      opacity: progress,
-      transform: [{ translateX: interpolate(progress, [0, 1], [6, 0]) }],
-    }
-  })
+  const compactTitleAnimStyle = useAnimatedStyle(() => ({
+    opacity: headerProgress.value,
+    transform: [{ translateX: interpolate(headerProgress.value, [0, 1], [6, 0]) }],
+  }))
 
   return (
     <SafeAreaView className="bg-white dark:bg-surface-800" edges={['top']}>
