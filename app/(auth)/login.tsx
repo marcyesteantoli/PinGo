@@ -1,10 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
@@ -40,14 +38,10 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="items-center mb-10 gap-3">
-            <LinearGradient
-              colors={['#0046de', '#f43f5e']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ width: 64, height: 64, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Ionicons name="airplane" size={32} color="#ffffff" />
-            </LinearGradient>
+            <Image
+              source={require('../../assets/images/icon.png')}
+              style={{ width: 64, height: 64, borderRadius: 16 }}
+            />
             <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50">Bienvenido</Text>
             <Text className="text-[17px] text-neutral-500 dark:text-neutral-400">Inicia sesión para continuar</Text>
           </View>
