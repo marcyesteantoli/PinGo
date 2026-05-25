@@ -29,6 +29,7 @@ export type Collaborator = {
 export type ExpenseWithSplits = Expense & {
   splits: ExpenseSplit[]
   payer: Profile
+  experience?: Pick<Experience, 'type' | 'title'> | null
 }
 
 export type ExperienceWithRating = Experience & {

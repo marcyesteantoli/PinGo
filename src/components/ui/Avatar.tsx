@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useColorScheme } from 'nativewind'
 import { Image, Text, View } from 'react-native'
 
-type AvatarSize = 'sm' | 'md' | 'lg'
+type AvatarSize = 'xs' | 'sm' | 'md' | 'lg'
 
 interface AvatarProps {
   uri?: string | null
@@ -11,6 +11,7 @@ interface AvatarProps {
 }
 
 const sizeConfig: Record<AvatarSize, { dim: number; fontSize: number }> = {
+  xs: { dim: 22, fontSize: 8 },
   sm: { dim: 32, fontSize: 11 },
   md: { dim: 40, fontSize: 13 },
   lg: { dim: 56, fontSize: 16 },

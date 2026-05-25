@@ -112,15 +112,6 @@ export function useCreateExpense(tripId: string, collaborators: Collaborator[] =
         queryClient.setQueryData(queryKeys.expenses.all(tripId), ctx.snapshot)
       }
     },
-    onSuccess: (newExpense) => {
-      queryClient.setQueryData<ExpenseWithSplits[]>(
-        queryKeys.expenses.all(tripId),
-        (old = []) => {
-          const withoutTemp = old.filter((e) => !e.id.startsWith('temp_'))
-          return [newExpense as ExpenseWithSplits, ...withoutTemp]
-        }
-      )
-    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all(tripId) })
     },

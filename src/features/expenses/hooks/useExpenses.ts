@@ -2,11 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockExpenses } from '@/dev/mockData'
-import type { Expense, ExpenseSplit, Profile, ExpenseWithSplits } from '@types/index'
+import type { Expense, Experience, ExpenseSplit, Profile, ExpenseWithSplits } from '@types/index'
 
 type ExpenseRow = Expense & {
   expense_splits: ExpenseSplit[]
   payer: Pick<Profile, 'name' | 'avatar_url'> | null
+  experience: Pick<Experience, 'type' | 'title'> | null
 }
 
 export function useExpenses(tripId: string) {
@@ -16,7 +17,7 @@ export function useExpenses(tripId: string) {
       if (DEV_MODE) return [...(mockExpenses[tripId] ?? [])]
       const { data, error } = await supabase
         .from('expenses')
-        .select('*, expense_splits(*), payer:profiles!payer_id(name, avatar_url)')
+        .select('*, expense_splits(*), payer:profiles!payer_id(name, avatar_url), experience:experiences(type, title)')
         .eq('trip_id', tripId)
         .order('created_at', { ascending: false })
 
@@ -26,6 +27,7 @@ export function useExpenses(tripId: string) {
         ...e,
         splits: e.expense_splits ?? [],
         payer: e.payer ?? { name: 'Desconocido', avatar_url: null },
+        experience: e.experience ?? null,
       })) as ExpenseWithSplits[]
     },
     staleTime: 0,

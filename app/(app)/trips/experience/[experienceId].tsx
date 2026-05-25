@@ -9,6 +9,8 @@ import * as Haptics from 'expo-haptics'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
+import { useExpenses } from '@features/expenses/hooks/useExpenses'
+import { ExpenseCard } from '@features/expenses/components/ExpenseCard'
 import { useRatings } from '@features/timeline/hooks/useRatings'
 import { useUpsertRating } from '@features/timeline/hooks/useUpsertRating'
 import { useIsSaved } from '@features/saved/hooks/useIsSaved'
@@ -25,6 +27,7 @@ import { EXPERIENCE_TYPE_LABELS, formatTimeRange } from '@features/timeline/type
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { formatDateWithWeekday } from '@utils/date'
+import { formatCurrency } from '@utils/currency'
 import type { Document } from '@types/index'
 import type { BadgeVariant } from '@components/ui/Badge'
 
@@ -88,6 +91,7 @@ export default function ExperienceDetailScreen() {
 
   const { data: experiences } = useExperiences(tripId)
   const { data: allDocuments } = useDocuments(tripId)
+  const { data: allExpenses } = useExpenses(tripId)
   const { data: currentUser } = useCurrentUser()
   const { data: ratingsData } = useRatings(experienceId)
   const upsertRating = useUpsertRating(experienceId, tripId)
@@ -122,6 +126,8 @@ export default function ExperienceDetailScreen() {
 
   const experience = experiences?.find(e => e.id === experienceId)
   const experienceDocs = (allDocuments?.filter(d => d.experience_id === experienceId) ?? []) as DocumentWithExperience[]
+  const linkedExpenses = allExpenses?.filter(e => e.experience_id === experienceId) ?? []
+  const linkedExpensesTotal = linkedExpenses.reduce((sum, e) => sum + e.amount, 0)
 
   const rawLocation = experience?.location
   const location =
@@ -376,6 +382,48 @@ export default function ExperienceDetailScreen() {
                   color={isDark ? colors.neutral[600] : colors.neutral[400]}
                 />
               </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* Expenses card */}
+        {linkedExpenses.length > 0 && (
+          <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                paddingTop: 14,
+                paddingBottom: 6,
+              }}
+            >
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: labelColor,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.6,
+                }}
+              >
+                Gastos · {linkedExpenses.length}
+              </Text>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: isDark ? colors.neutral[200] : colors.neutral[700] }}>
+                {formatCurrency(linkedExpensesTotal)}
+              </Text>
+            </View>
+            {linkedExpenses.map((expense) => (
+              <View
+                key={expense.id}
+                style={{
+                  borderTopWidth: 0.5,
+                  borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
+                }}
+              >
+                <ExpenseCard expense={expense} currentUserId={currentUser?.id} />
+              </View>
             ))}
           </View>
         )}

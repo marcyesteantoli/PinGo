@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
-import { RefreshControl, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, RefreshControl, Text, TouchableOpacity, View } from 'react-native'
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useRouter } from 'expo-router'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
@@ -14,22 +15,31 @@ import { ExpenseCard } from '@features/expenses/components/ExpenseCard'
 import { ExpenseSummaryCard } from '@features/expenses/components/ExpenseSummaryCard'
 import { DebtResolutionCard } from '@features/expenses/components/DebtResolutionCard'
 import { useCreateExpense } from '@features/expenses/hooks/useCreateExpense'
+import { useDeleteExpense } from '@features/expenses/hooks/useDeleteExpense'
+import { useUpdateExpense } from '@features/expenses/hooks/useUpdateExpense'
 import { useExpenses } from '@features/expenses/hooks/useExpenses'
 import { useSettleDebt } from '@features/expenses/hooks/useSettleDebt'
 import { useSettlements } from '@features/expenses/hooks/useSettlements'
 import { calculateBalances } from '@features/expenses/utils/calculateBalances'
 import { calculateDebtResolution } from '@features/expenses/utils/calculateDebtResolution'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import type { CreateExpenseFormData } from '@features/expenses/types'
+import type { ExpenseWithSplits } from '@/types'
 
 export default function ExpensesScreen() {
   const { tripId, collaborators } = useTripContext()
+  const router = useRouter()
   const { data: currentUser } = useCurrentUser()
   const { data: expenses, isLoading, isFetching, refetch } = useExpenses(tripId)
+  const { data: experiences } = useExperiences(tripId)
   const createExpense = useCreateExpense(tripId, collaborators)
+  const updateExpense = useUpdateExpense(tripId, collaborators)
+  const deleteExpense = useDeleteExpense(tripId)
   const settleDebt = useSettleDebt(tripId)
   const { data: settlements } = useSettlements(tripId)
   const [sheetVisible, setSheetVisible] = useState(false)
+  const [editingExpense, setEditingExpense] = useState<ExpenseWithSplits | null>(null)
   const [balancesExpanded, setBalancesExpanded] = useState(true)
   const insets = useSafeAreaInsets()
 
@@ -48,13 +58,39 @@ export default function ExpensesScreen() {
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
 
-  const handleCreate = async (data: CreateExpenseFormData) => {
+  const handleSheetClose = () => {
+    setSheetVisible(false)
+    setEditingExpense(null)
+  }
+
+  const handleSubmit = async (data: CreateExpenseFormData) => {
     try {
-      await createExpense.mutateAsync(data)
+      if (editingExpense) {
+        await updateExpense.mutateAsync({ expenseId: editingExpense.id, formData: data })
+      } else {
+        await createExpense.mutateAsync(data)
+      }
       setSheetVisible(false)
+      setEditingExpense(null)
     } catch {
       // Error visible en el sheet
     }
+  }
+
+  const handleEdit = (expense: ExpenseWithSplits) => {
+    setEditingExpense(expense)
+    setSheetVisible(true)
+  }
+
+  const handleDelete = (expense: ExpenseWithSplits) => {
+    Alert.alert(
+      'Eliminar gasto',
+      `¿Eliminar "${expense.description}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: () => deleteExpense.mutate(expense.id) },
+      ]
+    )
   }
 
   return (
@@ -150,13 +186,22 @@ export default function ExpensesScreen() {
                 onAction={() => setSheetVisible(true)}
               />
             ) : (
-              expenses.map((expense) => (
-                <ExpenseCard
-                  key={expense.id}
-                  expense={expense}
-                  currentUserId={currentUser?.id}
-                />
-              ))
+              expenses.map((expense) => {
+                const isPayer = expense.payer_id === currentUser?.id
+                return (
+                  <ExpenseCard
+                    key={expense.id}
+                    expense={expense}
+                    currentUserId={currentUser?.id}
+                    onPress={() => router.push({
+                      pathname: '/(app)/trips/expense/[expenseId]' as never,
+                      params: { expenseId: expense.id, tripId },
+                    })}
+                    onEdit={isPayer ? () => handleEdit(expense) : undefined}
+                    onDelete={isPayer ? () => handleDelete(expense) : undefined}
+                  />
+                )
+              })
             )}
           </View>
         </Animated.ScrollView>
@@ -175,11 +220,20 @@ export default function ExpensesScreen() {
 
       <AddExpenseSheet
         visible={sheetVisible}
-        onClose={() => setSheetVisible(false)}
-        onSubmit={handleCreate}
-        isLoading={createExpense.isPending}
-        error={createExpense.error?.message}
+        onClose={handleSheetClose}
+        onSubmit={handleSubmit}
+        isLoading={createExpense.isPending || updateExpense.isPending}
+        error={createExpense.error?.message ?? updateExpense.error?.message}
         currentUserId={currentUser?.id}
+        collaborators={collaborators}
+        experiences={experiences ?? []}
+        initialData={editingExpense ? {
+          description: editingExpense.description,
+          amount: editingExpense.amount,
+          payer_id: editingExpense.payer_id,
+          experience_id: editingExpense.experience_id ?? undefined,
+          participant_ids: editingExpense.splits.map((s) => s.user_id),
+        } : undefined}
       />
       </View>
     </View>
