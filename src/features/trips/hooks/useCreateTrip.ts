@@ -24,24 +24,16 @@ export function useCreateTrip() {
         return newTrip
       }
 
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('No hay sesión activa')
-      const user = session.user
-
       const { data: trip, error: tripError } = await supabase
-        .from('trips')
-        .insert({
-          title: formData.title,
-          start_date: formData.start_date,
-          end_date: formData.end_date,
-          created_by: user.id,
+        .rpc('create_trip', {
+          p_title: formData.title,
+          p_start_date: formData.start_date,
+          p_end_date: formData.end_date,
         })
-        .select()
-        .single()
 
       if (tripError) throw new Error(tripError.message)
 
-      return trip
+      return trip as Trip
     },
     onSuccess: (newTrip) => {
       if (DEV_MODE) {
