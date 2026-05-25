@@ -209,7 +209,6 @@ export const mockExperiences: Record<string, Experience[]> = {
 }
 
 // ─── GASTOS ──────────────────────────────────────────────────────────────────
-// Regla: el split del pagador siempre es is_settled: true (ya pagó su parte)
 // Balances Japón (zero-sum):
 //   Marc Yeste      → +€771.67
 //   Nuria Fabregat  → -€48.33
@@ -232,9 +231,9 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-20T10:00:00Z',
       payer: { id: DEMO_USER_ID, name: 'Marc Yeste', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: GASTO_001, user_id: DEMO_USER_ID,  amount: 483.33, is_settled: true },
-        { expense_id: GASTO_001, user_id: COLLAB_002_ID, amount: 483.33, is_settled: false },
-        { expense_id: GASTO_001, user_id: COLLAB_003_ID, amount: 483.34, is_settled: false },
+        { expense_id: GASTO_001, user_id: DEMO_USER_ID,  amount: 483.33 },
+        { expense_id: GASTO_001, user_id: COLLAB_002_ID, amount: 483.33 },
+        { expense_id: GASTO_001, user_id: COLLAB_003_ID, amount: 483.34 },
       ],
     },
     {
@@ -248,9 +247,9 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-20T10:05:00Z',
       payer: { id: COLLAB_002_ID, name: 'Nuria Fabregat', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: GASTO_002, user_id: DEMO_USER_ID,  amount: 280, is_settled: false },
-        { expense_id: GASTO_002, user_id: COLLAB_002_ID, amount: 280, is_settled: true },
-        { expense_id: GASTO_002, user_id: COLLAB_003_ID, amount: 280, is_settled: false },
+        { expense_id: GASTO_002, user_id: DEMO_USER_ID,  amount: 280 },
+        { expense_id: GASTO_002, user_id: COLLAB_002_ID, amount: 280 },
+        { expense_id: GASTO_002, user_id: COLLAB_003_ID, amount: 280 },
       ],
     },
     {
@@ -264,9 +263,9 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-20T10:10:00Z',
       payer: { id: DEMO_USER_ID, name: 'Marc Yeste', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: GASTO_003, user_id: DEMO_USER_ID,  amount: 70, is_settled: true },
-        { expense_id: GASTO_003, user_id: COLLAB_002_ID, amount: 70, is_settled: false },
-        { expense_id: GASTO_003, user_id: COLLAB_003_ID, amount: 70, is_settled: false },
+        { expense_id: GASTO_003, user_id: DEMO_USER_ID,  amount: 70 },
+        { expense_id: GASTO_003, user_id: COLLAB_002_ID, amount: 70 },
+        { expense_id: GASTO_003, user_id: COLLAB_003_ID, amount: 70 },
       ],
     },
     {
@@ -280,9 +279,9 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-20T10:15:00Z',
       payer: { id: COLLAB_003_ID, name: 'Paula Tena', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: GASTO_004, user_id: DEMO_USER_ID,  amount: 55, is_settled: false },
-        { expense_id: GASTO_004, user_id: COLLAB_002_ID, amount: 55, is_settled: false },
-        { expense_id: GASTO_004, user_id: COLLAB_003_ID, amount: 55, is_settled: true },
+        { expense_id: GASTO_004, user_id: DEMO_USER_ID,  amount: 55 },
+        { expense_id: GASTO_004, user_id: COLLAB_002_ID, amount: 55 },
+        { expense_id: GASTO_004, user_id: COLLAB_003_ID, amount: 55 },
       ],
     },
   ],
@@ -298,8 +297,8 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-12T10:00:00Z',
       payer: { id: DEMO_USER_ID, name: 'Usuario Demo', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: GASTO_101, user_id: DEMO_USER_ID,  amount: 190, is_settled: true },
-        { expense_id: GASTO_101, user_id: COLLAB_002_ID, amount: 190, is_settled: true },
+        { expense_id: GASTO_101, user_id: DEMO_USER_ID,  amount: 190 },
+        { expense_id: GASTO_101, user_id: COLLAB_002_ID, amount: 190 },
       ],
     },
     {
@@ -313,8 +312,8 @@ export const mockExpenses: Record<string, ExpenseWithSplits[]> = {
       created_at: '2026-01-12T10:05:00Z',
       payer: { id: COLLAB_002_ID, name: 'Ana García', avatar_url: null, updated_at: '' } as any,
       splits: [
-        { expense_id: GASTO_102, user_id: DEMO_USER_ID,  amount: 280, is_settled: true },
-        { expense_id: GASTO_102, user_id: COLLAB_002_ID, amount: 280, is_settled: true },
+        { expense_id: GASTO_102, user_id: DEMO_USER_ID,  amount: 280 },
+        { expense_id: GASTO_102, user_id: COLLAB_002_ID, amount: 280 },
       ],
     },
   ],

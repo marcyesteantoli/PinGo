@@ -30,7 +30,6 @@ export function useCreateExpense(tripId: string, collaborators: Collaborator[] =
             expense_id: id,
             user_id: uid,
             amount: splitAmount,
-            is_settled: uid === payerId, // payer's own split settled immediately
           })),
         }
         if (!mockExpenses[tripId]) mockExpenses[tripId] = []
@@ -62,7 +61,6 @@ export function useCreateExpense(tripId: string, collaborators: Collaborator[] =
         expense_id: expense.id,
         user_id: uid,
         amount: splitAmount,
-        is_settled: uid === payerId, // payer's own split is settled by default
       }))
 
       const { error: splitsError } = await supabase.from('expense_splits').insert(splits)
@@ -96,7 +94,6 @@ export function useCreateExpense(tripId: string, collaborators: Collaborator[] =
           expense_id: tempId,
           user_id: uid,
           amount: splitAmount,
-          is_settled: uid === payerId,
         })),
       }
 

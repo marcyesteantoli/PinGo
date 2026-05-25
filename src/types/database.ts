@@ -159,16 +159,14 @@ export interface Database {
           expense_id: string
           user_id: string
           amount: number
-          is_settled: boolean
         }
         Insert: {
           expense_id: string
           user_id: string
           amount: number
-          is_settled?: boolean
         }
         Update: {
-          is_settled?: boolean
+          amount?: number
         }
       }
       experience_ratings: {

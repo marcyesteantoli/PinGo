@@ -141,8 +141,6 @@ export default function ExpenseDetailScreen() {
 
   const isCurrentUserPayer = expense.payer_id === currentUser?.id
   const category = getExpenseCategory(expense.description, expense.experience?.type as ExpenseCategory | null)
-  const unsettledSplits = expense.splits.filter((s) => !s.is_settled && s.user_id !== expense.payer_id)
-  const allSettled = unsettledSplits.length === 0
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top', 'bottom']}>
@@ -182,19 +180,6 @@ export default function ExpenseDetailScreen() {
           <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">
             {formatCurrency(expense.amount, expense.currency)}
           </Text>
-          {allSettled ? (
-            <View className="flex-row items-center gap-1.5 bg-green-100 dark:bg-green-900/40 rounded-full px-3 py-1">
-              <Ionicons name="checkmark-circle" size={14} color={colors.success[600]} />
-              <Text className="text-xs font-medium text-green-700 dark:text-green-400">Completamente saldado</Text>
-            </View>
-          ) : (
-            <View className="flex-row items-center gap-1.5 bg-amber-100 dark:bg-amber-900/40 rounded-full px-3 py-1">
-              <View className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              <Text className="text-xs font-medium text-amber-700 dark:text-amber-400">
-                {unsettledSplits.length} pendiente{unsettledSplits.length !== 1 ? 's' : ''}
-              </Text>
-            </View>
-          )}
         </View>
 
         {/* Info */}
@@ -288,20 +273,10 @@ export default function ExpenseDetailScreen() {
                           {formatCurrency(split.amount, expense.currency)}
                         </Text>
                       </View>
-                      {isPayer ? (
+                      {isPayer && (
                         <View className="flex-row items-center gap-1 bg-blue-100 dark:bg-blue-900/30 rounded-full px-2 py-0.5">
-                          <Ionicons name="arrow-up-outline" size={10} color="#3b82f6" />
+                          <Ionicons name="card-outline" size={10} color="#3b82f6" />
                           <Text className="text-xs text-blue-600 dark:text-blue-400">Pagó</Text>
-                        </View>
-                      ) : split.is_settled ? (
-                        <View className="flex-row items-center gap-1 bg-green-100 dark:bg-green-900/40 rounded-full px-2 py-0.5">
-                          <Ionicons name="checkmark" size={10} color={colors.success[600]} />
-                          <Text className="text-xs text-green-700 dark:text-green-400">Saldado</Text>
-                        </View>
-                      ) : (
-                        <View className="flex-row items-center gap-1 bg-amber-100 dark:bg-amber-900/40 rounded-full px-2 py-0.5">
-                          <View className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                          <Text className="text-xs text-amber-700 dark:text-amber-400">Pendiente</Text>
                         </View>
                       )}
                     </View>

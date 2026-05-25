@@ -32,7 +32,6 @@ export function useUpdateExpense(tripId: string, collaborators: Collaborator[] =
                 expense_id: expenseId,
                 user_id: uid,
                 amount: splitAmount,
-                is_settled: uid === payerId,
               })),
             }
           }
@@ -60,7 +59,6 @@ export function useUpdateExpense(tripId: string, collaborators: Collaborator[] =
         expense_id: expenseId,
         user_id: uid,
         amount: splitAmount,
-        is_settled: uid === payerId,
       }))
 
       const { error: splitsError } = await supabase.from('expense_splits').insert(splits)
@@ -95,7 +93,6 @@ export function useUpdateExpense(tripId: string, collaborators: Collaborator[] =
                     expense_id: expenseId,
                     user_id: uid,
                     amount: splitAmount,
-                    is_settled: uid === payerId,
                   })),
                 }
               : e

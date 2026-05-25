@@ -30,10 +30,10 @@ const variantClasses: Record<BadgeVariant, { container: string; text: string }> 
   warning:   { container: 'bg-amber-100 dark:bg-amber-700/40',         text: 'text-amber-700 dark:text-amber-300'         },
   error:     { container: 'bg-red-100 dark:bg-red-700/40',             text: 'text-red-700 dark:text-red-300'             },
   neutral:   { container: 'bg-neutral-200 dark:bg-surface-700',        text: 'text-neutral-700 dark:text-neutral-300'     },
-  transport:     { container: 'bg-cyan-100 dark:bg-cyan-700/40',     text: 'text-cyan-800 dark:text-cyan-300'     },
-  accommodation: { container: 'bg-purple-100 dark:bg-purple-700/40', text: 'text-purple-800 dark:text-purple-300' },
+  transport:     { container: 'bg-cyan-100 dark:bg-cyan-700/40',     text: 'text-cyan-500 dark:text-cyan-300'     },
+  accommodation: { container: 'bg-purple-100 dark:bg-purple-700/40', text: 'text-purple-500 dark:text-purple-300' },
   activity:      { container: 'bg-lime-100 dark:bg-lime-700/40',     text: 'text-lime-800 dark:text-lime-300'     },
-  restaurant:    { container: 'bg-red-100 dark:bg-red-700/40',       text: 'text-red-800 dark:text-red-300'       },
+  restaurant:    { container: 'bg-red-100 dark:bg-red-700/40',       text: 'text-red-500 dark:text-red-300'       },
   other:         { container: 'bg-stone-100 dark:bg-stone-700',      text: 'text-stone-600 dark:text-stone-400'   },
 }
 
@@ -44,10 +44,10 @@ const CATEGORY_ICONS: Record<CategoryType, {
   light: string
   dark: string
 }> = {
-  transport:     { name: 'airplane-outline',   light: '#155e75', dark: '#67e8f9' },
-  accommodation: { name: 'bed-outline',        light: '#6b21a8', dark: '#d8b4fe' },
+  transport:     { name: 'airplane-outline',   light: '#06b6d4', dark: '#67e8f9' },
+  accommodation: { name: 'bed-outline',        light: '#a855f7', dark: '#d8b4fe' },
   activity:      { name: 'compass-outline',    light: '#3f6212', dark: '#bef264' },
-  restaurant:    { name: 'restaurant-outline', light: '#991b1b', dark: '#fca5a5' },
+  restaurant:    { name: 'restaurant-outline', light: '#ef4444', dark: '#fca5a5' },
   other:         { name: 'ellipse-outline',    light: '#57534e', dark: '#a8a29e' },
 }
 

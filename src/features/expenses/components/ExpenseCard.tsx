@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useColorScheme } from 'nativewind'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
@@ -38,32 +39,28 @@ const CATEGORY_ICON: Record<ExpenseCategory, React.ComponentProps<typeof Ionicon
 }
 
 const CATEGORY_BG: Record<ExpenseCategory, string> = {
-  restaurant:    'bg-red-100 dark:bg-red-900/30',
-  transport:     'bg-cyan-100 dark:bg-cyan-900/30',
-  accommodation: 'bg-purple-100 dark:bg-purple-900/30',
-  activity:      'bg-lime-100 dark:bg-lime-900/30',
+  restaurant:    'bg-red-100 dark:bg-red-700/40',
+  transport:     'bg-cyan-100 dark:bg-cyan-700/40',
+  accommodation: 'bg-purple-100 dark:bg-purple-700/40',
+  activity:      'bg-lime-100 dark:bg-lime-700/40',
   other:         'bg-neutral-100 dark:bg-surface-700',
 }
 
-const CATEGORY_ICON_COLOR: Record<ExpenseCategory, string> = {
-  restaurant:    '#ef4444',
-  transport:     '#06b6d4',
-  accommodation: '#a855f7',
-  activity:      '#65a30d',
-  other:         '#8d99ae',
+const CATEGORY_ICON_COLORS: Record<ExpenseCategory, { light: string; dark: string }> = {
+  restaurant:    { light: '#ef4444', dark: '#fca5a5' },
+  transport:     { light: '#06b6d4', dark: '#67e8f9' },
+  accommodation: { light: '#a855f7', dark: '#d8b4fe' },
+  activity:      { light: '#3f6212', dark: '#bef264' },
+  other:         { light: '#8d99ae', dark: '#a8a29e' },
 }
 
 const ACTION_WIDTH = 72
 
 export function ExpenseCard({ expense, currentUserId, onPress, onEdit, onDelete }: ExpenseCardProps) {
   const isCurrentUserPayer = expense.payer_id === currentUserId
-  const unsettledCount = expense.splits.filter(
-    (s) => !s.is_settled && s.user_id !== expense.payer_id
-  ).length
-  const participantCount = expense.splits.filter((s) => s.user_id !== expense.payer_id).length
-  const allSettled = unsettledCount === 0
   const category = getExpenseCategory(expense.description, expense.experience?.type as ExpenseCategory | null)
 
+  const { colorScheme } = useColorScheme()
   const [containerWidth, setContainerWidth] = useState(0)
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
@@ -99,16 +96,16 @@ export function ExpenseCard({ expense, currentUserId, onPress, onEdit, onDelete 
   const cardWidth = containerWidth > 0 ? containerWidth : undefined
 
   const cardBody = (
-    <View className="p-4 flex-row items-start gap-3">
-      <View className={`w-10 h-10 rounded-xl items-center justify-center mt-0.5 ${CATEGORY_BG[category]}`}>
-        <Ionicons name={CATEGORY_ICON[category]} size={24} color={CATEGORY_ICON_COLOR[category]} />
+    <View className="p-4 flex-row items-center gap-3">
+      <View className={`w-12 h-12 rounded-xl items-center justify-center ${CATEGORY_BG[category]}`}>
+        <Ionicons name={CATEGORY_ICON[category]} size={28} color={CATEGORY_ICON_COLORS[category][colorScheme === 'dark' ? 'dark' : 'light']} />
       </View>
 
-      <View className="flex-1 gap-1">
-        <Text className="text-sm font-semibold text-neutral-900 dark:text-neutral-50" numberOfLines={2}>
+      <View className="flex-1">
+        <Text className="text-base font-semibold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
           {expense.description}
         </Text>
-        <View className="flex-row items-center gap-1.5">
+        <View className="flex-row items-center gap-1.5 mt-1">
           <Avatar uri={expense.payer.avatar_url} name={expense.payer.name} size="xs" />
           <Text className="text-xs text-neutral-500 dark:text-neutral-400">
             {isCurrentUserPayer ? 'Pagaste tú' : `Pagó ${expense.payer.name.split(' ')[0]}`}
@@ -116,22 +113,9 @@ export function ExpenseCard({ expense, currentUserId, onPress, onEdit, onDelete 
         </View>
       </View>
 
-      <View className="items-end gap-1.5">
-        <Text className="text-base font-bold text-neutral-900 dark:text-neutral-50">
-          {formatCurrency(expense.amount, expense.currency)}
-        </Text>
-        {allSettled ? (
-          <View className="flex-row items-center gap-1 bg-green-100 dark:bg-green-900/40 rounded-full px-2 py-0.5">
-            <Ionicons name="checkmark" size={10} color={colors.success[600]} />
-            <Text className="text-xs text-green-700 dark:text-green-400">Saldado</Text>
-          </View>
-        ) : (
-          <View className="flex-row items-center gap-1 bg-amber-100 dark:bg-amber-900/40 rounded-full px-2 py-0.5">
-            <View className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-            <Text className="text-xs text-amber-700 dark:text-amber-400">{unsettledCount}/{participantCount}</Text>
-          </View>
-        )}
-      </View>
+      <Text className="text-base font-bold text-neutral-900 dark:text-neutral-50">
+        {formatCurrency(expense.amount, expense.currency)}
+      </Text>
     </View>
   )
 
