@@ -8,6 +8,8 @@ import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { useSignIn } from '@features/auth/hooks/useSignIn'
 import { loginSchema, type LoginFormData } from '@features/auth/types'
+import { colors } from '@lib/colors'
+import { cardShadow } from '@lib/shadows'
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -37,16 +39,24 @@ export default function LoginScreen() {
           contentContainerClassName="flex-grow px-6 py-8 justify-center"
           keyboardShouldPersistTaps="handled"
         >
-          <View className="items-center mb-10 gap-3">
-            <Image
-              source={require('../../assets/images/icon.png')}
-              style={{ width: 64, height: 64, borderRadius: 16 }}
-            />
-            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50">Bienvenido</Text>
-            <Text className="text-[17px] text-neutral-500 dark:text-neutral-400">Inicia sesión para continuar</Text>
+          <View className="items-center mb-10 gap-2">
+            <View
+              className="w-[80px] h-[80px] rounded-[22px] items-center justify-center bg-white dark:bg-surface-800"
+              style={cardShadow}
+            >
+              <Image
+                source={require('../../assets/images/icon.png')}
+                style={{ width: 56, height: 56, borderRadius: 14 }}
+              />
+            </View>
+            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50 mt-2">Bienvenido</Text>
+            <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Inicia sesión para continuar</Text>
           </View>
 
-          <View className="gap-4">
+          <View
+            className="rounded-2xl bg-white dark:bg-surface-800 p-6 gap-5"
+            style={cardShadow}
+          >
             <Controller
               control={control}
               name="email"
@@ -54,6 +64,7 @@ export default function LoginScreen() {
                 <Input
                   label="Email"
                   placeholder="tu@email.com"
+                  leftIcon="mail-outline"
                   value={value}
                   onChangeText={onChange}
                   keyboardType="email-address"
@@ -76,6 +87,7 @@ export default function LoginScreen() {
                   ref={passwordRef}
                   label="Contraseña"
                   placeholder="••••••••"
+                  leftIcon="lock-closed-outline"
                   value={value}
                   onChangeText={onChange}
                   secureTextEntry
@@ -94,14 +106,22 @@ export default function LoginScreen() {
               </Text>
             )}
 
-            <Button
-              onPress={handleSubmit(onSubmit)}
-              isLoading={signIn.isPending}
-              size="lg"
-              className="mt-2"
-            >
-              Iniciar sesión
-            </Button>
+            <View style={{
+              shadowColor: colors.primary[500],
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.35,
+              shadowRadius: 14,
+              elevation: 8,
+              borderRadius: 14,
+            }}>
+              <Button
+                onPress={handleSubmit(onSubmit)}
+                isLoading={signIn.isPending}
+                size="lg"
+              >
+                Iniciar sesión
+              </Button>
+            </View>
           </View>
 
           <View className="flex-row items-center justify-center mt-8 gap-1">

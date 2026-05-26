@@ -109,9 +109,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
                     label={EXPERIENCE_TYPE_LABELS[experience.type]}
                     variant={TYPE_BADGE_VARIANT[experience.type]}
                   />
-                  {experience.type === 'accommodation' && experience.confirmation_code && (
-                    <Badge label="Check-in" variant="neutral" />
-                  )}
+
                 </View>
 
                 {/* Title */}

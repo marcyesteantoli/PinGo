@@ -23,52 +23,109 @@ export function DebtResolutionCard({
   const fromLabel = isCurrentUserFrom ? 'Tú' : transaction.fromName.split(' ')[0]
   const toLabel = isCurrentUserTo ? 'Tú' : transaction.toName.split(' ')[0]
 
+  const accentColor = isCurrentUserFrom
+    ? colors.primary[500]
+    : isCurrentUserTo
+      ? colors.success[600]
+      : colors.neutral[500]
+
+  const contextLabel = isCurrentUserFrom
+    ? 'Debes pagar'
+    : isCurrentUserTo
+      ? 'Te deben'
+      : null
+
+  const contextSubLabel = isCurrentUserFrom
+    ? <Text>a <Text className="font-semibold text-neutral-800 dark:text-neutral-100">{toLabel}</Text></Text>
+    : isCurrentUserTo
+      ? <Text className="font-semibold text-neutral-800 dark:text-neutral-100">{fromLabel}</Text>
+      : <Text><Text className="font-semibold text-neutral-800 dark:text-neutral-100">{fromLabel}</Text> debe a <Text className="font-semibold text-neutral-800 dark:text-neutral-100">{toLabel}</Text></Text>
+
   return (
     <View
       className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden"
-      style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 }}
+      style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6 }}
     >
-      {/* Debt row */}
-      <View className="px-4 pt-4 pb-3 flex-row items-center gap-3">
-        <View className="items-center gap-1 w-14">
-          <Avatar uri={transaction.fromAvatarUrl} name={transaction.fromName} size="md" />
-          <Text className="text-xs text-neutral-500 dark:text-neutral-400 text-center" numberOfLines={1}>{fromLabel}</Text>
+      {/* Header */}
+      <View className="px-4 pt-4 pb-3 flex-row items-start justify-between">
+        <View className="gap-0.5">
+          {contextLabel && (
+            <Text className="text-xs font-semibold uppercase tracking-wide" style={{ color: accentColor }}>
+              {contextLabel}
+            </Text>
+          )}
+          <Text className="text-base text-neutral-500 dark:text-neutral-400">
+            {contextSubLabel}
+          </Text>
+        </View>
+        <Text className="text-xl font-bold" style={{ color: accentColor }}>
+          {formatCurrency(transaction.amount)}
+        </Text>
+      </View>
+
+      {/* Separator */}
+      <View className="h-px bg-neutral-100 dark:bg-surface-700 mx-4" />
+
+      {/* Avatars */}
+      <View className="px-4 py-3 flex-row items-center gap-2">
+        <View className="items-center gap-1">
+          <Avatar uri={transaction.fromAvatarUrl} name={transaction.fromName} size="sm" />
+          <Text className="text-xs text-neutral-400 dark:text-neutral-500" numberOfLines={1}>
+            {fromLabel}
+          </Text>
         </View>
 
-        <View className="flex-1 items-center gap-1">
-          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">{formatCurrency(transaction.amount)}</Text>
-          <View className="flex-row items-center gap-1">
-            <View className="h-px flex-1 bg-neutral-200 dark:bg-surface-600" />
-            <Ionicons name="arrow-forward" size={14} color={colors.neutral[400]} />
-            <View className="h-px flex-1 bg-neutral-200 dark:bg-surface-600" />
+        <View className="flex-1 flex-row items-center gap-1">
+          <View className="h-px flex-1" style={{ backgroundColor: accentColor + '40' }} />
+          <View
+            className="w-5 h-5 rounded-full items-center justify-center"
+            style={{ backgroundColor: accentColor + '15' }}
+          >
+            <Ionicons name="arrow-forward" size={11} color={accentColor} />
           </View>
+          <View className="h-px flex-1" style={{ backgroundColor: accentColor + '40' }} />
         </View>
 
-        <View className="items-center gap-1 w-14">
-          <Avatar uri={transaction.toAvatarUrl} name={transaction.toName} size="md" />
-          <Text className="text-xs text-neutral-500 dark:text-neutral-400 text-center" numberOfLines={1}>{toLabel}</Text>
+        <View className="items-center gap-1">
+          <Avatar uri={transaction.toAvatarUrl} name={transaction.toName} size="sm" />
+          <Text className="text-xs text-neutral-400 dark:text-neutral-500" numberOfLines={1}>
+            {toLabel}
+          </Text>
         </View>
       </View>
 
-      {/* Settle action */}
+      {/* CTA Button */}
       {onSettle && (
-        <TouchableOpacity
-          onPress={onSettle}
-          disabled={isSettling}
-          activeOpacity={0.8}
-          className="mx-4 mb-4 flex-row items-center justify-center gap-2 rounded-xl py-3 border border-neutral-200 dark:border-surface-600 active:bg-neutral-100 dark:active:bg-surface-700"
-          style={{ minHeight: 44 }}
-          style={{ opacity: isSettling ? 0.6 : 1 }}
-        >
-          {isSettling ? (
-            <ActivityIndicator size="small" color={colors.neutral[400]} />
-          ) : (
-            <Ionicons name="checkmark-circle-outline" size={16} color={colors.neutral[400]} />
-          )}
-          <Text className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
-            {isSettling ? 'Guardando...' : 'Marcar como saldado'}
-          </Text>
-        </TouchableOpacity>
+        <View className="px-4 pb-4">
+          <TouchableOpacity
+            onPress={onSettle}
+            disabled={isSettling}
+            activeOpacity={0.8}
+            className="flex-row items-center justify-center gap-2 rounded-xl py-3"
+            style={[
+              { minHeight: 44, opacity: isSettling ? 0.6 : 1 },
+              isCurrentUserFrom
+                ? { backgroundColor: colors.primary[500] }
+                : { backgroundColor: `${colors.success[600]}15`, borderWidth: 1.5, borderColor: colors.success[600] },
+            ]}
+          >
+            {isSettling ? (
+              <ActivityIndicator size="small" color={isCurrentUserFrom ? colors.white : colors.success[600]} />
+            ) : (
+              <Ionicons
+                name="checkmark-circle"
+                size={17}
+                color={isCurrentUserFrom ? colors.white : colors.success[600]}
+              />
+            )}
+            <Text
+              className="text-sm font-semibold"
+              style={{ color: isCurrentUserFrom ? colors.white : colors.success[600] }}
+            >
+              {isSettling ? 'Guardando...' : isCurrentUserFrom ? 'He pagado' : 'He cobrado'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   )

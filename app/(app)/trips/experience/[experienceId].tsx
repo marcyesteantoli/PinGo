@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 // TODO: import PROVIDER_GOOGLE and set provider={PROVIDER_GOOGLE} on MapView when Google Maps API key is configured
 import MapView, { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -270,10 +270,12 @@ export default function ExperienceDetailScreen() {
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => {
-              const googleUrl = `comgooglemaps://?q=${encodeURIComponent(location.name)}&center=${location.lat},${location.lng}`
-              const appleUrl = `maps://?ll=${location.lat},${location.lng}&q=${encodeURIComponent(location.name)}`
-              Linking.canOpenURL(googleUrl).then((supported) =>
-                Linking.openURL(supported ? googleUrl : appleUrl)
+              const googleNativeUrl = `comgooglemaps://?q=${encodeURIComponent(location.name)}&center=${location.lat},${location.lng}`
+              const fallbackUrl = Platform.OS === 'ios'
+                ? `maps://?ll=${location.lat},${location.lng}&q=${encodeURIComponent(location.name)}`
+                : `geo:${location.lat},${location.lng}?q=${encodeURIComponent(location.name)}`
+              Linking.canOpenURL(googleNativeUrl).then((supported) =>
+                Linking.openURL(supported ? googleNativeUrl : fallbackUrl)
               )
             }}
             style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}

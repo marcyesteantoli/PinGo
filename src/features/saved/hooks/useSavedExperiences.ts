@@ -16,7 +16,7 @@ export function useSavedExperiences() {
 
       const { data: savedRows, error: savedError } = await supabase
         .from('user_saved_experiences')
-        .select('experience_id, saved_at')
+        .select('experience_id, saved_at, note')
         .eq('user_id', userId!)
         .order('saved_at', { ascending: false })
 
@@ -62,6 +62,7 @@ export function useSavedExperiences() {
           if (!exp) return null
           return {
             saved_at: row.saved_at,
+            note: (row as any).note ?? null,
             experience: {
               ...exp,
               trip: exp.trip_id ? { name: tripMap.get(exp.trip_id) ?? '' } : null,

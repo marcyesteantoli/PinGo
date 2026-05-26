@@ -20,6 +20,7 @@ interface Location {
   name: string
   lat: number
   lng: number
+  city?: string
 }
 
 interface LocationPickerProps {
@@ -40,6 +41,12 @@ interface NominatimResult {
     building?: string
     neighbourhood?: string
     suburb?: string
+    city?: string
+    town?: string
+    village?: string
+    county?: string
+    state?: string
+    country?: string
   }
 }
 
@@ -128,10 +135,17 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
   }
 
   const handleSelectResult = (result: NominatimResult) => {
+    const city =
+      result.address?.city ??
+      result.address?.town ??
+      result.address?.village ??
+      result.address?.county ??
+      result.address?.state
     setSelected({
       name: getPlaceName(result),
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
+      ...(city ? { city } : {}),
     })
     setResults([])
     setQuery('')

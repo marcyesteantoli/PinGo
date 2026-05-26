@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'expo-router'
 import {
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -18,9 +19,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
 import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
 import { Badge } from '@components/ui/Badge'
-import { RadarChart } from '@components/ui/RadarChart'
 import { EXPERIENCE_TYPE_LABELS } from '@features/timeline/types'
-import { EXPERIENCE_ATTRIBUTES } from '@features/timeline/config/experienceAttributes'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import type { SavedExperienceItem } from '@types/index'
@@ -34,6 +33,15 @@ const TYPE_BADGE_VARIANT: Record<string, BadgeVariant> = {
   restaurant: 'restaurant',
   other: 'other',
 }
+
+const TYPE_FILTERS: { key: string | null; label: string }[] = [
+  { key: null, label: 'Todas' },
+  { key: 'restaurant', label: 'Gastronomía' },
+  { key: 'activity', label: 'Actividad' },
+  { key: 'accommodation', label: 'Alojamiento' },
+  { key: 'transport', label: 'Transporte' },
+  { key: 'other', label: 'Otro' },
+]
 
 function getLocationText(location: unknown): string | null {
   if (
@@ -54,18 +62,9 @@ interface SavedExperienceCardProps {
 }
 
 function SavedExperienceCard({ item, isDark, onPress }: SavedExperienceCardProps) {
-  const { experience } = item
+  const { experience, note } = item
   const cardBg = isDark ? colors.surface[800] : colors.white
   const labelColor = isDark ? colors.neutral[500] : colors.neutral[400]
-
-  const attributes = EXPERIENCE_ATTRIBUTES[experience.type as Experience['type']] ?? []
-  const userValues: Record<string, number> = {}
-  for (const r of experience.attribute_ratings) {
-    userValues[r.attribute] = r.value
-  }
-  const ratedCount = Object.keys(userValues).length
-  const hasEnoughRatings = ratedCount >= 3 && attributes.length >= 3
-
   const locationText = getLocationText(experience.location)
 
   return (
@@ -115,42 +114,23 @@ function SavedExperienceCard({ item, isDark, onPress }: SavedExperienceCardProps
         {locationText && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Ionicons name="location-outline" size={15} color={labelColor} />
-            <Text
-              numberOfLines={1}
-              style={{ fontSize: 13, color: labelColor, flex: 1 }}
-            >
+            <Text numberOfLines={1} style={{ fontSize: 13, color: labelColor, flex: 1 }}>
               {locationText}
             </Text>
           </View>
         )}
-      </View>
 
-      <View
-        style={{
-          borderTopWidth: 0.5,
-          borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-          padding: 16,
-          alignItems: 'center',
-        }}
-      >
-        {hasEnoughRatings ? (
-          <RadarChart
-            attributes={attributes}
-            userValues={userValues}
-            groupAvg={{}}
-            size={160}
-            isDark={isDark}
-          />
-        ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8 }}>
-            <Ionicons name="star-outline" size={16} color={labelColor} />
-            <Text style={{ fontSize: 13, color: labelColor }}>
-              {attributes.length === 0
-                ? 'Sin atributos para este tipo'
-                : 'Valora los atributos para ver tu gráfico'}
+        {note ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 }}>
+            <Ionicons name="chatbubble-outline" size={13} color={labelColor} />
+            <Text
+              numberOfLines={1}
+              style={{ fontSize: 13, color: labelColor, flex: 1, fontStyle: 'italic' }}
+            >
+              {note}
             </Text>
           </View>
-        )}
+        ) : null}
       </View>
     </TouchableOpacity>
   )
@@ -175,34 +155,46 @@ export default function SavedExperiencesScreen() {
     height: interpolate(sectionProgress.value, [0, 1], [57, 0]),
     overflow: 'hidden',
   }))
+
   const [search, setSearch] = useState('')
+  const [activeType, setActiveType] = useState<string | null>(null)
 
   const { data: saved = [], isLoading } = useSavedExperiences()
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return saved
-    const q = search.toLowerCase()
-    return saved.filter((item) => {
-      const loc = getLocationText(item.experience.location)?.toLowerCase() ?? ''
-      const title = item.experience.title.toLowerCase()
-      return loc.includes(q) || title.includes(q)
-    })
-  }, [saved, search])
+    let items = saved
+
+    if (activeType) {
+      items = items.filter((i) => i.experience.type === activeType)
+    }
+
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      items = items.filter((i) => {
+        const loc = getLocationText(i.experience.location)?.toLowerCase() ?? ''
+        const title = i.experience.title.toLowerCase()
+        return loc.includes(q) || title.includes(q)
+      })
+    }
+
+    return items
+  }, [saved, activeType, search])
 
   const bg = isDark ? colors.surface[900] : colors.neutral[100]
   const searchBg = isDark ? colors.surface[800] : colors.white
   const labelColor = isDark ? colors.neutral[500] : colors.neutral[400]
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
-      <AppHeader title="Mis joyas" scrollY={scrollY} expandProgress={sectionProgress} />
+  const isFiltered = !!activeType || !!search.trim()
+  const activeTypeLabel = TYPE_FILTERS.find((f) => f.key === activeType)?.label ?? ''
+
+  const listHeader = (
+    <View>
       <Animated.View style={expandedSectionStyle}>
         <Text
           style={{
             fontSize: 34,
             fontWeight: '700',
             color: isDark ? colors.neutral[50] : colors.neutral[900],
-            paddingHorizontal: 20,
             paddingTop: 8,
             paddingBottom: 12,
           }}
@@ -212,7 +204,7 @@ export default function SavedExperiencesScreen() {
       </Animated.View>
 
       {/* Search bar */}
-      <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
+      <View style={{ paddingBottom: 10 }}>
         <View
           style={{
             flexDirection: 'row',
@@ -242,57 +234,125 @@ export default function SavedExperiencesScreen() {
         </View>
       </View>
 
-      {/* Content */}
+      {/* Filter chips */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 12, gap: 8 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {TYPE_FILTERS.map((filter) => {
+          const isActive = activeType === filter.key
+          return (
+            <TouchableOpacity
+              key={String(filter.key)}
+              onPress={() => setActiveType(filter.key)}
+              activeOpacity={0.7}
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 7,
+                borderRadius: 20,
+                backgroundColor: isActive
+                  ? isDark ? colors.primary[400] : colors.primary[500]
+                  : searchBg,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: isActive ? '600' : '400',
+                  color: isActive
+                    ? colors.neutral[50]
+                    : isDark ? colors.neutral[300] : colors.neutral[600],
+                }}
+              >
+                {filter.label}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
+      </ScrollView>
+    </View>
+  )
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
+      <AppHeader title="Mis joyas" scrollY={scrollY} expandProgress={sectionProgress} />
+
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontSize: 15, color: labelColor }}>Cargando...</Text>
         </View>
-      ) : saved.length === 0 ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
-          <Ionicons name="bookmark-outline" size={52} color={labelColor} style={{ marginBottom: 16 }} />
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: isDark ? colors.neutral[200] : colors.neutral[700],
-              textAlign: 'center',
-              marginBottom: 8,
-            }}
-          >
-            Aún no tienes joyas
-          </Text>
-          <Text style={{ fontSize: 15, color: labelColor, textAlign: 'center', lineHeight: 22 }}>
-            Guarda las experiencias que te han enamorado con el marcador en la ficha de cada experiencia.
-          </Text>
-        </View>
       ) : (
-        <Animated.ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16, paddingTop: 4, paddingBottom: 32 }}
+        <Animated.FlatList
+          data={filtered}
+          keyExtractor={(item) => item.experience.id}
+          renderItem={({ item }) => (
+            <SavedExperienceCard
+              item={item}
+              isDark={isDark}
+              onPress={() => router.push(`/saved-experiences/${item.experience.id}`)}
+            />
+          )}
+          ListHeaderComponent={listHeader}
+          ListEmptyComponent={
+            saved.length === 0 ? (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 64 }}>
+                <Ionicons name="bookmark-outline" size={52} color={labelColor} style={{ marginBottom: 16 }} />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: '600',
+                    color: isDark ? colors.neutral[200] : colors.neutral[700],
+                    textAlign: 'center',
+                    marginBottom: 8,
+                  }}
+                >
+                  Aún no tienes joyas
+                </Text>
+                <Text style={{ fontSize: 15, color: labelColor, textAlign: 'center', lineHeight: 22 }}>
+                  Guarda las experiencias que te han enamorado con el marcador en la ficha de cada experiencia.
+                </Text>
+              </View>
+            ) : isFiltered ? (
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 64 }}>
+                <Ionicons name="filter-outline" size={44} color={labelColor} style={{ marginBottom: 16 }} />
+                <Text
+                  style={{
+                    fontSize: 17,
+                    fontWeight: '600',
+                    color: isDark ? colors.neutral[200] : colors.neutral[700],
+                    textAlign: 'center',
+                    marginBottom: 8,
+                  }}
+                >
+                  {activeType
+                    ? `Sin joyas de tipo "${activeTypeLabel}"`
+                    : `Sin resultados para "${search}"`}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => { setActiveType(null); setSearch('') }}
+                  style={{
+                    marginTop: 12,
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    borderRadius: 20,
+                    backgroundColor: isDark ? colors.surface[700] : colors.neutral[200],
+                  }}
+                >
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: isDark ? colors.neutral[200] : colors.neutral[700] }}>
+                    Ver todas
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null
+          }
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           onScroll={scrollHandler}
           scrollEventThrottle={16}
-        >
-          {filtered.length === 0 ? (
-            <View style={{ alignItems: 'center', paddingTop: 32 }}>
-              <Text style={{ fontSize: 15, color: labelColor }}>
-                Sin resultados para "{search}"
-              </Text>
-            </View>
-          ) : (
-            filtered.map((item) => (
-              <SavedExperienceCard
-                key={item.experience.id}
-                item={item}
-                isDark={isDark}
-                onPress={() =>
-                  router.push(`/saved-experiences/${item.experience.id}`)
-                }
-              />
-            ))
-          )}
-        </Animated.ScrollView>
+        />
       )}
     </SafeAreaView>
   )

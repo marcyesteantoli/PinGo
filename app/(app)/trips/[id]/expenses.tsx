@@ -14,6 +14,7 @@ import { BalanceCard } from '@features/expenses/components/BalanceCard'
 import { ExpenseCard } from '@features/expenses/components/ExpenseCard'
 import { ExpenseSummaryCard } from '@features/expenses/components/ExpenseSummaryCard'
 import { DebtResolutionCard } from '@features/expenses/components/DebtResolutionCard'
+import { SettledCard } from '@features/expenses/components/SettledCard'
 import { useCreateExpense } from '@features/expenses/hooks/useCreateExpense'
 import { useDeleteExpense } from '@features/expenses/hooks/useDeleteExpense'
 import { useUpdateExpense } from '@features/expenses/hooks/useUpdateExpense'
@@ -41,6 +42,7 @@ export default function ExpensesScreen() {
   const [sheetVisible, setSheetVisible] = useState(false)
   const [editingExpense, setEditingExpense] = useState<ExpenseWithSplits | null>(null)
   const [balancesExpanded, setBalancesExpanded] = useState(true)
+  const [settledExpanded, setSettledExpanded] = useState(false)
   const insets = useSafeAreaInsets()
 
   const balances = useMemo(
@@ -88,7 +90,11 @@ export default function ExpensesScreen() {
       `¿Eliminar "${expense.description}"?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: () => deleteExpense.mutate(expense.id) },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => deleteExpense.mutate({ expenseId: expense.id }),
+        },
       ]
     )
   }
@@ -129,18 +135,54 @@ export default function ExpensesScreen() {
                 </Text>
                 <Text className="text-xs text-neutral-500 dark:text-neutral-400">{debtTransactions.length} pendiente{debtTransactions.length !== 1 ? 's' : ''}</Text>
               </View>
-              {debtTransactions.map((tx, i) => (
-                <DebtResolutionCard
-                  key={`${tx.fromUserId}-${tx.toUserId}-${i}`}
-                  transaction={tx}
-                  isCurrentUserFrom={tx.fromUserId === currentUser?.id}
-                  isCurrentUserTo={tx.toUserId === currentUser?.id}
-                  onSettle={() => settleDebt.mutate({ fromUserId: tx.fromUserId, toUserId: tx.toUserId, amount: tx.amount })}
-                  isSettling={
-                    settleDebt.isPending &&
-                    settleDebt.variables?.fromUserId === tx.fromUserId &&
-                    settleDebt.variables?.toUserId === tx.toUserId
-                  }
+              {debtTransactions.map((tx, i) => {
+                const isInvolved = tx.fromUserId === currentUser?.id || tx.toUserId === currentUser?.id
+                return (
+                  <DebtResolutionCard
+                    key={`${tx.fromUserId}-${tx.toUserId}-${i}`}
+                    transaction={tx}
+                    isCurrentUserFrom={tx.fromUserId === currentUser?.id}
+                    isCurrentUserTo={tx.toUserId === currentUser?.id}
+                    onSettle={isInvolved && currentUser?.id
+                      ? () => settleDebt.mutate({ fromUserId: tx.fromUserId, toUserId: tx.toUserId, amount: tx.amount, settledBy: currentUser.id })
+                      : undefined
+                    }
+                    isSettling={
+                      settleDebt.isPending &&
+                      settleDebt.variables?.fromUserId === tx.fromUserId &&
+                      settleDebt.variables?.toUserId === tx.toUserId
+                    }
+                  />
+                )
+              })}
+            </View>
+          )}
+
+          {/* Saldados — historial de payments confirmados */}
+          {(settlements?.length ?? 0) > 0 && (
+            <View className="mt-6 gap-3">
+              <TouchableOpacity
+                onPress={() => setSettledExpanded(!settledExpanded)}
+                className="flex-row items-center justify-between active:opacity-70"
+              >
+                <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+                  Saldados
+                </Text>
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-xs text-neutral-500 dark:text-neutral-400">{settlements!.length}</Text>
+                  <Ionicons
+                    name={settledExpanded ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color="#8d99ae"
+                  />
+                </View>
+              </TouchableOpacity>
+              {settledExpanded && settlements!.map((s) => (
+                <SettledCard
+                  key={s.id}
+                  settlement={s}
+                  collaborators={collaborators}
+                  currentUserId={currentUser?.id}
                 />
               ))}
             </View>

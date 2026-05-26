@@ -14,7 +14,7 @@ export const createExperienceSchema = z.object({
   start_time: optionalTime,
   end_time: optionalTime,
   confirmation_code: z.string().optional(),
-  location: z.object({ name: z.string(), lat: z.number(), lng: z.number() }).optional(),
+  location: z.object({ name: z.string(), lat: z.number(), lng: z.number(), city: z.string().optional() }).optional(),
 }).superRefine((data, ctx) => {
   if (data.start_time && data.end_time && data.end_time <= data.start_time) {
     ctx.addIssue({

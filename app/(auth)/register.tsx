@@ -4,12 +4,14 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { useSignUp } from '@features/auth/hooks/useSignUp'
 import { registerSchema, type RegisterFormData } from '@features/auth/types'
+import { colors } from '@lib/colors'
+import { cardShadow } from '@lib/shadows'
 
 export default function RegisterScreen() {
   const router = useRouter()
@@ -40,7 +42,7 @@ export default function RegisterScreen() {
             colors={['#0046de', '#f43f5e']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={{ width: 72, height: 72, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: 80, height: 80, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
           >
             <Ionicons name="mail-outline" size={36} color="#ffffff" />
           </LinearGradient>
@@ -70,20 +72,24 @@ export default function RegisterScreen() {
           contentContainerClassName="flex-grow px-6 py-8 justify-center"
           keyboardShouldPersistTaps="handled"
         >
-          <View className="items-center mb-10 gap-3">
-            <LinearGradient
-              colors={['#0046de', '#f43f5e']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ width: 64, height: 64, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
+          <View className="items-center mb-10 gap-2">
+            <View
+              className="w-[80px] h-[80px] rounded-[22px] items-center justify-center bg-white dark:bg-surface-800"
+              style={cardShadow}
             >
-              <Ionicons name="airplane" size={32} color="#ffffff" />
-            </LinearGradient>
-            <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">Crear cuenta</Text>
-            <Text className="text-base text-neutral-500 dark:text-neutral-400">Únete y empieza a planificar</Text>
+              <Image
+                source={require('../../assets/images/icon.png')}
+                style={{ width: 56, height: 56, borderRadius: 14 }}
+              />
+            </View>
+            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50 mt-2">Crear cuenta</Text>
+            <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Únete y empieza a planificar</Text>
           </View>
 
-          <View className="gap-4">
+          <View
+            className="rounded-2xl bg-white dark:bg-surface-800 p-6 gap-5"
+            style={cardShadow}
+          >
             <Controller
               control={control}
               name="name"
@@ -91,6 +97,7 @@ export default function RegisterScreen() {
                 <Input
                   label="Nombre"
                   placeholder="Tu nombre"
+                  leftIcon="person-outline"
                   value={value}
                   onChangeText={onChange}
                   autoCapitalize="words"
@@ -112,6 +119,7 @@ export default function RegisterScreen() {
                   ref={emailRef}
                   label="Email"
                   placeholder="tu@email.com"
+                  leftIcon="mail-outline"
                   value={value}
                   onChangeText={onChange}
                   keyboardType="email-address"
@@ -134,6 +142,7 @@ export default function RegisterScreen() {
                   ref={passwordRef}
                   label="Contraseña"
                   placeholder="Mínimo 6 caracteres"
+                  leftIcon="lock-closed-outline"
                   value={value}
                   onChangeText={onChange}
                   secureTextEntry
@@ -152,14 +161,22 @@ export default function RegisterScreen() {
               </Text>
             )}
 
-            <Button
-              onPress={handleSubmit(onSubmit)}
-              isLoading={signUp.isPending}
-              size="lg"
-              className="mt-2"
-            >
-              Crear cuenta
-            </Button>
+            <View style={{
+              shadowColor: colors.primary[500],
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.35,
+              shadowRadius: 14,
+              elevation: 8,
+              borderRadius: 14,
+            }}>
+              <Button
+                onPress={handleSubmit(onSubmit)}
+                isLoading={signUp.isPending}
+                size="lg"
+              >
+                Crear cuenta
+              </Button>
+            </View>
           </View>
 
           <View className="flex-row items-center justify-center mt-8 gap-1">

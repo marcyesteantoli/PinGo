@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { splitEqually } from '@utils/currency'
-import { DEV_MODE, mockExpenses } from '@/dev/mockData'
+import { splitEquallyAll } from '@utils/currency'
+import { DEV_MODE, mockExpenses, mockSettlements } from '@/dev/mockData'
 import type { CreateExpenseFormData } from '../types'
 import type { Collaborator, ExpenseWithSplits } from '@types/index'
 
@@ -21,48 +21,38 @@ export function useUpdateExpense(tripId: string, collaborators: Collaborator[] =
           const idx = mockExpenses[tripId].findIndex((e) => e.id === expenseId)
           if (idx !== -1) {
             const payerId = formData.payer_id!
-            const splitAmount = splitEqually(formData.amount, formData.participant_ids.length)
+            const splitAmounts = splitEquallyAll(formData.amount, formData.participant_ids)
             mockExpenses[tripId][idx] = {
               ...mockExpenses[tripId][idx],
               description: formData.description,
               amount: formData.amount,
               payer_id: payerId,
               experience_id: formData.experience_id ?? null,
-              splits: formData.participant_ids.map((uid) => ({
+              splits: splitAmounts.map(({ userId, amount }) => ({
                 expense_id: expenseId,
-                user_id: uid,
-                amount: splitAmount,
+                user_id: userId,
+                amount,
               })),
             }
           }
         }
+        // In dev mode, always clear settlements — server does smart clearing in prod.
+        if (mockSettlements[tripId]) {
+          mockSettlements[tripId] = []
+        }
         return
       }
 
-      const { error: expenseError } = await supabase
-        .from('expenses')
-        .update({
-          description: formData.description,
-          amount: formData.amount,
-          payer_id: formData.payer_id,
-          experience_id: formData.experience_id ?? null,
-        })
-        .eq('id', expenseId)
+      const { error } = await supabase.rpc('update_expense_with_splits', {
+        p_expense_id: expenseId,
+        p_description: formData.description,
+        p_amount: formData.amount,
+        p_payer_id: formData.payer_id,
+        p_experience_id: formData.experience_id ?? null,
+        p_participant_ids: formData.participant_ids,
+      })
 
-      if (expenseError) throw new Error(expenseError.message)
-
-      await supabase.from('expense_splits').delete().eq('expense_id', expenseId)
-
-      const payerId = formData.payer_id ?? ''
-      const splitAmount = splitEqually(formData.amount, formData.participant_ids.length)
-      const splits = formData.participant_ids.map((uid) => ({
-        expense_id: expenseId,
-        user_id: uid,
-        amount: splitAmount,
-      }))
-
-      const { error: splitsError } = await supabase.from('expense_splits').insert(splits)
-      if (splitsError) throw new Error(splitsError.message)
+      if (error) throw new Error(error.message)
     },
     onMutate: async ({ expenseId, formData }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.expenses.all(tripId) })
@@ -70,7 +60,7 @@ export function useUpdateExpense(tripId: string, collaborators: Collaborator[] =
 
       const payerId = formData.payer_id ?? ''
       const payerCollab = collaborators.find((c) => c.user_id === payerId)
-      const splitAmount = splitEqually(formData.amount, formData.participant_ids.length)
+      const splitAmounts = splitEquallyAll(formData.amount, formData.participant_ids)
 
       queryClient.setQueryData<ExpenseWithSplits[]>(
         queryKeys.expenses.all(tripId),
@@ -89,10 +79,10 @@ export function useUpdateExpense(tripId: string, collaborators: Collaborator[] =
                     name: payerCollab?.name ?? e.payer.name,
                     avatar_url: payerCollab?.avatar_url ?? null,
                   },
-                  splits: formData.participant_ids.map((uid) => ({
+                  splits: splitAmounts.map(({ userId, amount }) => ({
                     expense_id: expenseId,
-                    user_id: uid,
-                    amount: splitAmount,
+                    user_id: userId,
+                    amount,
                   })),
                 }
               : e
@@ -107,6 +97,8 @@ export function useUpdateExpense(tripId: string, collaborators: Collaborator[] =
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all(tripId) })
+      // Settlements may have been auto-cleared server-side if they became invalid.
+      queryClient.invalidateQueries({ queryKey: queryKeys.settlements.all(tripId) })
     },
   })
 }

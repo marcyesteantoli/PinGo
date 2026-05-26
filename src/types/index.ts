@@ -58,6 +58,7 @@ export type UserSavedExperience = {
 
 export type SavedExperienceItem = {
   saved_at: string
+  note: string | null
   experience: Experience & {
     trip: { name: string } | null
     attribute_ratings: Array<{ attribute: string; value: number }>
@@ -80,5 +81,6 @@ export type Settlement = {
   from_user_id: string
   to_user_id: string
   amount: number
+  settled_by: string | null
   created_at: string
 }

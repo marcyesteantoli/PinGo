@@ -58,10 +58,13 @@ function AppShell() {
       return
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const inAuthGroup = segmentsRef.current[0] === '(auth)'
       if (!session && !inAuthGroup) router.replace('/(auth)/login')
-      else if (session && inAuthGroup) router.replace('/(app)')
+      else if (session && inAuthGroup) {
+        queryClient.clear()
+        router.replace('/(app)')
+      }
     })
     return () => subscription.unsubscribe()
   }, [])

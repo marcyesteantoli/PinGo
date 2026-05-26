@@ -109,13 +109,22 @@ export default function NewTripScreen() {
 
         {/* CTA */}
         <View className="px-5 pb-2 pt-3">
-          <Button
-            onPress={handleSubmit(onSubmit)}
-            isLoading={createTrip.isPending}
-            size="lg"
-          >
-            Crear viaje
-          </Button>
+          <View style={{
+            shadowColor: colors.primary[500],
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.35,
+            shadowRadius: 14,
+            elevation: 8,
+            borderRadius: 14,
+          }}>
+            <Button
+              onPress={handleSubmit(onSubmit)}
+              isLoading={createTrip.isPending}
+              size="lg"
+            >
+              Crear viaje
+            </Button>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
