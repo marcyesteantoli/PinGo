@@ -8,8 +8,7 @@ import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { useSignIn } from '@features/auth/hooks/useSignIn'
 import { loginSchema, type LoginFormData } from '@features/auth/types'
-import { colors } from '@lib/colors'
-import { cardShadow } from '@lib/shadows'
+import { cardShadow, ctaShadow } from '@lib/shadows'
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -106,14 +105,7 @@ export default function LoginScreen() {
               </Text>
             )}
 
-            <View style={{
-              shadowColor: colors.primary[500],
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.35,
-              shadowRadius: 14,
-              elevation: 8,
-              borderRadius: 14,
-            }}>
+            <View style={ctaShadow}>
               <Button
                 onPress={handleSubmit(onSubmit)}
                 isLoading={signIn.isPending}

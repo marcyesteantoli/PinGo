@@ -9,6 +9,7 @@ import { EmojiRating } from '@components/ui/EmojiRating'
 import { EXPERIENCE_TYPE_LABELS, formatTimeRange } from '../types'
 import type { Experience } from '@types/index'
 import { colors } from '@lib/colors'
+import { cardShadow } from '@lib/shadows'
 
 const TYPE_BADGE_VARIANT: Record<Experience['type'], BadgeVariant> = {
   transport: 'transport',
@@ -79,21 +80,14 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
 
   return (
     <View
-      className="rounded-[12px]"
-      style={{
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 2,
-        opacity: containerWidth > 0 ? 1 : 0,
-      }}
+      className="rounded-2xl"
+      style={[cardShadow, { opacity: containerWidth > 0 ? 1 : 0 }]}
       onLayout={(e) => {
         const w = e.nativeEvent.layout.width
         if (w > 0 && w !== containerWidth) setContainerWidth(w)
       }}
     >
-      <View className="overflow-hidden rounded-[12px]">
+      <View className="overflow-hidden rounded-2xl">
         <Animated.View style={[{ flexDirection: 'row', width: rowWidth }, cardStyle]}>
           <GestureDetector gesture={pan}>
             <View style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}>

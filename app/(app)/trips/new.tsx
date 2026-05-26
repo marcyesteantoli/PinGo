@@ -11,7 +11,7 @@ import { Input } from '@components/ui/Input'
 import { useCreateTrip } from '@features/trips/hooks/useCreateTrip'
 import { createTripSchema, type CreateTripFormData } from '@features/trips/types'
 import { colors } from '@lib/colors'
-import { cardShadow } from '@lib/shadows'
+import { cardShadow, ctaShadow } from '@lib/shadows'
 
 export default function NewTripScreen() {
   const router = useRouter()
@@ -109,14 +109,7 @@ export default function NewTripScreen() {
 
         {/* CTA */}
         <View className="px-5 pb-2 pt-3">
-          <View style={{
-            shadowColor: colors.primary[500],
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.35,
-            shadowRadius: 14,
-            elevation: 8,
-            borderRadius: 14,
-          }}>
+          <View style={ctaShadow}>
             <Button
               onPress={handleSubmit(onSubmit)}
               isLoading={createTrip.isPending}

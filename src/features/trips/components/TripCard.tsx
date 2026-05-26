@@ -144,14 +144,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
         <Text className="text-[13px] text-neutral-500 dark:text-neutral-400">
           {formatDateRange(trip.start_date, trip.end_date)}
         </Text>
-        <View
-          style={{
-            backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
-            borderRadius: 6,
-            paddingHorizontal: 6,
-            paddingVertical: 2,
-          }}
-        >
+        <View className="rounded bg-neutral-100 dark:bg-surface-700 px-1.5 py-0.5">
           <Text className="text-[12px] font-medium text-neutral-500 dark:text-neutral-400">
             {days} {days === 1 ? 'día' : 'días'}
           </Text>
@@ -211,14 +204,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
             })
           }
           activeOpacity={0.7}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-surface-700 items-center justify-center"
         >
           <Ionicons name="share-outline" size={18} color={subtleColor} />
         </TouchableOpacity>
@@ -244,7 +230,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      className="bg-white dark:bg-surface-800 rounded-[12px] p-4"
+      className="bg-white dark:bg-surface-800 rounded-2xl p-4"
     >
       {cardBody}
     </TouchableOpacity>
@@ -253,14 +239,19 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
   return (
     <>
       <View
-        className="rounded-[12px]"
-        style={[{ opacity: containerWidth > 0 ? 1 : 0 }, cardShadow]}
+        className="rounded-2xl"
+        style={[
+          { opacity: containerWidth > 0 ? 1 : 0 },
+          status === 'active'
+            ? { shadowColor: colors.primary[500], shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.22, shadowRadius: 12, elevation: 6 }
+            : cardShadow,
+        ]}
         onLayout={(e) => {
           const w = e.nativeEvent.layout.width
           if (w > 0 && w !== containerWidth) setContainerWidth(w)
         }}
       >
-        <View className="overflow-hidden rounded-[12px]">
+        <View className="overflow-hidden rounded-2xl">
           <Animated.View style={[{ flexDirection: 'row', width: rowWidth }, cardStyle]}>
             <GestureDetector gesture={pan}>
               <View style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}>
@@ -310,7 +301,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               autoFocus
               returnKeyType="done"
               onSubmitEditing={handleRenameConfirm}
-              className="rounded-[10px] px-4 py-[11px] text-[17px] text-neutral-900 dark:text-neutral-50 bg-neutral-100 dark:bg-surface-700"
+              className="rounded-xl px-4 py-2.5 text-[17px] text-neutral-900 dark:text-neutral-50 bg-neutral-100 dark:bg-surface-700"
               placeholderTextColor={colors.neutral[400]}
               placeholder="Nombre del viaje"
             />

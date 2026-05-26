@@ -10,8 +10,7 @@ import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { useSignUp } from '@features/auth/hooks/useSignUp'
 import { registerSchema, type RegisterFormData } from '@features/auth/types'
-import { colors } from '@lib/colors'
-import { cardShadow } from '@lib/shadows'
+import { cardShadow, ctaShadow } from '@lib/shadows'
 
 export default function RegisterScreen() {
   const router = useRouter()
@@ -161,14 +160,7 @@ export default function RegisterScreen() {
               </Text>
             )}
 
-            <View style={{
-              shadowColor: colors.primary[500],
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.35,
-              shadowRadius: 14,
-              elevation: 8,
-              borderRadius: 14,
-            }}>
+            <View style={ctaShadow}>
               <Button
                 onPress={handleSubmit(onSubmit)}
                 isLoading={signUp.isPending}

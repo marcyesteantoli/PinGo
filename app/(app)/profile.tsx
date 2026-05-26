@@ -21,6 +21,7 @@ import { useSignOut } from '@features/auth/hooks/useSignOut'
 import { useUpdateProfile } from '@features/auth/hooks/useUpdateProfile'
 import { useTrips } from '@features/trips/hooks/useTrips'
 import { colors } from '@lib/colors'
+import { cardShadow } from '@lib/shadows'
 import { useTheme } from '@lib/theme'
 
 function formatMonthYear(dateStr: string): string {
@@ -93,7 +94,7 @@ export default function ProfileScreen() {
   }
 
   const iconColor = isDark ? colors.neutral[500] : colors.neutral[400]
-  const rowBase = 'flex-row items-center px-4 py-[13px]'
+  const rowBase = 'flex-row items-center px-4 py-3.5'
   const labelBase = 'text-[17px] text-neutral-900 dark:text-neutral-50'
   const valueBase = 'text-[17px] text-neutral-500 dark:text-neutral-400'
   const sectionCard = 'rounded-2xl overflow-hidden bg-white dark:bg-surface-800 mx-4'
@@ -143,7 +144,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Stats bar */}
-        <View className="flex-row mx-4 mb-2 rounded-2xl overflow-hidden bg-white dark:bg-surface-800">
+        <View className="flex-row mx-4 mb-2 rounded-2xl overflow-hidden bg-white dark:bg-surface-800" style={cardShadow}>
           <View className="flex-1 items-center py-4">
             <Text className="text-[24px] font-bold text-neutral-900 dark:text-neutral-50">
               {trips.length}
@@ -165,7 +166,7 @@ export default function ProfileScreen() {
 
         {/* Sección: Cuenta */}
         <Text className={sectionLabel}>Cuenta</Text>
-        <View className={sectionCard}>
+        <View className={sectionCard} style={cardShadow}>
           {/* Nombre */}
           <View className={rowBase}>
             <Ionicons name="person-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
@@ -179,7 +180,7 @@ export default function ProfileScreen() {
                   returnKeyType="done"
                   onSubmitEditing={saveName}
                   className="text-[17px] text-neutral-900 dark:text-neutral-50 text-right min-w-[120px]"
-                  style={{ color: isDark ? '#f1f5f9' : '#0f172a' }}
+                  style={{ color: isDark ? colors.neutral[50] : colors.neutral[900] }}
                 />
                 <TouchableOpacity onPress={saveName} className="ml-1">
                   <Ionicons name="checkmark-circle" size={24} color={colors.primary[500]} />
@@ -220,7 +221,7 @@ export default function ProfileScreen() {
 
         {/* Sección: Apariencia */}
         <Text className={sectionLabel}>Apariencia</Text>
-        <View className={sectionCard}>
+        <View className={sectionCard} style={cardShadow}>
           <View className={rowBase}>
             <Ionicons
               name={isDark ? 'moon' : 'sunny'}
@@ -238,7 +239,7 @@ export default function ProfileScreen() {
 
         {/* Sección: App */}
         <Text className={sectionLabel}>App</Text>
-        <View className={sectionCard}>
+        <View className={sectionCard} style={cardShadow}>
           <View className={rowBase}>
             <Ionicons
               name="information-circle-outline"
@@ -285,7 +286,7 @@ export default function ProfileScreen() {
 
         {/* Sección: Sesión */}
         <Text className={sectionLabel}>Sesión</Text>
-        <View className={sectionCard}>
+        <View className={sectionCard} style={cardShadow}>
           <TouchableOpacity
             onPress={handleSignOut}
             className={rowBase}

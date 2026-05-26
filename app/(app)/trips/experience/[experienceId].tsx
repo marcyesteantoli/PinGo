@@ -26,6 +26,7 @@ import { UndoToast } from '@components/ui/UndoToast'
 import { EXPERIENCE_TYPE_LABELS, formatTimeRange } from '@features/timeline/types'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
+import { cardShadow } from '@lib/shadows'
 import { formatDateWithWeekday } from '@utils/date'
 import { formatCurrency } from '@utils/currency'
 import type { Document } from '@types/index'
@@ -52,30 +53,15 @@ interface DetailRowProps {
 function DetailRow({ icon, label, value, isDark, isFirst }: DetailRowProps) {
   return (
     <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 13,
-        borderTopWidth: isFirst ? 0 : 0.5,
-        borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-        gap: 12,
-      }}
+      className={`flex-row items-center px-4 gap-3 py-3.5 ${isFirst ? '' : 'border-neutral-100 dark:border-surface-700'}`}
+      style={isFirst ? undefined : { borderTopWidth: 0.5 }}
     >
-      <Ionicons
-        name={icon as any}
-        size={18}
-        color={isDark ? colors.neutral[400] : colors.neutral[500]}
-      />
-      <View style={{ flex: 1 }}>
+      <Ionicons name={icon as any} size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
+      <View className="flex-1">
         {label && (
-          <Text style={{ fontSize: 13, color: isDark ? colors.neutral[500] : colors.neutral[400], marginBottom: 1 }}>
-            {label}
-          </Text>
+          <Text className="text-[13px] text-neutral-500 dark:text-neutral-400 mb-[1px]">{label}</Text>
         )}
-        <Text style={{ fontSize: 15, color: isDark ? colors.neutral[50] : colors.neutral[900] }}>
-          {value}
-        </Text>
+        <Text className="text-[15px] text-neutral-900 dark:text-neutral-50">{value}</Text>
       </View>
     </View>
   )
@@ -142,15 +128,11 @@ export default function ExperienceDetailScreen() {
 
   const timeRange = experience ? formatTimeRange(experience.start_time, experience.end_time) : null
 
-  const bg = isDark ? colors.surface[900] : colors.neutral[100]
-  const cardBg = isDark ? colors.surface[800] : colors.white
-  const labelColor = isDark ? colors.neutral[500] : colors.neutral[400]
-
   if (!experience) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: labelColor, fontSize: 15 }}>Experiencia no encontrada</Text>
+      <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Experiencia no encontrada</Text>
         </View>
       </SafeAreaView>
     )
@@ -159,28 +141,20 @@ export default function ExperienceDetailScreen() {
   const hasDetails = !!(experience.date || timeRange || experience.confirmation_code)
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingHorizontal: 8,
-          paddingVertical: 10,
-          backgroundColor: bg,
-        }}
-      >
+    <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
+      <View className="flex-row items-center px-2 py-2.5 bg-neutral-100 dark:bg-surface-900">
         <TouchableOpacity
           onPress={() => router.back()}
           hitSlop={8}
-          style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, minWidth: 80 }}
+          className="flex-row items-center pl-2 pr-3 min-w-[80px]"
         >
           <Ionicons name="chevron-back" size={22} color={colors.primary[500]} />
         </TouchableOpacity>
-        <View style={{ flex: 1 }} />
+        <View className="flex-1" />
         <TouchableOpacity
           onPress={handleToggleSave}
           hitSlop={8}
-          style={{ paddingHorizontal: 12, paddingVertical: 6 }}
+          className="px-3 py-1.5"
         >
           <Ionicons
             name={isSaved ? 'bookmark' : 'bookmark-outline'}
@@ -191,434 +165,318 @@ export default function ExperienceDetailScreen() {
       </View>
 
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 16 }}
+        className="flex-1"
+        contentContainerClassName="p-4 pb-8"
         showsVerticalScrollIndicator={false}
       >
         {/* Title card */}
-        <View style={{ backgroundColor: cardBg, borderRadius: 14, padding: 16, marginBottom: 12 }}>
-          <Badge
-            label={EXPERIENCE_TYPE_LABELS[experience.type]}
-            variant={TYPE_BADGE_VARIANT[experience.type]}
-          />
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: '700',
-              color: isDark ? colors.neutral[50] : colors.neutral[900],
-              marginTop: 10,
-              lineHeight: 30,
-            }}
-          >
-            {experience.title}
-          </Text>
-          {ratingsData?.avg != null && (
-            <View style={{ marginTop: 10 }}>
-              <EmojiRating value={ratingsData.avg} size="sm" />
-            </View>
-          )}
+        <View className="rounded-2xl mb-3" style={cardShadow}>
+          <View className="bg-white dark:bg-surface-800 rounded-2xl p-4">
+            <Badge
+              label={EXPERIENCE_TYPE_LABELS[experience.type]}
+              variant={TYPE_BADGE_VARIANT[experience.type]}
+            />
+            <Text className="text-[24px] font-bold text-neutral-900 dark:text-neutral-50 mt-2.5 leading-[30px]">
+              {experience.title}
+            </Text>
+            {ratingsData?.avg != null && (
+              <View className="mt-2.5">
+                <EmojiRating value={ratingsData.avg} size="sm" />
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Details card */}
         {hasDetails && (
-          <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '600',
-                color: labelColor,
-                paddingHorizontal: 16,
-                paddingTop: 14,
-                paddingBottom: 6,
-                textTransform: 'uppercase',
-                letterSpacing: 0.6,
-              }}
-            >
-              Detalles
-            </Text>
-
-            {experience.date && (
-              <DetailRow
-                icon="calendar-outline"
-                value={formatDateWithWeekday(experience.date)}
-                isDark={isDark}
-                isFirst
-              />
-            )}
-            {timeRange && (
-              <DetailRow
-                icon="time-outline"
-                value={timeRange}
-                isDark={isDark}
-                isFirst={!experience.date}
-              />
-            )}
-            {experience.confirmation_code && (
-              <DetailRow
-                icon="ticket-outline"
-                label="Reserva"
-                value={experience.confirmation_code}
-                isDark={isDark}
-                isFirst={!experience.date && !timeRange}
-              />
-            )}
+          <View className="rounded-2xl mb-3" style={cardShadow}>
+            <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
+              <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
+                Detalles
+              </Text>
+              {experience.date && (
+                <DetailRow
+                  icon="calendar-outline"
+                  value={formatDateWithWeekday(experience.date)}
+                  isDark={isDark}
+                  isFirst
+                />
+              )}
+              {timeRange && (
+                <DetailRow
+                  icon="time-outline"
+                  value={timeRange}
+                  isDark={isDark}
+                  isFirst={!experience.date}
+                />
+              )}
+              {experience.confirmation_code && (
+                <DetailRow
+                  icon="ticket-outline"
+                  label="Reserva"
+                  value={experience.confirmation_code}
+                  isDark={isDark}
+                  isFirst={!experience.date && !timeRange}
+                />
+              )}
+            </View>
           </View>
         )}
 
         {/* Map card */}
         {location && (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => {
-              const googleNativeUrl = `comgooglemaps://?q=${encodeURIComponent(location.name)}&center=${location.lat},${location.lng}`
-              const fallbackUrl = Platform.OS === 'ios'
-                ? `maps://?ll=${location.lat},${location.lng}&q=${encodeURIComponent(location.name)}`
-                : `geo:${location.lat},${location.lng}?q=${encodeURIComponent(location.name)}`
-              Linking.canOpenURL(googleNativeUrl).then((supported) =>
-                Linking.openURL(supported ? googleNativeUrl : fallbackUrl)
-              )
-            }}
-            style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}
-          >
-            <MapView
-              style={{ height: 180, width: '100%' }}
-              region={{
-                latitude: location.lat,
-                longitude: location.lng,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
+          <View className="rounded-2xl mb-3" style={cardShadow}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                const googleNativeUrl = `comgooglemaps://?q=${encodeURIComponent(location.name)}&center=${location.lat},${location.lng}`
+                const fallbackUrl = Platform.OS === 'ios'
+                  ? `maps://?ll=${location.lat},${location.lng}&q=${encodeURIComponent(location.name)}`
+                  : `geo:${location.lat},${location.lng}?q=${encodeURIComponent(location.name)}`
+                Linking.canOpenURL(googleNativeUrl).then((supported) =>
+                  Linking.openURL(supported ? googleNativeUrl : fallbackUrl)
+                )
               }}
-              scrollEnabled={false}
-              zoomEnabled={false}
-              pitchEnabled={false}
-              rotateEnabled={false}
-              pointerEvents="none"
+              className="rounded-2xl overflow-hidden"
             >
-              <Marker coordinate={{ latitude: location.lat, longitude: location.lng }} />
-            </MapView>
-            <View
-              style={{
-                backgroundColor: cardBg,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              <Ionicons name="location" size={16} color={colors.primary[500]} />
-              <Text
-                numberOfLines={1}
-                style={{ flex: 1, fontSize: 14, color: isDark ? colors.neutral[200] : colors.neutral[700] }}
+              <MapView
+                style={{ height: 180, width: '100%' }}
+                region={{
+                  latitude: location.lat,
+                  longitude: location.lng,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+                }}
+                scrollEnabled={false}
+                zoomEnabled={false}
+                pitchEnabled={false}
+                rotateEnabled={false}
+                pointerEvents="none"
               >
-                {location.name}
-              </Text>
-              <Ionicons name="open-outline" size={16} color={colors.neutral[400]} />
-            </View>
-          </TouchableOpacity>
+                <Marker coordinate={{ latitude: location.lat, longitude: location.lng }} />
+              </MapView>
+              <View className="bg-white dark:bg-surface-800 px-4 py-3 flex-row items-center gap-2.5">
+                <Ionicons name="location" size={16} color={colors.primary[500]} />
+                <Text
+                  numberOfLines={1}
+                  className="flex-1 text-sm text-neutral-700 dark:text-neutral-200"
+                >
+                  {location.name}
+                </Text>
+                <Ionicons name="open-outline" size={16} color={colors.neutral[400]} />
+              </View>
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* Documents card */}
         {experienceDocs.length > 0 && (
-          <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '600',
-                color: labelColor,
-                paddingHorizontal: 16,
-                paddingTop: 14,
-                paddingBottom: 6,
-                textTransform: 'uppercase',
-                letterSpacing: 0.6,
-              }}
-            >
-              Documentos · {experienceDocs.length}
-            </Text>
-
-            {experienceDocs.map((doc) => (
-              <TouchableOpacity
-                key={doc.id}
-                onPress={() => setViewerDoc(doc)}
-                activeOpacity={0.7}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  borderTopWidth: 0.5,
-                  borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-                  gap: 12,
-                }}
-              >
-                <View
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 9,
-                    backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
+          <View className="rounded-2xl mb-3" style={cardShadow}>
+            <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
+              <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
+                Documentos · {experienceDocs.length}
+              </Text>
+              {experienceDocs.map((doc) => (
+                <TouchableOpacity
+                  key={doc.id}
+                  onPress={() => setViewerDoc(doc)}
+                  activeOpacity={0.7}
+                  className="flex-row items-center px-4 py-3 border-neutral-100 dark:border-surface-700 gap-3"
+                  style={{ borderTopWidth: 0.5 }}
                 >
-                  <Ionicons
-                    name={doc.file_type?.includes('image') ? 'image-outline' : 'document-text-outline'}
-                    size={19}
-                    color={colors.primary[500]}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    numberOfLines={1}
-                    style={{ fontSize: 15, fontWeight: '500', color: isDark ? colors.neutral[50] : colors.neutral[900] }}
+                  <View
+                    className="rounded-lg bg-neutral-100 dark:bg-surface-700 items-center justify-center"
+                    style={{ width: 38, height: 38 }}
                   >
-                    {doc.name}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: isDark ? colors.neutral[500] : colors.neutral[400], marginTop: 1 }}>
-                    {doc.file_type?.includes('image') ? 'Imagen' : 'PDF'}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color={isDark ? colors.neutral[600] : colors.neutral[400]}
-                />
-              </TouchableOpacity>
-            ))}
+                    <Ionicons
+                      name={doc.file_type?.includes('image') ? 'image-outline' : 'document-text-outline'}
+                      size={19}
+                      color={colors.primary[500]}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text
+                      numberOfLines={1}
+                      className="text-[15px] font-medium text-neutral-900 dark:text-neutral-50"
+                    >
+                      {doc.name}
+                    </Text>
+                    <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-[1px]">
+                      {doc.file_type?.includes('image') ? 'Imagen' : 'PDF'}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={isDark ? colors.neutral[600] : colors.neutral[400]}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         )}
 
         {/* Expenses card */}
         {linkedExpenses.length > 0 && (
-          <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingTop: 14,
-                paddingBottom: 6,
-              }}
-            >
-              <Text
-                style={{
-                  flex: 1,
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: labelColor,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.6,
-                }}
-              >
-                Gastos · {linkedExpenses.length}
-              </Text>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: isDark ? colors.neutral[200] : colors.neutral[700] }}>
-                {formatCurrency(linkedExpensesTotal)}
-              </Text>
-            </View>
-            {linkedExpenses.map((expense) => (
-              <View
-                key={expense.id}
-                style={{
-                  borderTopWidth: 0.5,
-                  borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-                }}
-              >
-                <ExpenseCard expense={expense} currentUserId={currentUser?.id} />
+          <View className="rounded-2xl mb-3" style={cardShadow}>
+            <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
+              <View className="flex-row items-center px-4 pt-3.5 pb-1.5">
+                <Text className="flex-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+                  Gastos · {linkedExpenses.length}
+                </Text>
+                <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+                  {formatCurrency(linkedExpensesTotal)}
+                </Text>
               </View>
-            ))}
+              {linkedExpenses.map((expense) => (
+                <View
+                  key={expense.id}
+                  className="border-neutral-100 dark:border-surface-700"
+                  style={{ borderTopWidth: 0.5 }}
+                >
+                  <ExpenseCard expense={expense} currentUserId={currentUser?.id} />
+                </View>
+              ))}
+            </View>
           </View>
         )}
 
         {/* Ratings card */}
-        <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 16,
-              paddingTop: 14,
-              paddingBottom: 6,
-            }}
-          >
-            <Text
-              style={{
-                flex: 1,
-                fontSize: 12,
-                fontWeight: '600',
-                color: labelColor,
-                textTransform: 'uppercase',
-                letterSpacing: 0.6,
-              }}
-            >
-              {ratingsData && ratingsData.count > 0
-                ? `Valoraciones · ${ratingsData.count}`
-                : 'Valoraciones'}
-            </Text>
-            {ratingsData?.avg != null && (
-              <EmojiRating value={ratingsData.avg} size="sm" />
-            )}
-          </View>
+        <View className="rounded-2xl mb-3" style={cardShadow}>
+          <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
+            <View className="flex-row items-center px-4 pt-3.5 pb-1.5">
+              <Text className="flex-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+                {ratingsData && ratingsData.count > 0
+                  ? `Valoraciones · ${ratingsData.count}`
+                  : 'Valoraciones'}
+              </Text>
+              {ratingsData?.avg != null && (
+                <EmojiRating value={ratingsData.avg} size="sm" />
+              )}
+            </View>
 
-          {/* All ratings list (excluding current user) */}
-          {(() => {
-            const otherRatings = ratingsData?.ratings.filter(r => r.user_id !== currentUser?.id) ?? []
-            return (
-              <ScrollView
-                style={{
-                  maxHeight: 220,
-                  borderTopWidth: 0.5,
-                  borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-                }}
-                scrollEnabled
-                showsVerticalScrollIndicator={false}
-                nestedScrollEnabled
-              >
-                {otherRatings.length > 0 ? (
-                  otherRatings.map((r, i) => (
-                    <View
-                      key={r.user_id}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 16,
-                        paddingVertical: 10,
-                        gap: 12,
-                        borderTopWidth: i === 0 ? 0 : 0.5,
-                        borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-                      }}
-                    >
-                      <Avatar
-                        name={r.profiles?.name ?? 'Usuario'}
-                        uri={r.profiles?.avatar_url}
-                        size="sm"
-                      />
-                      <Text
-                        style={{
-                          flex: 1,
-                          fontSize: 15,
-                          color: isDark ? colors.neutral[100] : colors.neutral[800],
-                        }}
-                        numberOfLines={1}
+            {/* All ratings list (excluding current user) */}
+            {(() => {
+              const otherRatings = ratingsData?.ratings.filter(r => r.user_id !== currentUser?.id) ?? []
+              return (
+                <ScrollView
+                  style={{ maxHeight: 220, borderTopWidth: 0.5, borderTopColor: isDark ? colors.surface[700] : colors.neutral[100] }}
+                  scrollEnabled
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled
+                >
+                  {otherRatings.length > 0 ? (
+                    otherRatings.map((r, i) => (
+                      <View
+                        key={r.user_id}
+                        className={`flex-row items-center px-4 py-2.5 gap-3 ${i > 0 ? 'border-neutral-100 dark:border-surface-700' : ''}`}
+                        style={i > 0 ? { borderTopWidth: 0.5 } : undefined}
                       >
-                        {r.profiles?.name ?? 'Usuario'}
+                        <Avatar
+                          name={r.profiles?.name ?? 'Usuario'}
+                          uri={r.profiles?.avatar_url}
+                          size="sm"
+                        />
+                        <Text
+                          className="flex-1 text-[15px] text-neutral-800 dark:text-neutral-100"
+                          numberOfLines={1}
+                        >
+                          {r.profiles?.name ?? 'Usuario'}
+                        </Text>
+                        <EmojiRating value={r.rating} size="sm" />
+                      </View>
+                    ))
+                  ) : (
+                    <View className="px-4 py-3.5">
+                      <Text className="text-sm text-neutral-500 dark:text-neutral-400">
+                        Nadie más ha valorado aún
                       </Text>
-                      <EmojiRating value={r.rating} size="sm" />
                     </View>
-                  ))
-                ) : (
-                  <View style={{ paddingHorizontal: 16, paddingVertical: 14 }}>
-                    <Text style={{ fontSize: 14, color: labelColor }}>
-                      Nadie más ha valorado aún
-                    </Text>
-                  </View>
-                )}
-              </ScrollView>
-            )
-          })()}
+                  )}
+                </ScrollView>
+              )
+            })()}
 
-          {/* User's own rating */}
-          <View
-            style={{
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              borderTopWidth: 0.5,
-              borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-            }}
-          >
-            <Text style={{ fontSize: 12, color: labelColor, marginBottom: 8 }}>
-              Tu valoración
-            </Text>
-            <EmojiRating
-              value={ratingsData?.userRating ?? null}
-              onChange={(rating) => upsertRating.mutate(rating)}
-            />
+            {/* User's own rating */}
+            <View
+              className="px-4 py-3 border-neutral-100 dark:border-surface-700"
+              style={{ borderTopWidth: 0.5 }}
+            >
+              <Text className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
+                Tu valoración
+              </Text>
+              <EmojiRating
+                value={ratingsData?.userRating ?? null}
+                onChange={(rating) => upsertRating.mutate(rating)}
+              />
+            </View>
           </View>
         </View>
 
-        {/* Attribute ratings + note — only when saved */}
+        {/* Attribute ratings collapsed — only when saved */}
         {isSaved && !ratingsExpanded && (
-          <TouchableOpacity
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              setRatingsExpanded(true)
-            }}
-            activeOpacity={0.7}
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 14,
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-              marginBottom: 12,
-              gap: 12,
-            }}
-          >
-            <Ionicons name="star-outline" size={18} color={colors.primary[500]} />
-            <Text style={{ flex: 1, fontSize: 15, color: isDark ? colors.neutral[100] : colors.neutral[800] }}>
-              Valorar atributos
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color={isDark ? colors.neutral[600] : colors.neutral[400]} />
-          </TouchableOpacity>
+          <View className="rounded-2xl mb-3" style={cardShadow}>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                setRatingsExpanded(true)
+              }}
+              activeOpacity={0.7}
+              className="bg-white dark:bg-surface-800 rounded-2xl flex-row items-center px-4 py-3.5 gap-3"
+            >
+              <Ionicons name="star-outline" size={18} color={colors.primary[500]} />
+              <Text className="flex-1 text-[15px] text-neutral-800 dark:text-neutral-100">
+                Valorar atributos
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={isDark ? colors.neutral[600] : colors.neutral[400]} />
+            </TouchableOpacity>
+          </View>
         )}
 
         {isSaved && ratingsExpanded && (
           <AttributeRatingSection
             experienceId={experienceId}
             experienceType={experience.type}
-            cardBg={cardBg}
-            labelColor={labelColor}
+            cardBg={isDark ? colors.surface[800] : colors.white}
+            labelColor={isDark ? colors.neutral[500] : colors.neutral[400]}
             borderColor={isDark ? colors.surface[700] : colors.neutral[100]}
           />
         )}
 
+        {/* Note card */}
         {isSaved && (
-          <View style={{ backgroundColor: cardBg, borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '600',
-                color: labelColor,
-                paddingHorizontal: 16,
-                paddingTop: 14,
-                paddingBottom: 6,
-                textTransform: 'uppercase',
-                letterSpacing: 0.6,
-              }}
-            >
-              Mi nota
-            </Text>
-            <View
-              style={{
-                borderTopWidth: 0.5,
-                borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-              }}
-            >
-              <TextInput
-                value={noteText ?? savedNote ?? ''}
-                onChangeText={(text) => {
-                  setNoteText(text)
-                  clearTimeout(noteTimer.current)
-                  noteTimer.current = setTimeout(() => upsertNote.mutate(text), 800)
-                }}
-                onBlur={() => {
-                  clearTimeout(noteTimer.current)
-                  upsertNote.mutate(noteText ?? savedNote ?? '')
-                }}
-                placeholder="Escribe algo sobre esta experiencia..."
-                placeholderTextColor={labelColor}
-                multiline
-                style={{
-                  fontSize: 15,
-                  color: isDark ? colors.neutral[50] : colors.neutral[900],
-                  minHeight: 80,
-                  textAlignVertical: 'top',
-                  padding: 0,
-                }}
-              />
+          <View className="rounded-2xl mb-3" style={cardShadow}>
+            <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
+              <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
+                Mi nota
+              </Text>
+              <View
+                className="px-4 py-3 border-neutral-100 dark:border-surface-700"
+                style={{ borderTopWidth: 0.5 }}
+              >
+                <TextInput
+                  value={noteText ?? savedNote ?? ''}
+                  onChangeText={(text) => {
+                    setNoteText(text)
+                    clearTimeout(noteTimer.current)
+                    noteTimer.current = setTimeout(() => upsertNote.mutate(text), 800)
+                  }}
+                  onBlur={() => {
+                    clearTimeout(noteTimer.current)
+                    upsertNote.mutate(noteText ?? savedNote ?? '')
+                  }}
+                  placeholder="Escribe algo sobre esta experiencia..."
+                  placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
+                  multiline
+                  style={{
+                    fontSize: 15,
+                    color: isDark ? colors.neutral[50] : colors.neutral[900],
+                    minHeight: 80,
+                    textAlignVertical: 'top',
+                    padding: 0,
+                  }}
+                />
+              </View>
             </View>
           </View>
         )}

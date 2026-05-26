@@ -25,12 +25,15 @@ import { calculateBalances } from '@features/expenses/utils/calculateBalances'
 import { calculateDebtResolution } from '@features/expenses/utils/calculateDebtResolution'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
+import { useTheme } from '@lib/theme'
+import { colors } from '@lib/colors'
 import type { CreateExpenseFormData } from '@features/expenses/types'
 import type { ExpenseWithSplits } from '@/types'
 
 export default function ExpensesScreen() {
   const { tripId, collaborators } = useTripContext()
   const router = useRouter()
+  const { isDark } = useTheme()
   const { data: currentUser } = useCurrentUser()
   const { data: expenses, isLoading, isFetching, refetch } = useExpenses(tripId)
   const { data: experiences } = useExperiences(tripId)
@@ -173,7 +176,7 @@ export default function ExpensesScreen() {
                   <Ionicons
                     name={settledExpanded ? 'chevron-up' : 'chevron-down'}
                     size={16}
-                    color="#8d99ae"
+                    color={isDark ? colors.neutral[400] : colors.neutral[500]}
                   />
                 </View>
               </TouchableOpacity>
@@ -201,7 +204,7 @@ export default function ExpensesScreen() {
                 <Ionicons
                   name={balancesExpanded ? 'chevron-up' : 'chevron-down'}
                   size={16}
-                  color="#8d99ae"
+                  color={isDark ? colors.neutral[400] : colors.neutral[500]}
                 />
               </TouchableOpacity>
               {balancesExpanded && balances.map((b) => (

@@ -13,6 +13,7 @@ import { AddExpenseSheet } from '@features/expenses/components/AddExpenseSheet'
 import { Avatar } from '@components/ui/Avatar'
 import { queryKeys } from '@lib/queryKeys'
 import { colors } from '@lib/colors'
+import { cardShadow } from '@lib/shadows'
 import { useTheme } from '@lib/theme'
 import { formatCurrency } from '@utils/currency'
 import { formatDate } from '@utils/date'
@@ -52,7 +53,7 @@ const CATEGORY_ICON_COLOR: Record<ExpenseCategory, string> = {
   transport: '#06b6d4',
   accommodation: '#a855f7',
   activity: '#65a30d',
-  other: '#8d99ae',
+  other: colors.neutral[500],
 }
 
 
@@ -91,7 +92,6 @@ export default function ExpenseDetailScreen() {
   const [editSheetVisible, setEditSheetVisible] = useState(false)
 
   const expense = expenses?.find((e) => e.id === expenseId)
-  const separatorColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
 
   const handleDelete = () => {
     if (!expense) return
@@ -169,7 +169,7 @@ export default function ExpenseDetailScreen() {
         {/* Hero */}
         <View
           className="bg-white dark:bg-surface-800 rounded-2xl p-5 mt-2 items-center gap-3"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 }}
+          style={cardShadow}
         >
           <View className={`w-16 h-16 rounded-2xl items-center justify-center ${CATEGORY_BG[category]}`}>
             <Ionicons name={CATEGORY_ICON[category]} size={32} color={CATEGORY_ICON_COLOR[category]} />
@@ -185,7 +185,7 @@ export default function ExpenseDetailScreen() {
         {/* Info */}
         <View
           className="mt-4 bg-white dark:bg-surface-800 rounded-2xl overflow-hidden"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 }}
+          style={cardShadow}
         >
           <View className="flex-row items-center px-4 py-3.5 gap-3">
             <Ionicons name="calendar-outline" size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
@@ -195,7 +195,7 @@ export default function ExpenseDetailScreen() {
             </Text>
           </View>
 
-          <View style={{ height: 0.5, backgroundColor: separatorColor, marginLeft: 46 }} />
+          <View className="bg-neutral-100 dark:bg-surface-700" style={{ height: 0.5, marginLeft: 46 }} />
 
           <View className="flex-row items-center px-4 py-3.5 gap-3">
             <Ionicons name="person-outline" size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
@@ -210,7 +210,7 @@ export default function ExpenseDetailScreen() {
 
           {expense.experience && expense.experience_id && (
             <>
-              <View style={{ height: 0.5, backgroundColor: separatorColor, marginLeft: 46 }} />
+              <View className="bg-neutral-100 dark:bg-surface-700" style={{ height: 0.5, marginLeft: 46 }} />
               <TouchableOpacity
                 className="flex-row items-center px-4 py-3.5 gap-3 active:opacity-70"
                 onPress={() => router.push({
@@ -230,7 +230,7 @@ export default function ExpenseDetailScreen() {
             </>
           )}
 
-          <View style={{ height: 0.5, backgroundColor: separatorColor, marginLeft: 46 }} />
+          <View className="bg-neutral-100 dark:bg-surface-700" style={{ height: 0.5, marginLeft: 46 }} />
 
           <View className="flex-row items-center px-4 py-3.5 gap-3">
             <Ionicons name="cash-outline" size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
@@ -249,7 +249,7 @@ export default function ExpenseDetailScreen() {
             </Text>
             <View
               className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden"
-              style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4, elevation: 2 }}
+              style={cardShadow}
             >
               {expense.splits.map((split, idx) => {
                 const collaborator = collaborators.find((c) => c.user_id === split.user_id)
@@ -261,7 +261,7 @@ export default function ExpenseDetailScreen() {
                 return (
                   <View key={split.user_id}>
                     {idx > 0 && (
-                      <View style={{ height: 0.5, backgroundColor: separatorColor, marginLeft: 60 }} />
+                      <View className="bg-neutral-100 dark:bg-surface-700" style={{ height: 0.5, marginLeft: 60 }} />
                     )}
                     <View className="flex-row items-center px-4 py-3.5">
                       <Avatar uri={avatarUrl} name={name} size="md" />
@@ -291,8 +291,8 @@ export default function ExpenseDetailScreen() {
       {/* Bottom actions — solo para el pagador */}
       {isCurrentUserPayer && (
         <View
-          className="px-5 pt-3 pb-4 flex-row gap-3 bg-neutral-100 dark:bg-surface-900"
-          style={{ borderTopWidth: 0.5, borderTopColor: separatorColor }}
+          className="px-5 pt-3 pb-4 flex-row gap-3 bg-neutral-100 dark:bg-surface-900 border-neutral-100 dark:border-surface-700"
+          style={{ borderTopWidth: 0.5 }}
         >
           <TouchableOpacity
             onPress={handleDelete}

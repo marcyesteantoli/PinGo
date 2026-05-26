@@ -22,6 +22,7 @@ import { Badge } from '@components/ui/Badge'
 import { EXPERIENCE_TYPE_LABELS } from '@features/timeline/types'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
+import { cardShadow } from '@lib/shadows'
 import type { SavedExperienceItem } from '@types/index'
 import type { BadgeVariant } from '@components/ui/Badge'
 import type { Experience } from '@types/index'
@@ -57,82 +58,67 @@ function getLocationText(location: unknown): string | null {
 
 interface SavedExperienceCardProps {
   item: SavedExperienceItem
-  isDark: boolean
   onPress: () => void
 }
 
-function SavedExperienceCard({ item, isDark, onPress }: SavedExperienceCardProps) {
+function SavedExperienceCard({ item, onPress }: SavedExperienceCardProps) {
+  const { isDark } = useTheme()
   const { experience, note } = item
-  const cardBg = isDark ? colors.surface[800] : colors.white
-  const labelColor = isDark ? colors.neutral[500] : colors.neutral[400]
   const locationText = getLocationText(experience.location)
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.75}
-      style={{
-        backgroundColor: cardBg,
-        borderRadius: 16,
-        marginBottom: 12,
-        overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: isDark ? 0.3 : 0.06,
-        shadowRadius: 8,
-        elevation: 2,
-      }}
-    >
-      <View style={{ padding: 16 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <Badge
-            label={EXPERIENCE_TYPE_LABELS[experience.type as Experience['type']]}
-            variant={TYPE_BADGE_VARIANT[experience.type]}
-          />
-          {experience.trip?.name && (
-            <Text
-              numberOfLines={1}
-              style={{ fontSize: 13, color: labelColor, flexShrink: 1, marginLeft: 8 }}
-            >
-              {experience.trip.name}
-            </Text>
+    <View className="rounded-2xl mb-3" style={cardShadow}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.75}
+        className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden"
+      >
+        <View className="p-4">
+          <View className="flex-row items-center justify-between mb-2">
+            <Badge
+              label={EXPERIENCE_TYPE_LABELS[experience.type as Experience['type']]}
+              variant={TYPE_BADGE_VARIANT[experience.type]}
+            />
+            {experience.trip?.name && (
+              <Text
+                numberOfLines={1}
+                className="text-[13px] text-neutral-500 dark:text-neutral-400 shrink ml-2"
+              >
+                {experience.trip.name}
+              </Text>
+            )}
+          </View>
+
+          <Text
+            numberOfLines={2}
+            className={`text-[17px] font-semibold text-neutral-900 dark:text-neutral-50 ${locationText ? 'mb-1' : ''}`}
+          >
+            {experience.title}
+          </Text>
+
+          {locationText && (
+            <View className="flex-row items-center gap-1">
+              <Ionicons name="location-outline" size={15} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
+              <Text numberOfLines={1} className="text-[13px] text-neutral-500 dark:text-neutral-400 flex-1">
+                {locationText}
+              </Text>
+            </View>
           )}
+
+          {note ? (
+            <View className="flex-row items-center gap-1.5 mt-2">
+              <Ionicons name="chatbubble-outline" size={13} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
+              <Text
+                numberOfLines={1}
+                className="text-[13px] text-neutral-500 dark:text-neutral-400 flex-1 italic"
+              >
+                {note}
+              </Text>
+            </View>
+          ) : null}
         </View>
-
-        <Text
-          numberOfLines={2}
-          style={{
-            fontSize: 17,
-            fontWeight: '600',
-            color: isDark ? colors.neutral[50] : colors.neutral[900],
-            marginBottom: locationText ? 4 : 0,
-          }}
-        >
-          {experience.title}
-        </Text>
-
-        {locationText && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Ionicons name="location-outline" size={15} color={labelColor} />
-            <Text numberOfLines={1} style={{ fontSize: 13, color: labelColor, flex: 1 }}>
-              {locationText}
-            </Text>
-          </View>
-        )}
-
-        {note ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 }}>
-            <Ionicons name="chatbubble-outline" size={13} color={labelColor} />
-            <Text
-              numberOfLines={1}
-              style={{ fontSize: 13, color: labelColor, flex: 1, fontStyle: 'italic' }}
-            >
-              {note}
-            </Text>
-          </View>
-        ) : null}
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   )
 }
 
@@ -180,54 +166,28 @@ export default function SavedExperiencesScreen() {
     return items
   }, [saved, activeType, search])
 
-  const bg = isDark ? colors.surface[900] : colors.neutral[100]
-  const searchBg = isDark ? colors.surface[800] : colors.white
-  const labelColor = isDark ? colors.neutral[500] : colors.neutral[400]
-
   const isFiltered = !!activeType || !!search.trim()
   const activeTypeLabel = TYPE_FILTERS.find((f) => f.key === activeType)?.label ?? ''
 
   const listHeader = (
     <View>
       <Animated.View style={expandedSectionStyle}>
-        <Text
-          style={{
-            fontSize: 34,
-            fontWeight: '700',
-            color: isDark ? colors.neutral[50] : colors.neutral[900],
-            paddingTop: 8,
-            paddingBottom: 12,
-          }}
-        >
+        <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
           Mis joyas
         </Text>
       </Animated.View>
 
       {/* Search bar */}
-      <View style={{ paddingBottom: 10 }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: searchBg,
-            borderRadius: 12,
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            gap: 8,
-          }}
-        >
-          <Ionicons name="search" size={16} color={labelColor} />
+      <View className="pb-2.5">
+        <View className="flex-row items-center bg-white dark:bg-surface-800 rounded-xl px-3 py-2.5 gap-2">
+          <Ionicons name="search" size={16} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
           <TextInput
             value={search}
             onChangeText={setSearch}
             placeholder="Buscar por lugar o nombre..."
-            placeholderTextColor={labelColor}
-            style={{
-              flex: 1,
-              fontSize: 15,
-              color: isDark ? colors.neutral[50] : colors.neutral[900],
-              padding: 0,
-            }}
+            placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
+            className="flex-1 text-[15px] text-neutral-900 dark:text-neutral-50"
+            style={{ padding: 0 }}
             returnKeyType="search"
             clearButtonMode="while-editing"
           />
@@ -248,23 +208,10 @@ export default function SavedExperiencesScreen() {
               key={String(filter.key)}
               onPress={() => setActiveType(filter.key)}
               activeOpacity={0.7}
-              style={{
-                paddingHorizontal: 14,
-                paddingVertical: 7,
-                borderRadius: 20,
-                backgroundColor: isActive
-                  ? isDark ? colors.primary[400] : colors.primary[500]
-                  : searchBg,
-              }}
+              className={`px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
             >
               <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: isActive ? '600' : '400',
-                  color: isActive
-                    ? colors.neutral[50]
-                    : isDark ? colors.neutral[300] : colors.neutral[600],
-                }}
+                className={`text-[13px] ${isActive ? 'font-semibold text-white' : 'font-normal text-neutral-600 dark:text-neutral-300'}`}
               >
                 {filter.label}
               </Text>
@@ -276,12 +223,12 @@ export default function SavedExperiencesScreen() {
   )
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       <AppHeader title="Mis joyas" scrollY={scrollY} expandProgress={sectionProgress} />
 
       {isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 15, color: labelColor }}>Cargando...</Text>
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Cargando...</Text>
         </View>
       ) : (
         <Animated.FlatList
@@ -290,64 +237,41 @@ export default function SavedExperiencesScreen() {
           renderItem={({ item }) => (
             <SavedExperienceCard
               item={item}
-              isDark={isDark}
               onPress={() => router.push(`/saved-experiences/${item.experience.id}`)}
             />
           )}
           ListHeaderComponent={listHeader}
           ListEmptyComponent={
             saved.length === 0 ? (
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 64 }}>
-                <Ionicons name="bookmark-outline" size={52} color={labelColor} style={{ marginBottom: 16 }} />
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: '600',
-                    color: isDark ? colors.neutral[200] : colors.neutral[700],
-                    textAlign: 'center',
-                    marginBottom: 8,
-                  }}
-                >
+              <View className="flex-1 items-center justify-center px-8 pt-16">
+                <Ionicons name="bookmark-outline" size={52} color={isDark ? colors.neutral[500] : colors.neutral[400]} style={{ marginBottom: 16 }} />
+                <Text className="text-[18px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
                   Aún no tienes joyas
                 </Text>
-                <Text style={{ fontSize: 15, color: labelColor, textAlign: 'center', lineHeight: 22 }}>
+                <Text className="text-[15px] text-neutral-500 dark:text-neutral-400 text-center leading-[22px]">
                   Guarda las experiencias que te han enamorado con el marcador en la ficha de cada experiencia.
                 </Text>
               </View>
             ) : isFiltered ? (
-              <View style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 64 }}>
-                <Ionicons name="filter-outline" size={44} color={labelColor} style={{ marginBottom: 16 }} />
-                <Text
-                  style={{
-                    fontSize: 17,
-                    fontWeight: '600',
-                    color: isDark ? colors.neutral[200] : colors.neutral[700],
-                    textAlign: 'center',
-                    marginBottom: 8,
-                  }}
-                >
+              <View className="items-center justify-center px-8 pt-16">
+                <Ionicons name="filter-outline" size={44} color={isDark ? colors.neutral[500] : colors.neutral[400]} style={{ marginBottom: 16 }} />
+                <Text className="text-[17px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
                   {activeType
                     ? `Sin joyas de tipo "${activeTypeLabel}"`
                     : `Sin resultados para "${search}"`}
                 </Text>
                 <TouchableOpacity
                   onPress={() => { setActiveType(null); setSearch('') }}
-                  style={{
-                    marginTop: 12,
-                    paddingHorizontal: 20,
-                    paddingVertical: 10,
-                    borderRadius: 20,
-                    backgroundColor: isDark ? colors.surface[700] : colors.neutral[200],
-                  }}
+                  className="mt-3 px-5 py-2.5 rounded-full bg-neutral-200 dark:bg-surface-700"
                 >
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: isDark ? colors.neutral[200] : colors.neutral[700] }}>
+                  <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
                     Ver todas
                   </Text>
                 </TouchableOpacity>
               </View>
             ) : null
           }
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+          contentContainerClassName="px-5 pb-8"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           onScroll={scrollHandler}

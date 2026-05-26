@@ -51,7 +51,7 @@ const CATEGORY_ICON_COLORS: Record<ExpenseCategory, { light: string; dark: strin
   transport:     { light: '#06b6d4', dark: '#67e8f9' },
   accommodation: { light: '#a855f7', dark: '#d8b4fe' },
   activity:      { light: '#3f6212', dark: '#bef264' },
-  other:         { light: '#8d99ae', dark: '#a8a29e' },
+  other:         { light: colors.neutral[500], dark: colors.neutral[400] },
 }
 
 const ACTION_WIDTH = 72

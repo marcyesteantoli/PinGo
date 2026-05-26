@@ -45,8 +45,8 @@ const variantClasses: Record<ButtonVariant, { container: string; text: string; s
 
 const sizeClasses: Record<ButtonSize, { container: string; text: string }> = {
   sm: { container: 'px-4 py-2 rounded-full', text: 'text-[15px] font-medium' },
-  md: { container: 'px-5 py-[11px] rounded-[10px]', text: 'text-[17px] font-semibold' },
-  lg: { container: 'px-6 py-[13px] rounded-[14px]', text: 'text-[17px] font-semibold' },
+  md: { container: 'px-5 py-2.5 rounded-xl', text: 'text-[17px] font-semibold' },
+  lg: { container: 'px-6 py-3.5 rounded-2xl', text: 'text-[17px] font-semibold' },
 }
 
 export function Button({
