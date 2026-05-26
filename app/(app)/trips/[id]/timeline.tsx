@@ -18,6 +18,7 @@ import { DaySection } from '@features/timeline/components/DaySection'
 import { ExperienceCard } from '@features/timeline/components/ExperienceCard'
 import { useCreateExperience } from '@features/timeline/hooks/useCreateExperience'
 import { useDeleteExperience } from '@features/timeline/hooks/useDeleteExperience'
+import { useUpdateExperience } from '@features/timeline/hooks/useUpdateExperience'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useRatingsForTrip } from '@features/timeline/hooks/useRatingsForTrip'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
@@ -92,7 +93,9 @@ export default function TimelineScreen() {
   const { data: ratingsMap } = useRatingsForTrip(tripId, experienceIds)
   const createExperience = useCreateExperience(tripId)
   const deleteExperience = useDeleteExperience(tripId)
+  const updateExperience = useUpdateExperience(tripId)
   const [sheetVisible, setSheetVisible] = useState(false)
+  const [editExperience, setEditExperience] = useState<Experience | null>(null)
   const [toastVisible, setToastVisible] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [deleteSheet, setDeleteSheet] = useState<DeleteSheetState>({
@@ -182,6 +185,32 @@ export default function TimelineScreen() {
     }
   }
 
+  const handleUpdate = async (data: CreateExperienceFormData) => {
+    if (!editExperience) return
+    try {
+      await updateExperience.mutateAsync({ experienceId: editExperience.id, formData: data })
+      setEditExperience(null)
+    } catch {
+      // El error se muestra en el sheet
+    }
+  }
+
+  const experienceToFormData = (exp: Experience): CreateExperienceFormData => ({
+    title: exp.title,
+    type: exp.type,
+    date: exp.date ?? new Date().toISOString().slice(0, 10),
+    start_time: exp.start_time ?? undefined,
+    end_time: exp.end_time ?? undefined,
+    confirmation_code: exp.confirmation_code ?? undefined,
+    location: (
+      typeof exp.location === 'object' &&
+      exp.location !== null &&
+      'name' in exp.location &&
+      'lat' in exp.location &&
+      'lng' in exp.location
+    ) ? (exp.location as { name: string; lat: number; lng: number; city?: string }) : undefined,
+  })
+
   const keyExtractor = useCallback(
     (entry: TimelineEntry) => entry.type === 'header' ? `header-${entry.title}` : entry.experience.id,
     []
@@ -227,8 +256,10 @@ export default function TimelineScreen() {
             experience={entry.experience}
             ratingAvg={ratingData?.avg ?? null}
             ratingCount={ratingData?.count ?? 0}
-            canDelete={isOwner}
+            canDelete
             onDelete={() => handleDeleteIntent(entry.experience)}
+            canEdit
+            onEdit={() => setEditExperience(entry.experience)}
             onPress={() => router.push({
                 pathname: '/(app)/trips/experience/[experienceId]',
                 params: { experienceId: entry.experience.id, tripId },
@@ -237,7 +268,7 @@ export default function TimelineScreen() {
         </View>
       </View>
     )
-  }, [isOwner, handleDeleteIntent, ratingsMap])
+  }, [isOwner, handleDeleteIntent, setEditExperience, ratingsMap])
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
@@ -307,6 +338,16 @@ export default function TimelineScreen() {
         documentCount={deleteSheet.documentCount}
         onClose={() => setDeleteSheet(prev => ({ ...prev, visible: false }))}
         onConfirm={handleDeleteWithDocuments}
+      />
+
+      <AddExperienceSheet
+        visible={editExperience !== null}
+        onClose={() => setEditExperience(null)}
+        onSubmit={handleUpdate}
+        isLoading={updateExperience.isPending}
+        error={updateExperience.error?.message}
+        initialValues={editExperience ? experienceToFormData(editExperience) : undefined}
+        mode="edit"
       />
       </View>
     </View>

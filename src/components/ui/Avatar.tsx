@@ -10,29 +10,27 @@ interface AvatarProps {
   size?: AvatarSize
 }
 
-const sizeConfig: Record<AvatarSize, { dim: number; fontSize: number }> = {
-  xs: { dim: 22, fontSize: 8 },
-  sm: { dim: 32, fontSize: 11 },
-  md: { dim: 40, fontSize: 13 },
-  lg: { dim: 56, fontSize: 16 },
+const sizeConfig: Record<AvatarSize, { dim: number; fontSize: number; letterSpacing: number }> = {
+  xs: { dim: 22, fontSize: 8,  letterSpacing: -0.3 },
+  sm: { dim: 32, fontSize: 12, letterSpacing: -0.3 },
+  md: { dim: 40, fontSize: 14, letterSpacing: -0.3 },
+  lg: { dim: 56, fontSize: 18, letterSpacing: -0.5 },
 }
 
+// Apple system color palette — tinted fills with chromatic text
 const AVATAR_PALETTE = [
-  { light: { bg: '#bfdbfe', text: '#1e40af' }, dark: { bg: '#1e3a6e', text: '#93c5fd' } },
-  { light: { bg: '#fecdd3', text: '#9f1239' }, dark: { bg: '#6b1a2f', text: '#fca5a5' } },
-  { light: { bg: '#bbf7d0', text: '#166534' }, dark: { bg: '#14532d', text: '#86efac' } },
-  { light: { bg: '#ddd6fe', text: '#5b21b6' }, dark: { bg: '#4c1d95', text: '#c4b5fd' } },
-  { light: { bg: '#fca5a5', text: '#991b1b' }, dark: { bg: '#7f1d1d', text: '#fca5a5' } },
-  { light: { bg: '#bae6fd', text: '#075985' }, dark: { bg: '#0c4a6e', text: '#7dd3fc' } },
+  { light: { bg: '#E1EDFF', text: '#007AFF' }, dark: { bg: '#001D40', text: '#0A84FF' } },
+  { light: { bg: '#E5F7EC', text: '#28A745' }, dark: { bg: '#091F11', text: '#30D158' } },
+  { light: { bg: '#F3EAFD', text: '#9B4DCA' }, dark: { bg: '#210D35', text: '#BF5AF2' } },
+  { light: { bg: '#FFEEE8', text: '#E8380D' }, dark: { bg: '#3D0D04', text: '#FF453A' } },
+  { light: { bg: '#FFF1DC', text: '#D97706' }, dark: { bg: '#2D1900', text: '#FF9F0A' } },
+  { light: { bg: '#E0F5FD', text: '#0099CC' }, dark: { bg: '#022535', text: '#64D2FF' } },
 ]
 
 function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
 function getAvatarColor(name: string): typeof AVATAR_PALETTE[0] {
@@ -46,7 +44,7 @@ function getAvatarColor(name: string): typeof AVATAR_PALETTE[0] {
 export function Avatar({ uri, name, size = 'md' }: AvatarProps) {
   const [imgError, setImgError] = useState(false)
   const { colorScheme } = useColorScheme()
-  const { dim, fontSize } = sizeConfig[size]
+  const { dim, fontSize, letterSpacing } = sizeConfig[size]
   const showFallback = !uri || imgError
   const palette = getAvatarColor(name)
   const color = colorScheme === 'dark' ? palette.dark : palette.light
@@ -58,13 +56,23 @@ export function Avatar({ uri, name, size = 'md' }: AvatarProps) {
         height: dim,
         borderRadius: dim / 2,
         backgroundColor: color.bg,
-        borderWidth: 1.5,
-        borderColor: color.text + '55',
+        borderWidth: 1,
+        borderColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
       }}
       className="items-center justify-center overflow-hidden"
     >
       {showFallback ? (
-        <Text style={{ fontSize, fontWeight: '600', color: color.text }}>{getInitials(name)}</Text>
+        <Text
+          style={{
+            fontSize,
+            fontWeight: '600',
+            color: color.text,
+            letterSpacing,
+            includeFontPadding: false,
+          }}
+        >
+          {getInitials(name)}
+        </Text>
       ) : (
         <Image
           source={{ uri }}

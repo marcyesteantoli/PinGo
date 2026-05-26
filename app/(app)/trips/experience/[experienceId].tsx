@@ -13,6 +13,8 @@ import { useExpenses } from '@features/expenses/hooks/useExpenses'
 import { ExpenseCard } from '@features/expenses/components/ExpenseCard'
 import { useRatings } from '@features/timeline/hooks/useRatings'
 import { useUpsertRating } from '@features/timeline/hooks/useUpsertRating'
+import { useUpdateExperience } from '@features/timeline/hooks/useUpdateExperience'
+import { AddExperienceSheet } from '@features/timeline/components/AddExperienceSheet'
 import { useIsSaved } from '@features/saved/hooks/useIsSaved'
 import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExperience'
 import { useSavedNote } from '@features/saved/hooks/useSavedNote'
@@ -73,6 +75,7 @@ export default function ExperienceDetailScreen() {
   const { isDark } = useTheme()
   const [viewerDoc, setViewerDoc] = useState<DocumentWithExperience | null>(null)
   const [saveToast, setSaveToast] = useState(false)
+  const [editSheetVisible, setEditSheetVisible] = useState(false)
   const saveToastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const { data: experiences } = useExperiences(tripId)
@@ -81,6 +84,7 @@ export default function ExperienceDetailScreen() {
   const { data: currentUser } = useCurrentUser()
   const { data: ratingsData } = useRatings(experienceId)
   const upsertRating = useUpsertRating(experienceId, tripId)
+  const updateExperience = useUpdateExperience(tripId)
   const { data: isSaved = false, isSuccess: isSavedLoaded } = useIsSaved(experienceId)
   const toggleSave = useToggleSaveExperience(experienceId)
   const { data: savedNote } = useSavedNote(experienceId)
@@ -151,6 +155,13 @@ export default function ExperienceDetailScreen() {
           <Ionicons name="chevron-back" size={22} color={colors.primary[500]} />
         </TouchableOpacity>
         <View className="flex-1" />
+        <TouchableOpacity
+          onPress={() => setEditSheetVisible(true)}
+          hitSlop={8}
+          className="px-3 py-1.5"
+        >
+          <Ionicons name="create-outline" size={22} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={handleToggleSave}
           hitSlop={8}
@@ -486,6 +497,33 @@ export default function ExperienceDetailScreen() {
         document={viewerDoc}
         visible={viewerDoc !== null}
         onClose={() => setViewerDoc(null)}
+      />
+
+      <AddExperienceSheet
+        visible={editSheetVisible}
+        onClose={() => setEditSheetVisible(false)}
+        onSubmit={async (data) => {
+          await updateExperience.mutateAsync({ experienceId, formData: data })
+          setEditSheetVisible(false)
+        }}
+        isLoading={updateExperience.isPending}
+        error={updateExperience.error?.message}
+        initialValues={{
+          title: experience.title,
+          type: experience.type,
+          date: experience.date ?? new Date().toISOString().slice(0, 10),
+          start_time: experience.start_time ?? undefined,
+          end_time: experience.end_time ?? undefined,
+          confirmation_code: experience.confirmation_code ?? undefined,
+          location: (
+            typeof experience.location === 'object' &&
+            experience.location !== null &&
+            'name' in experience.location &&
+            'lat' in experience.location &&
+            'lng' in experience.location
+          ) ? (experience.location as { name: string; lat: number; lng: number; city?: string }) : undefined,
+        }}
+        mode="edit"
       />
 
       <UndoToast

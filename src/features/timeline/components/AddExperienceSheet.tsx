@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native'
@@ -18,6 +19,8 @@ interface AddExperienceSheetProps {
   error?: string | null
   minDate?: Date
   maxDate?: Date
+  initialValues?: CreateExperienceFormData
+  mode?: 'create' | 'edit'
 }
 
 export function AddExperienceSheet({
@@ -28,24 +31,35 @@ export function AddExperienceSheet({
   error,
   minDate,
   maxDate,
+  initialValues,
+  mode = 'create',
 }: AddExperienceSheetProps) {
   const { control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<CreateExperienceFormData>({
     resolver: zodResolver(createExperienceSchema),
-    defaultValues: { type: 'activity' },
+    defaultValues: initialValues ?? { type: 'activity' },
   })
 
+  useEffect(() => {
+    if (visible) {
+      reset(initialValues ?? { type: 'activity' })
+    }
+  }, [visible])
+
   const handleClose = () => {
-    reset()
+    reset(initialValues ?? { type: 'activity' })
     onClose()
   }
 
   const handleSubmitForm = async (data: CreateExperienceFormData) => {
     await onSubmit(data)
-    reset()
+    if (mode === 'create') reset()
   }
 
+  const title = mode === 'edit' ? 'Editar experiencia' : 'Nueva experiencia'
+  const submitLabel = mode === 'edit' ? 'Guardar cambios' : 'Añadir experiencia'
+
   return (
-    <BottomSheet visible={visible} onClose={handleClose} title="Nueva experiencia">
+    <BottomSheet visible={visible} onClose={handleClose} title={title}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View className="gap-4 pb-4">
@@ -134,7 +148,7 @@ export function AddExperienceSheet({
               isLoading={isLoading}
               size="lg"
             >
-              Añadir experiencia
+              {submitLabel}
             </Button>
           </View>
         </ScrollView>

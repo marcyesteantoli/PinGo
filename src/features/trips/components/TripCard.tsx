@@ -8,6 +8,7 @@ import { Avatar } from '@components/ui/Avatar'
 import { Badge } from '@components/ui/Badge'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
+import { DateRangePicker } from '@components/ui/DateRangePicker'
 import { formatDateRange } from '@utils/date'
 import { useTheme } from '@lib/theme'
 import type { TripWithCollaborators } from '@features/trips/hooks/useTrips'
@@ -59,6 +60,8 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
   const [renameVisible, setRenameVisible] = useState(false)
   const [deleteVisible, setDeleteVisible] = useState(false)
   const [newTitle, setNewTitle] = useState(trip.title)
+  const [newStartDate, setNewStartDate] = useState(trip.start_date)
+  const [newEndDate, setNewEndDate] = useState(trip.end_date)
 
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
@@ -89,6 +92,8 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
   const handleEditPress = () => {
     closeSwipe()
     setNewTitle(trip.title)
+    setNewStartDate(trip.start_date)
+    setNewEndDate(trip.end_date)
     setRenameVisible(true)
   }
 
@@ -99,13 +104,23 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
 
   const handleRenameConfirm = () => {
     const trimmed = newTitle.trim()
-    if (!trimmed || trimmed === trip.title) {
+    if (!trimmed) return
+    const titleChanged = trimmed !== trip.title
+    const startChanged = newStartDate !== trip.start_date
+    const endChanged = newEndDate !== trip.end_date
+    if (!titleChanged && !startChanged && !endChanged) {
       setRenameVisible(false)
       return
     }
-    updateTrip.mutate({ tripId: trip.id, title: trimmed }, {
-      onSuccess: () => setRenameVisible(false),
-    })
+    updateTrip.mutate(
+      {
+        tripId: trip.id,
+        title: trimmed,
+        start_date: startChanged ? newStartDate : undefined,
+        end_date: endChanged ? newEndDate : undefined,
+      },
+      { onSuccess: () => setRenameVisible(false) }
+    )
   }
 
   const handleDeleteConfirm = () => {
@@ -159,10 +174,10 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
                 <View
                   key={c.user_id}
                   style={{
-                    marginLeft: i > 0 ? -8 : 0,
+                    marginLeft: i > 0 ? -9 : 0,
                     zIndex: 10 - i,
-                    borderRadius: 17,
-                    borderWidth: 2,
+                    borderRadius: 18,
+                    borderWidth: 1.5,
                     borderColor,
                   }}
                 >
@@ -172,19 +187,26 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               {collaborators.length > 4 && (
                 <View
                   style={{
-                    marginLeft: -8,
+                    marginLeft: -9,
                     zIndex: 6,
                     width: 32,
                     height: 32,
                     borderRadius: 16,
-                    borderWidth: 2,
+                    borderWidth: 1.5,
                     borderColor,
-                    backgroundColor: isDark ? colors.surface[700] : colors.neutral[200],
+                    backgroundColor: isDark ? colors.surface[700] : '#F2F2F7',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Text className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '500',
+                      color: isDark ? '#EBEBF5' : '#3C3C43',
+                      letterSpacing: -0.2,
+                    }}
+                  >
                     +{collaborators.length - 4}
                   </Text>
                 </View>
@@ -284,11 +306,11 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
         </View>
       </View>
 
-      {/* Rename sheet */}
+      {/* Edit sheet */}
       <BottomSheet
         visible={renameVisible}
         onClose={() => setRenameVisible(false)}
-        title="Renombrar viaje"
+        title="Editar viaje"
       >
         <View className="gap-4 mb-2">
           <View className="gap-1">
@@ -306,6 +328,13 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               placeholder="Nombre del viaje"
             />
           </View>
+          <DateRangePicker
+            startDate={newStartDate}
+            endDate={newEndDate}
+            onStartDateChange={setNewStartDate}
+            onEndDateChange={setNewEndDate}
+            minDate=""
+          />
           {updateTrip.error && (
             <Text className="text-sm text-error text-center">{updateTrip.error.message}</Text>
           )}

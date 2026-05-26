@@ -21,6 +21,7 @@ interface DateRangePickerProps {
   onEndDateChange: (date: string) => void
   startError?: string
   endError?: string
+  minDate?: string
 }
 
 const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
@@ -76,6 +77,7 @@ export function DateRangePicker({
   onEndDateChange,
   startError,
   endError,
+  minDate,
 }: DateRangePickerProps) {
   const { isDark } = useTheme()
   const [show, setShow] = useState(false)
@@ -194,7 +196,7 @@ export function DateRangePicker({
               markingType="period"
               markedDates={markedDates}
               onDayPress={handleDayPress}
-              minDate={toLocalDateString(new Date())}
+              minDate={minDate ?? toLocalDateString(new Date())}
               current={tempStart ?? toLocalDateString(new Date())}
               firstDay={1}
               theme={calendarTheme}

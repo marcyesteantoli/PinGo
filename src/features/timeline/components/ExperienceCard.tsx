@@ -19,6 +19,7 @@ const TYPE_BADGE_VARIANT: Record<Experience['type'], BadgeVariant> = {
   other: 'other',
 }
 
+const EDIT_WIDTH = 72
 const DELETE_WIDTH = 76
 
 interface ExperienceCardProps {
@@ -27,10 +28,20 @@ interface ExperienceCardProps {
   ratingCount?: number
   canDelete?: boolean
   onDelete?: () => void
+  canEdit?: boolean
+  onEdit?: () => void
   onPress?: () => void
 }
 
-export const ExperienceCard = memo(function ExperienceCard({ experience, ratingAvg, canDelete, onDelete, onPress }: ExperienceCardProps) {
+export const ExperienceCard = memo(function ExperienceCard({
+  experience,
+  ratingAvg,
+  canDelete,
+  onDelete,
+  canEdit,
+  onEdit,
+  onPress,
+}: ExperienceCardProps) {
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
   const [containerWidth, setContainerWidth] = useState(0)
@@ -43,6 +54,9 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
   ) ? (rawLocation as { name: string }) : null
   const timeRange = formatTimeRange(experience.start_time, experience.end_time)
 
+  const hasActions = canDelete || canEdit
+  const actionsWidth = (canEdit ? EDIT_WIDTH : 0) + (canDelete ? DELETE_WIDTH : 0)
+
   const pan = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .failOffsetY([-5, 5])
@@ -50,16 +64,16 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
       savedX.value = translateX.value
     })
     .onUpdate((e) => {
-      if (!canDelete) return
-      translateX.value = Math.min(0, Math.max(-DELETE_WIDTH, savedX.value + e.translationX))
+      if (!hasActions) return
+      translateX.value = Math.min(0, Math.max(-actionsWidth, savedX.value + e.translationX))
     })
     .onEnd(() => {
-      if (!canDelete) {
+      if (!hasActions) {
         translateX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
         return
       }
-      translateX.value = translateX.value < -DELETE_WIDTH / 2
-        ? withTiming(-DELETE_WIDTH, { duration: 240, easing: Easing.out(Easing.cubic) })
+      translateX.value = translateX.value < -actionsWidth / 2
+        ? withTiming(-actionsWidth, { duration: 240, easing: Easing.out(Easing.cubic) })
         : withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
     })
 
@@ -67,15 +81,23 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
     transform: [{ translateX: translateX.value }],
   }))
 
-  const handleDeletePress = () => {
+  const closeSwipe = () => {
     translateX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
+  }
+
+  const handleEditPress = () => {
+    closeSwipe()
+    onEdit?.()
+  }
+
+  const handleDeletePress = () => {
+    closeSwipe()
     onDelete?.()
   }
 
   const hasBottomRow = !!(timeRange || experience.confirmation_code || ratingAvg)
 
-  // Width only known after first layout — card is hidden until then to avoid flash
-  const rowWidth = containerWidth > 0 ? containerWidth + (canDelete ? DELETE_WIDTH : 0) : undefined
+  const rowWidth = containerWidth > 0 ? containerWidth + (hasActions ? actionsWidth : 0) : undefined
   const cardWidth = containerWidth > 0 ? containerWidth : undefined
 
   return (
@@ -99,11 +121,10 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
                 {/* Badge row */}
                 <View className="flex-row gap-1.5 mb-2">
                   <Badge
-                  scheme="A"
+                    scheme="A"
                     label={EXPERIENCE_TYPE_LABELS[experience.type]}
                     variant={TYPE_BADGE_VARIANT[experience.type]}
                   />
-
                 </View>
 
                 {/* Title */}
@@ -152,6 +173,17 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, ratingA
               </TouchableOpacity>
             </View>
           </GestureDetector>
+
+          {canEdit && (
+            <TouchableOpacity
+              onPress={handleEditPress}
+              className="bg-primary-500 items-center justify-center"
+              style={{ width: EDIT_WIDTH }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="create-outline" size={20} color={colors.white} />
+            </TouchableOpacity>
+          )}
 
           {canDelete && (
             <TouchableOpacity
