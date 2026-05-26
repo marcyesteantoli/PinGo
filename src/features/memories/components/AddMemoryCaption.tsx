@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Image, Text, View } from 'react-native'
+import { Image, View } from 'react-native'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
+import { useErrorToast } from '@lib/errorToast'
 
 interface AddMemoryCaptionProps {
   visible: boolean
@@ -21,9 +23,14 @@ export function AddMemoryCaption({
   error,
   imageUri,
 }: AddMemoryCaptionProps) {
+  const showError = useErrorToast()
   const { control, handleSubmit, reset } = useForm<{ caption: string }>({
     defaultValues: { caption: '' },
   })
+
+  useEffect(() => {
+    if (error) showError(error)
+  }, [error])
 
   const handleClose = () => {
     reset()
@@ -63,9 +70,6 @@ export function AddMemoryCaption({
           )}
         />
 
-        {error && (
-          <Text className="text-sm text-error text-center">{error}</Text>
-        )}
 
         <Button onPress={handleSubmit(handleSubmitForm)} isLoading={isLoading} size="lg">
           {imageUri ? 'Añadir recuerdo' : 'Seleccionar foto'}

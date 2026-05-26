@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -11,12 +11,18 @@ import { Input } from '@components/ui/Input'
 import { useSignUp } from '@features/auth/hooks/useSignUp'
 import { registerSchema, type RegisterFormData } from '@features/auth/types'
 import { cardShadow, ctaShadow } from '@lib/shadows'
+import { useErrorToast } from '@lib/errorToast'
 
 export default function RegisterScreen() {
   const router = useRouter()
   const signUp = useSignUp()
   const emailRef = useRef<TextInput>(null)
   const passwordRef = useRef<TextInput>(null)
+  const showError = useErrorToast()
+
+  useEffect(() => {
+    if (signUp.error) showError(signUp.error.message)
+  }, [signUp.error])
 
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -154,11 +160,6 @@ export default function RegisterScreen() {
               )}
             />
 
-            {signUp.error && (
-              <Text className="text-sm text-error text-center">
-                {signUp.error.message}
-              </Text>
-            )}
 
             <View style={ctaShadow}>
               <Button

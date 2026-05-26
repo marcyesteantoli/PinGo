@@ -9,6 +9,7 @@ import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent'
 import { queryClient } from '@lib/queryClient'
 import { supabase } from '@lib/supabase'
 import { ThemeProvider, useTheme } from '@lib/theme'
+import { ErrorToastProvider, ErrorToastPortal } from '@lib/errorToast'
 import { getLastActiveTripId } from '@lib/lastActiveTrip'
 import { ShareDocumentSheet } from '@features/documents/components/ShareDocumentSheet'
 import { DEV_MODE } from '@/dev/mockData'
@@ -75,6 +76,7 @@ function AppShell() {
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <Slot />
         <ShareIntentHandler />
+        <ErrorToastPortal />
       </View>
     </GestureHandlerRootView>
   )
@@ -95,7 +97,9 @@ export default function RootLayout() {
     <ShareIntentProvider options={{ scheme: 'pingo' }}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <AppShell />
+          <ErrorToastProvider>
+            <AppShell />
+          </ErrorToastProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ShareIntentProvider>

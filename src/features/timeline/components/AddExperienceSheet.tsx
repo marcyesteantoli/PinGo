@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { DatePickerInput } from '@components/ui/DatePickerInput'
@@ -10,6 +10,7 @@ import { ExperienceTypePicker } from './ExperienceTypePicker'
 import { LocationPicker } from './LocationPicker'
 import { TimeRangePicker } from './TimeRangePicker'
 import { createExperienceSchema, type CreateExperienceFormData } from '../types'
+import { useErrorToast } from '@lib/errorToast'
 
 interface AddExperienceSheetProps {
   visible: boolean
@@ -34,6 +35,7 @@ export function AddExperienceSheet({
   initialValues,
   mode = 'create',
 }: AddExperienceSheetProps) {
+  const showError = useErrorToast()
   const { control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<CreateExperienceFormData>({
     resolver: zodResolver(createExperienceSchema),
     defaultValues: initialValues ?? { type: 'activity' },
@@ -44,6 +46,10 @@ export function AddExperienceSheet({
       reset(initialValues ?? { type: 'activity' })
     }
   }, [visible])
+
+  useEffect(() => {
+    if (error) showError(error)
+  }, [error])
 
   const handleClose = () => {
     reset(initialValues ?? { type: 'activity' })
@@ -139,9 +145,6 @@ export function AddExperienceSheet({
               )}
             />
 
-            {error && (
-              <Text className="text-sm text-error text-center">{error}</Text>
-            )}
 
             <Button
               onPress={handleSubmit(handleSubmitForm)}

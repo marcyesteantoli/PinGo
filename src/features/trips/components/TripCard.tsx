@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
@@ -16,6 +16,7 @@ import { useDeleteTrip } from '../hooks/useDeleteTrip'
 import { useUpdateTrip } from '../hooks/useUpdateTrip'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
+import { useErrorToast } from '@lib/errorToast'
 
 interface TripCardProps {
   trip: TripWithCollaborators
@@ -55,6 +56,11 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
 
   const deleteTrip = useDeleteTrip()
   const updateTrip = useUpdateTrip()
+  const showError = useErrorToast()
+
+  useEffect(() => {
+    if (updateTrip.error) showError(updateTrip.error.message)
+  }, [updateTrip.error])
 
   const [containerWidth, setContainerWidth] = useState(0)
   const [renameVisible, setRenameVisible] = useState(false)
@@ -335,9 +341,6 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
             onEndDateChange={setNewEndDate}
             minDate=""
           />
-          {updateTrip.error && (
-            <Text className="text-sm text-error text-center">{updateTrip.error.message}</Text>
-          )}
           <Button
             onPress={handleRenameConfirm}
             isLoading={updateTrip.isPending}

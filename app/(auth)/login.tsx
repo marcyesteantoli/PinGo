@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'expo-router'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -9,11 +9,17 @@ import { Input } from '@components/ui/Input'
 import { useSignIn } from '@features/auth/hooks/useSignIn'
 import { loginSchema, type LoginFormData } from '@features/auth/types'
 import { cardShadow, ctaShadow } from '@lib/shadows'
+import { useErrorToast } from '@lib/errorToast'
 
 export default function LoginScreen() {
   const router = useRouter()
   const signIn = useSignIn()
   const passwordRef = useRef<TextInput>(null)
+  const showError = useErrorToast()
+
+  useEffect(() => {
+    if (signIn.error) showError(signIn.error.message)
+  }, [signIn.error])
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -98,12 +104,6 @@ export default function LoginScreen() {
                 />
               )}
             />
-
-            {signIn.error && (
-              <Text className="text-sm text-error text-center">
-                {signIn.error.message}
-              </Text>
-            )}
 
             <View style={ctaShadow}>
               <Button

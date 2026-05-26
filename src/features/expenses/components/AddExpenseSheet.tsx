@@ -10,6 +10,7 @@ import { ExperiencePicker } from '@features/documents/components/ExperiencePicke
 import { ParticipantPicker } from './ParticipantPicker'
 import { createExpenseSchema, type CreateExpenseFormData } from '../types'
 import { colors } from '@lib/colors'
+import { useErrorToast } from '@lib/errorToast'
 import type { Collaborator, Experience } from '@types/index'
 
 interface AddExpenseSheetProps {
@@ -25,6 +26,7 @@ interface AddExpenseSheetProps {
 }
 
 export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, currentUserId, experiences, initialData, collaborators }: AddExpenseSheetProps) {
+  const showError = useErrorToast()
   const [amountText, setAmountText] = useState('')
   const isEditMode = !!initialData
 
@@ -47,6 +49,10 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible])
+
+  useEffect(() => {
+    if (error) showError(error)
+  }, [error])
 
   const handleClose = () => {
     reset({ participant_ids: [], payer_id: currentUserId, experience_id: undefined })
@@ -192,11 +198,6 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
               )}
             />
 
-            {error && (
-              <View className="bg-red-50 rounded-xl px-4 py-3">
-                <Text className="text-sm text-error text-center">{error}</Text>
-              </View>
-            )}
 
             <Button
               onPress={handleSubmit(handleSubmitForm)}

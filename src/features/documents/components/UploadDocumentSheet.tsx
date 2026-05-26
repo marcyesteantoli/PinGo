@@ -1,6 +1,7 @@
+import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
@@ -8,6 +9,7 @@ import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useTripContext } from '@features/trips/TripProvider'
 import { uploadDocumentSchema, type UploadDocumentFormData } from '../types'
 import { ExperiencePicker } from './ExperiencePicker'
+import { useErrorToast } from '@lib/errorToast'
 
 interface UploadDocumentSheetProps {
   visible: boolean
@@ -18,8 +20,13 @@ interface UploadDocumentSheetProps {
 }
 
 export function UploadDocumentSheet({ visible, onClose, onSubmit, isLoading, error }: UploadDocumentSheetProps) {
+  const showError = useErrorToast()
   const { tripId } = useTripContext()
   const { data: experiences } = useExperiences(tripId)
+
+  useEffect(() => {
+    if (error) showError(error)
+  }, [error])
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<UploadDocumentFormData>({
     resolver: zodResolver(uploadDocumentSchema),
@@ -65,9 +72,6 @@ export function UploadDocumentSheet({ visible, onClose, onSubmit, isLoading, err
           )}
         />
 
-        {error && (
-          <Text className="text-sm text-error text-center">{error}</Text>
-        )}
 
         <Button
           onPress={handleSubmit(handleSubmitForm)}

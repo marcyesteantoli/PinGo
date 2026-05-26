@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Controller, useForm } from 'react-hook-form'
+import { useEffect } from 'react'
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button } from '@components/ui/Button'
@@ -12,10 +13,16 @@ import { useCreateTrip } from '@features/trips/hooks/useCreateTrip'
 import { createTripSchema, type CreateTripFormData } from '@features/trips/types'
 import { colors } from '@lib/colors'
 import { cardShadow, ctaShadow } from '@lib/shadows'
+import { useErrorToast } from '@lib/errorToast'
 
 export default function NewTripScreen() {
   const router = useRouter()
   const createTrip = useCreateTrip()
+  const showError = useErrorToast()
+
+  useEffect(() => {
+    if (createTrip.error) showError(createTrip.error.message)
+  }, [createTrip.error])
 
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm<CreateTripFormData>({
     resolver: zodResolver(createTripSchema),
@@ -101,9 +108,6 @@ export default function NewTripScreen() {
               endError={errors.end_date?.message}
             />
 
-            {createTrip.error && (
-              <Text className="text-sm text-error text-center">{createTrip.error.message}</Text>
-            )}
           </View>
         </ScrollView>
 

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 import { z } from 'zod'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
@@ -11,6 +11,7 @@ import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { ExperiencePicker } from './ExperiencePicker'
 import { TripPicker } from './TripPicker'
 import { useUploadSharedDocument } from '../hooks/useUploadSharedDocument'
+import { useErrorToast } from '@lib/errorToast'
 
 const schema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
@@ -39,6 +40,11 @@ export function ShareDocumentSheet({
 }: ShareDocumentSheetProps) {
   const { data: trips = [] } = useTrips()
   const upload = useUploadSharedDocument()
+  const showError = useErrorToast()
+
+  useEffect(() => {
+    if (upload.error) showError(upload.error.message)
+  }, [upload.error])
 
   const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -122,9 +128,6 @@ export function ShareDocumentSheet({
           />
         ) : null}
 
-        {upload.error && (
-          <Text className="text-sm text-error text-center">{upload.error.message}</Text>
-        )}
 
         <Button onPress={handleSubmit(handleSubmitForm)} isLoading={upload.isPending} size="lg">
           Guardar

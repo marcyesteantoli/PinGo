@@ -192,7 +192,7 @@ export default function ExpensesScreen() {
           )}
 
           {/* Balances — colapsable, informacional */}
-          {balances.length > 0 && (
+          { expenses && expenses?.length > 0 && balances.length > 0 && (
             <View className="mt-6 gap-3">
               <TouchableOpacity
                 onPress={() => setBalancesExpanded(!balancesExpanded)}

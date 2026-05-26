@@ -1,26 +1,26 @@
 import { useEffect } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Text, View } from 'react-native'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
+import { Ionicons } from '@expo/vector-icons'
 import { colors } from '@lib/colors'
 
-interface UndoToastProps {
+interface ErrorToastProps {
   visible: boolean
   message: string
-  onUndo: () => void
 }
 
 const SHOW = { duration: 280, easing: Easing.out(Easing.ease) }
 const HIDE = { duration: 200, easing: Easing.in(Easing.ease) }
 
 const toastShadow = {
-  shadowColor: colors.primary[500],
+  shadowColor: colors.error,
   shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.12,
+  shadowOpacity: 0.15,
   shadowRadius: 12,
   elevation: 6,
 } as const
 
-export function UndoToast({ visible, message, onUndo }: UndoToastProps) {
+export function ErrorToast({ visible, message }: ErrorToastProps) {
   const translateY = useSharedValue(20)
   const opacity = useSharedValue(0)
 
@@ -41,29 +41,20 @@ export function UndoToast({ visible, message, onUndo }: UndoToastProps) {
 
   return (
     <Animated.View
-      pointerEvents={visible ? 'auto' : 'none'}
+      pointerEvents="none"
       style={[
         animatedStyle,
-        { position: 'absolute', bottom: 96, left: 16, right: 16, zIndex: 50 },
+        { position: 'absolute', bottom: 96, left: 16, right: 16, zIndex: 100 },
       ]}
     >
       <View className="rounded-2xl" style={toastShadow}>
         <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden flex-row items-stretch">
-          <View className="w-[3px] bg-primary-500 dark:bg-primary-400" />
-          <View className="flex-1 flex-row items-center px-4 py-3">
-            <Text className="text-neutral-900 dark:text-neutral-50 text-[15px] flex-1" numberOfLines={1}>
+          <View className="w-[3px] bg-error" />
+          <View className="flex-1 flex-row items-center px-4 py-3 gap-3">
+            <Ionicons name="alert-circle-outline" size={18} color={colors.error} />
+            <Text className="text-neutral-900 dark:text-neutral-50 text-[15px] flex-1" numberOfLines={2}>
               {message}
             </Text>
-            <View className="w-px h-5 bg-neutral-200 dark:bg-surface-600 mx-3" />
-            <TouchableOpacity
-              onPress={onUndo}
-              className="min-h-[44px] justify-center"
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
-            >
-              <Text className="text-primary-500 dark:text-primary-400 text-[15px] font-semibold">
-                Deshacer
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
       </View>

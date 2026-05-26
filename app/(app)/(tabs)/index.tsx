@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Text, TouchableOpacity, View } from 'react-native'
 import Animated from 'react-native-reanimated'
@@ -17,6 +17,7 @@ import { TripCard } from '@features/trips/components/TripCard'
 import { useJoinTrip } from '@features/trips/hooks/useJoinTrip'
 import { useTrips } from '@features/trips/hooks/useTrips'
 import { joinTripSchema, type JoinTripFormData } from '@features/trips/types'
+import { useErrorToast } from '@lib/errorToast'
 
 type Segment = 'upcoming' | 'past'
 
@@ -29,8 +30,13 @@ export default function DashboardScreen() {
   const router = useRouter()
   const { data: trips, isLoading, error, refetch } = useTrips()
   const joinTrip = useJoinTrip()
+  const showError = useErrorToast()
   const [joinSheetVisible, setJoinSheetVisible] = useState(false)
   const [segment, setSegment] = useState<Segment>('upcoming')
+
+  useEffect(() => {
+    if (joinTrip.error) showError(joinTrip.error.message)
+  }, [joinTrip.error])
   const { scrollY, scrollHandler } = useAppHeader()
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<JoinTripFormData>({
@@ -186,9 +192,6 @@ export default function DashboardScreen() {
               />
             )}
           />
-          {joinTrip.error && (
-            <Text className="text-sm text-error text-center">{joinTrip.error.message}</Text>
-          )}
           <View style={ctaShadow}>
             <Button onPress={handleSubmit(onJoinSubmit)} isLoading={joinTrip.isPending}>
               Unirse al viaje
