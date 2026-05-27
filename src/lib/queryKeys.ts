@@ -42,4 +42,7 @@ export const queryKeys = {
     currentUser: () => ['currentUser'] as const,
     profile: (userId?: string) => ['profile', userId] as const,
   },
+  wishlist: {
+    byUser: () => ['wishlist'] as const,
+  },
 }

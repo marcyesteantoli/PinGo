@@ -1,5 +1,8 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Keyboard, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
+
+const SCREEN_HEIGHT = Dimensions.get('window').height
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
   Easing,
@@ -19,10 +22,11 @@ interface BottomSheetProps {
   visible: boolean
   onClose: () => void
   title?: string
+  scrollable?: boolean
   children: ReactNode
 }
 
-export function BottomSheet({ visible, onClose, title, children }: BottomSheetProps) {
+export function BottomSheet({ visible, onClose, title, scrollable, children }: BottomSheetProps) {
   const insets = useSafeAreaInsets()
   const paddingBottom = Math.max(insets.bottom + 16, 32)
   const [modalVisible, setModalVisible] = useState(false)
@@ -93,10 +97,7 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1, justifyContent: 'flex-end' }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Animated.View
           style={[
             {
@@ -114,7 +115,10 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
         </Animated.View>
 
         <Animated.View style={sheetStyle}>
-          <View className="bg-white dark:bg-surface-800 rounded-t-[28px] px-5" style={{ paddingBottom }}>
+          <View
+            className="bg-white dark:bg-surface-800 rounded-t-[28px] px-5"
+            style={{ paddingBottom: scrollable ? 0 : paddingBottom, maxHeight: SCREEN_HEIGHT * 0.9 }}
+          >
             <GestureDetector gesture={gesture}>
               <View style={{ width: '100%', alignItems: 'center', paddingTop: 12, paddingBottom: 16 }}>
                 <View className="w-9 h-[5px] rounded-full bg-neutral-300 dark:bg-surface-500" />
@@ -130,10 +134,19 @@ export function BottomSheet({ visible, onClose, title, children }: BottomSheetPr
               </View>
             )}
 
-            {children}
+            {scrollable ? (
+              <KeyboardAwareScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                bottomOffset={16}
+                contentContainerStyle={{ paddingBottom }}
+              >
+                {children}
+              </KeyboardAwareScrollView>
+            ) : children}
           </View>
         </Animated.View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   )
 }

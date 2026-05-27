@@ -4,6 +4,7 @@ import { Slot, useRouter, useSegments } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { KeyboardProvider } from 'react-native-keyboard-controller'
 import { useFonts, PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold, PlusJakartaSans_800ExtraBold } from '@expo-google-fonts/plus-jakarta-sans'
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent'
 import { queryClient } from '@lib/queryClient'
@@ -72,12 +73,14 @@ function AppShell() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <KeyboardProvider>
       <View className="flex-1">
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <Slot />
         <ShareIntentHandler />
         <ErrorToastPortal />
       </View>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   )
 }

@@ -1,187 +1,72 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Text, View } from 'react-native'
-import * as Haptics from 'expo-haptics'
-import { Gesture, GestureDetector } from 'react-native-gesture-handler'
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated'
+import { useEffect } from 'react'
+import { Image, Text, TouchableOpacity, View } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { RadarChart } from '@components/ui/RadarChart'
 import { useAttributeRatings } from '@features/timeline/hooks/useAttributeRatings'
-import { useUpsertAttributeRating } from '@features/timeline/hooks/useUpsertAttributeRating'
 import { EXPERIENCE_ATTRIBUTES } from '@features/timeline/config/experienceAttributes'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import type { Experience } from '@types/index'
 
-const THUMB = 22
+const RATING_ICONS = [
+  require('../../../../assets/images/ratingIcons/1.png'),
+  require('../../../../assets/images/ratingIcons/2.png'),
+  require('../../../../assets/images/ratingIcons/3.png'),
+  require('../../../../assets/images/ratingIcons/4.png'),
+  require('../../../../assets/images/ratingIcons/5.png'),
+]
 
-function posToValue(thumbLeft: number, trackWidth: number): number {
-  'worklet'
-  const range = trackWidth - THUMB
-  if (range <= 0) return 1
-  return Math.round((thumbLeft / range) * 9 + 1)
+function getScoreIcon(score: number) {
+  if (score <= 2) return RATING_ICONS[0]
+  if (score <= 4) return RATING_ICONS[1]
+  if (score <= 6) return RATING_ICONS[2]
+  if (score <= 8) return RATING_ICONS[3]
+  return RATING_ICONS[4]
 }
 
-function valueToPos(value: number, trackWidth: number): number {
-  'worklet'
-  const range = trackWidth - THUMB
-  if (range <= 0) return 0
-  return ((value - 1) / 9) * range
-}
-
-interface AttributeSliderProps {
-  label: string
-  value: number | undefined
-  onChange: (v: number) => void
+interface DotProgressProps {
+  value: number
   isDark: boolean
 }
 
-function AttributeSlider({ label, value, onChange, isDark }: AttributeSliderProps) {
-  const [trackWidth, setTrackWidth] = useState(0)
-  const trackWidthSV = useSharedValue(0)
-  const thumbX = useSharedValue(0)
-  const lastHapticValue = useRef<number | null>(null)
-  const [displayValue, setDisplayValue] = useState<number | undefined>(value)
+function DotProgress({ value, isDark }: DotProgressProps) {
+  const filled = Math.round(value)
+  return (
+    <View style={{ flexDirection: 'row', gap: 3, alignItems: 'center' }}>
+      {Array.from({ length: 10 }, (_, i) => (
+        <View
+          key={i}
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: i < filled
+              ? colors.primary[500]
+              : isDark ? colors.surface[600] : colors.neutral[200],
+          }}
+        />
+      ))}
+    </View>
+  )
+}
+
+interface FadeCardProps {
+  children: React.ReactNode
+  cardKey: string
+}
+
+function FadeCard({ children, cardKey }: FadeCardProps) {
+  const opacity = useSharedValue(0)
+  const animStyle = useAnimatedStyle(() => ({ opacity: opacity.value }))
 
   useEffect(() => {
-    if (trackWidth <= 0 || value === undefined) return
-    const clamped = Math.max(1, Math.min(10, Math.round(value)))
-    thumbX.value = valueToPos(clamped, trackWidth)
-    setDisplayValue(clamped)
-    lastHapticValue.current = clamped
-  }, [value, trackWidth])
-
-  function onDisplayChange(v: number) { setDisplayValue(v) }
-  function triggerHaptic() { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) }
-
-  const applyPosition = (x: number) => {
-    'worklet'
-    const tw = trackWidthSV.value
-    if (tw <= 0) return
-    const range = tw - THUMB
-    const newLeft = Math.max(0, Math.min(range, x - THUMB / 2))
-    thumbX.value = newLeft
-    const v = posToValue(newLeft, tw)
-    runOnJS(onDisplayChange)(v)
-    if (lastHapticValue.current !== v) {
-      lastHapticValue.current = v
-      runOnJS(triggerHaptic)()
-    }
-  }
-
-  const pan = Gesture.Pan()
-    .activeOffsetX([-5, 5])
-    .failOffsetY([-15, 15])
-    .onStart((e) => { 'worklet'; applyPosition(e.x) })
-    .onUpdate((e) => { 'worklet'; applyPosition(e.x) })
-    .onEnd(() => {
-      'worklet'
-      const tw = trackWidthSV.value
-      if (tw <= 0) return
-      const finalValue = posToValue(thumbX.value, tw)
-      thumbX.value = withSpring(valueToPos(finalValue, tw), { damping: 20, stiffness: 300 })
-      runOnJS(onDisplayChange)(finalValue)
-      runOnJS(onChange)(finalValue)
-    })
-
-  const tap = Gesture.Tap()
-    .onEnd((e) => {
-      'worklet'
-      const tw = trackWidthSV.value
-      if (tw <= 0) return
-      const range = tw - THUMB
-      const newLeft = Math.max(0, Math.min(range, e.x - THUMB / 2))
-      const v = posToValue(newLeft, tw)
-      thumbX.value = withSpring(valueToPos(v, tw), { damping: 20, stiffness: 300 })
-      runOnJS(onDisplayChange)(v)
-      runOnJS(triggerHaptic)()
-      runOnJS(onChange)(v)
-    })
-
-  const gesture = Gesture.Race(pan, tap)
-
-  const fillStyle = useAnimatedStyle(() => ({
-    width: Math.max(0, thumbX.value + THUMB / 2),
-  }))
-
-  const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: thumbX.value }],
-  }))
-
-  const trackBg = isDark ? colors.surface[700] : colors.neutral[200]
-  const textColor = isDark ? colors.neutral[200] : colors.neutral[800]
-  const mutedColor = isDark ? colors.neutral[600] : colors.neutral[400]
-  const hasValue = displayValue !== undefined
+    opacity.value = withTiming(1, { duration: 220 })
+  }, [cardKey])
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 }}>
-      <Text
-        style={{ width: 92, fontSize: 14, fontWeight: '500', color: textColor }}
-        numberOfLines={1}
-      >
-        {label}
-      </Text>
-
-      <GestureDetector gesture={gesture}>
-        <View
-          style={{ flex: 1, height: 44, justifyContent: 'center' }}
-          onLayout={(e) => {
-            const w = e.nativeEvent.layout.width
-            setTrackWidth(w)
-            trackWidthSV.value = w
-          }}
-        >
-          <View
-            style={{
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: trackBg,
-              overflow: 'hidden',
-              marginHorizontal: THUMB / 2,
-            }}
-          >
-            <Animated.View
-              style={[{ height: '100%', borderRadius: 2, backgroundColor: colors.primary[500] }, fillStyle]}
-            />
-          </View>
-
-          {hasValue && (
-            <Animated.View
-              style={[
-                {
-                  position: 'absolute',
-                  width: THUMB,
-                  height: THUMB,
-                  borderRadius: THUMB / 2,
-                  backgroundColor: colors.primary[500],
-                  shadowColor: colors.primary[500],
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.35,
-                  shadowRadius: 4,
-                  elevation: 3,
-                },
-                thumbStyle,
-              ]}
-            />
-          )}
-        </View>
-      </GestureDetector>
-
-      <Text
-        style={{
-          width: 22,
-          fontSize: 14,
-          fontWeight: '700',
-          color: hasValue ? colors.secondary[400] : mutedColor,
-          textAlign: 'right',
-        }}
-      >
-        {displayValue ?? '—'}
-      </Text>
-    </View>
+    <Animated.View style={animStyle}>
+      {children}
+    </Animated.View>
   )
 }
 
@@ -191,96 +76,153 @@ interface AttributeRatingSectionProps {
   cardBg: string
   labelColor: string
   borderColor: string
+  onEditPress?: () => void
 }
 
 export function AttributeRatingSection({
   experienceId,
   experienceType,
   cardBg,
-  labelColor,
+  labelColor: _labelColor,
   borderColor,
+  onEditPress,
 }: AttributeRatingSectionProps) {
   const { isDark } = useTheme()
   const attributes = EXPERIENCE_ATTRIBUTES[experienceType]
-
   const { data } = useAttributeRatings(experienceId)
-  const upsert = useUpsertAttributeRating(experienceId)
 
   if (attributes.length === 0) return null
 
   const userValues = data?.userValues ?? {}
-  const hasAnyUserValue = attributes.some((a) => userValues[a] !== undefined)
+  const hasAnyUserValue = attributes.some((a) => userValues[a.key] !== undefined)
+
+  const radarKeys = attributes.map((a) => a.key)
 
   return (
-    <View
-      style={{
-        backgroundColor: cardBg,
-        borderRadius: 14,
-        overflow: 'hidden',
-        marginBottom: 12,
-      }}
-    >
-      <Text
-        style={{
-          fontSize: 12,
-          fontWeight: '600',
-          color: labelColor,
-          paddingHorizontal: 16,
-          paddingTop: 14,
-          paddingBottom: 6,
-          textTransform: 'uppercase',
-          letterSpacing: 0.6,
-        }}
-      >
-        Atributos
-      </Text>
-
-      <View
-        style={{
-          paddingHorizontal: 16,
-          paddingBottom: 8,
-          paddingTop: 4,
-          borderTopWidth: 0.5,
-          borderTopColor: borderColor,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 13,
-            color: labelColor,
-            marginBottom: 2,
-            marginTop: 6,
-          }}
-        >
-          Tu valoración
-        </Text>
-        {attributes.map((attr) => (
-          <AttributeSlider
-            key={attr}
-            label={attr}
-            value={userValues[attr]}
-            isDark={isDark}
-            onChange={(v) => upsert.mutate({ attribute: attr, value: v })}
-          />
-        ))}
-      </View>
-
-      {hasAnyUserValue && (
+    <FadeCard cardKey={hasAnyUserValue ? 'rated' : 'empty'}>
+      {hasAnyUserValue ? (
         <View
           style={{
-            paddingVertical: 4,
-            borderTopWidth: 0.5,
-            borderTopColor: borderColor,
+            backgroundColor: cardBg,
+            borderRadius: 16,
+            overflow: 'hidden',
+            marginBottom: 12,
           }}
         >
           <RadarChart
-            attributes={attributes}
+            attributes={radarKeys}
             userValues={userValues}
             groupAvg={{}}
             isDark={isDark}
+            showLabels
           />
+
+          <View style={{ borderTopWidth: 0.5, borderTopColor: borderColor, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+            {attributes.map((attr) => {
+              const score = userValues[attr.key]
+              return (
+                <View
+                  key={attr.key}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 }}
+                >
+                  <Text style={{ fontSize: 18, width: 26, textAlign: 'center' }}>{attr.emoji}</Text>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: '500', color: isDark ? colors.neutral[200] : colors.neutral[800], width: 100 }}
+                    numberOfLines={1}
+                  >
+                    {attr.key}
+                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <DotProgress value={score ?? 0} isDark={isDark} />
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary[500], width: 20, textAlign: 'right' }}>
+                    {score ?? '—'}
+                  </Text>
+                  {score !== undefined && (
+                    <Image source={getScoreIcon(score)} style={{ width: 22, height: 22 }} resizeMode="contain" />
+                  )}
+                </View>
+              )
+            })}
+          </View>
+
+          <View style={{ borderTopWidth: 0.5, borderTopColor: borderColor }}>
+            <TouchableOpacity
+              onPress={onEditPress}
+              activeOpacity={0.7}
+              style={{ paddingVertical: 14, alignItems: 'center' }}
+              hitSlop={{ top: 4, bottom: 4 }}
+            >
+              <Text style={{ fontSize: 15, color: colors.primary[500] }}>
+                Editar valoración
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <View
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: 16,
+            overflow: 'hidden',
+            marginBottom: 12,
+            padding: 24,
+            alignItems: 'center',
+          }}
+        >
+          <View
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 26,
+              backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ fontSize: 24 }}>⭐</Text>
+          </View>
+
+          <Text
+            style={{
+              fontSize: 17,
+              fontWeight: '600',
+              color: isDark ? colors.neutral[50] : colors.neutral[900],
+              marginTop: 14,
+              textAlign: 'center',
+            }}
+          >
+            Valora esta experiencia
+          </Text>
+          <Text
+            style={{
+              fontSize: 13,
+              color: isDark ? colors.neutral[400] : colors.neutral[500],
+              marginTop: 6,
+              textAlign: 'center',
+              lineHeight: 18,
+            }}
+          >
+            Guarda tu impresión personal{'\n'}de cada aspecto
+          </Text>
+
+          <TouchableOpacity
+            onPress={onEditPress}
+            activeOpacity={0.85}
+            style={{
+              marginTop: 20,
+              backgroundColor: colors.primary[500],
+              borderRadius: 12,
+              paddingVertical: 12,
+              paddingHorizontal: 28,
+            }}
+          >
+            <Text style={{ color: colors.white, fontSize: 15, fontWeight: '600' }}>
+              Empezar →
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
-    </View>
+    </FadeCard>
   )
 }

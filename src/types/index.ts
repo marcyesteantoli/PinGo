@@ -84,3 +84,22 @@ export type Settlement = {
   settled_by: string | null
   created_at: string
 }
+
+export type WishlistItemType = 'city' | 'restaurant' | 'activity' | 'accommodation' | 'other'
+
+export interface WishlistItem {
+  id: string
+  user_id: string
+  name: string
+  type: WishlistItemType
+  location: {
+    address?: string
+    lat?: number
+    lng?: number
+    city?: string
+    country?: string
+  } | null
+  note: string | null
+  added_at: string
+  visited_at: string | null
+}

@@ -30,7 +30,7 @@ Timeline: `calendar-outline` · Documentos: `document-text-outline` · Gastos: `
 
 ## Layout
 - Safe areas: `SafeAreaView` o `edges` siempre
-- `KeyboardAvoidingView` en pantallas con formularios
+- `KeyboardAwareScrollView` de `react-native-keyboard-controller` en pantallas con formularios (NUNCA usar `KeyboardAvoidingView` de React Native)
 - Bottom tab bar respeta `useSafeAreaInsets().bottom`
 - Tablet: `max-w-sm`
 

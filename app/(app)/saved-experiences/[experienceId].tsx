@@ -11,6 +11,7 @@ import { useIsSaved } from '@features/saved/hooks/useIsSaved'
 import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExperience'
 import { Badge } from '@components/ui/Badge'
 import { AttributeRatingSection } from '@features/timeline/components/AttributeRatingSection'
+import { RateExperienceSheet } from '@features/saved/components/RateExperienceSheet'
 import { EXPERIENCE_TYPE_LABELS } from '@features/timeline/types'
 import { EXPERIENCE_ATTRIBUTES } from '@features/timeline/config/experienceAttributes'
 import { useTheme } from '@lib/theme'
@@ -40,6 +41,7 @@ export default function SavedExperienceDetailScreen() {
 
   const [noteText, setNoteText] = useState<string | undefined>(undefined)
   const noteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [ratingSheetVisible, setRatingSheetVisible] = useState(false)
 
   function handleUnsave() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -223,9 +225,17 @@ export default function SavedExperienceDetailScreen() {
             cardBg={isDark ? colors.surface[800] : colors.white}
             labelColor={isDark ? colors.neutral[500] : colors.neutral[400]}
             borderColor={isDark ? colors.surface[700] : colors.neutral[100]}
+            onEditPress={() => setRatingSheetVisible(true)}
           />
         )}
       </ScrollView>
+
+      <RateExperienceSheet
+        visible={ratingSheetVisible}
+        onClose={() => setRatingSheetVisible(false)}
+        experienceId={experienceId}
+        experienceType={experience.type as Experience['type']}
+      />
     </SafeAreaView>
   )
 }

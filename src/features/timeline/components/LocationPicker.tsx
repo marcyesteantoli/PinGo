@@ -4,13 +4,13 @@ import {
   FlatList,
   Modal,
   Pressable,
-  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
-// TODO: import PROVIDER_GOOGLE and set provider={PROVIDER_GOOGLE} on MapView when Google Maps API key is configured
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import MapView, { Marker } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@lib/theme'
@@ -94,7 +94,8 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
   const placeholderColor = colors.neutral[400]
   const modalBg = isDark ? colors.surface[900] : '#f2f2f7'
   const cardBg = isDark ? colors.surface[800] : colors.white
-  const borderTop = isDark ? colors.surface[700] : colors.neutral[100]
+  const borderFaint = isDark ? colors.surface[700] : colors.neutral[100]
+  const searchBarBg = isDark ? colors.surface[700] : '#e5e5ea'
 
   const handleOpen = () => {
     setQuery('')
@@ -109,9 +110,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
   }
 
   const handleConfirm = () => {
-    if (selected) {
-      onChange(selected)
-    }
+    if (selected) onChange(selected)
     setModalVisible(false)
     setSelected(null)
   }
@@ -173,19 +172,12 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
         >
           <Text
             numberOfLines={1}
-            style={{
-              flex: 1,
-              fontSize: 16,
-              color: value ? textColor : placeholderColor,
-            }}
+            style={{ flex: 1, fontSize: 16, color: value ? textColor : placeholderColor }}
           >
             {value ? value.name : 'Añadir ubicación'}
           </Text>
           {value ? (
-            <TouchableOpacity
-              onPress={() => onChange(undefined)}
-              hitSlop={8}
-            >
+            <TouchableOpacity onPress={() => onChange(undefined)} hitSlop={8}>
               <Ionicons name="close-circle" size={18} color={colors.neutral[400]} />
             </TouchableOpacity>
           ) : (
@@ -200,7 +192,8 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
       {/* Full-screen modal */}
       <Modal visible={modalVisible} animationType="slide" onRequestClose={handleClose}>
         <SafeAreaView style={{ flex: 1, backgroundColor: modalBg }}>
-          {/* Nav bar */}
+
+          {/* Nav bar — fixed, never moves */}
           <View
             style={{
               flexDirection: 'row',
@@ -209,7 +202,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
               paddingVertical: 12,
               backgroundColor: cardBg,
               borderBottomWidth: 0.5,
-              borderBottomColor: borderTop,
+              borderBottomColor: borderFaint,
             }}
           >
             <TouchableOpacity onPress={handleClose} style={{ minWidth: 72 }}>
@@ -243,165 +236,255 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
             </TouchableOpacity>
           </View>
 
-          {/* Search input */}
-          <View
-            style={{
-              margin: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: cardBg,
-              borderRadius: 12,
-              paddingHorizontal: 12,
-              gap: 8,
-              borderWidth: 1,
-              borderColor: isDark ? colors.surface[700] : colors.neutral[200],
-            }}
+          {/* Content — KeyboardAwareScrollView keeps navbar pinned */}
+          <KeyboardAwareScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            bottomOffset={16}
           >
-            <Ionicons name="search-outline" size={18} color={colors.neutral[400]} />
-            <TextInput
-              value={query}
-              onChangeText={handleQueryChange}
-              placeholder="Buscar lugar..."
-              placeholderTextColor={colors.neutral[400]}
-              autoFocus
-              style={{
-                flex: 1,
-                fontSize: 16,
-                paddingVertical: 11,
-                color: textColor,
-              }}
-            />
-            {isSearching && <ActivityIndicator size="small" color={colors.neutral[400]} />}
-            {query.length > 0 && !isSearching && (
-              <TouchableOpacity onPress={() => { setQuery(''); setResults([]) }}>
-                <Ionicons name="close-circle" size={18} color={colors.neutral[400]} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Results list */}
-          {results.length > 0 && (
-            <View
-              style={{
-                marginHorizontal: 16,
-                backgroundColor: cardBg,
-                borderRadius: 14,
-                overflow: 'hidden',
-              }}
-            >
-              <FlatList
-                data={results}
-                keyExtractor={(item) => String(item.place_id)}
-                keyboardShouldPersistTaps="handled"
-                renderItem={({ item, index }) => (
-                  <TouchableOpacity
-                    onPress={() => handleSelectResult(item)}
-                    activeOpacity={0.7}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                      gap: 12,
-                      borderTopWidth: index === 0 ? 0 : 0.5,
-                      borderTopColor: borderTop,
-                    }}
-                  >
-                    <Ionicons name="location-outline" size={18} color={colors.neutral[400]} />
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        numberOfLines={1}
-                        style={{ fontSize: 15, color: textColor, fontWeight: '500' }}
-                      >
-                        {getPlaceName(item)}
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        style={{ fontSize: 13, color: colors.neutral[400], marginTop: 1 }}
-                      >
-                        {getPlaceSubtitle(item)}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.neutral[400]} />
-                  </TouchableOpacity>
-                )}
-              />
-            </View>
-          )}
-
-          {/* Empty state */}
-          {!isSearching && results.length === 0 && !showMap && (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-              <Ionicons name="search-outline" size={40} color={colors.neutral[300]} />
-              <Text style={{ fontSize: 15, color: colors.neutral[400] }}>
-                {query.trim() ? 'Sin resultados' : 'Busca un lugar'}
-              </Text>
-            </View>
-          )}
-
-          {/* Map preview of selected place */}
-          {showMap && selected && (
-            <View style={{ marginHorizontal: 16, gap: 12 }}>
-              <View style={{ borderRadius: 14, overflow: 'hidden' }}>
-                <MapView
-                  style={{ height: 220, width: '100%' }}
-                  region={{
-                    latitude: selected.lat,
-                    longitude: selected.lng,
-                    latitudeDelta: 0.005,
-                    longitudeDelta: 0.005,
-                  }}
-                  scrollEnabled={false}
-                  zoomEnabled={false}
-                  pitchEnabled={false}
-                  rotateEnabled={false}
-                >
-                  <Marker coordinate={{ latitude: selected.lat, longitude: selected.lng }} />
-                </MapView>
-              </View>
-
+            {/* iOS-style search bar */}
+            <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
               <View
                 style={{
-                  backgroundColor: cardBg,
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  gap: 10,
+                  backgroundColor: searchBarBg,
+                  borderRadius: 12,
+                  paddingHorizontal: 10,
+                  gap: 6,
+                  height: 44,
                 }}
               >
-                <Ionicons name="location" size={16} color={colors.primary[500]} />
-                <Text
-                  style={{ flex: 1, fontSize: 15, color: textColor, fontWeight: '500' }}
-                  numberOfLines={2}
+                <Ionicons name="search" size={16} color={colors.neutral[400]} />
+                <TextInput
+                  value={query}
+                  onChangeText={handleQueryChange}
+                  placeholder="Buscar lugar..."
+                  placeholderTextColor={colors.neutral[400]}
+                  autoFocus
+                  returnKeyType="search"
+                  style={{
+                    flex: 1,
+                    fontSize: 16,
+                    color: textColor,
+                  }}
+                />
+                {isSearching && (
+                  <ActivityIndicator size="small" color={colors.neutral[400]} />
+                )}
+                {query.length > 0 && !isSearching && (
+                  <TouchableOpacity
+                    onPress={() => { setQuery(''); setResults([]) }}
+                    hitSlop={8}
+                  >
+                    <Ionicons name="close-circle" size={17} color={colors.neutral[400]} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            {/* Results list */}
+            {results.length > 0 && (
+              <View
+                style={{
+                  marginHorizontal: 16,
+                  marginTop: 4,
+                  backgroundColor: cardBg,
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: isDark ? 0.3 : 0.07,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                <FlatList
+                  data={results}
+                  keyExtractor={(item) => String(item.place_id)}
+                  keyboardShouldPersistTaps="handled"
+                  scrollEnabled={false}
+                  renderItem={({ item, index }) => (
+                    <TouchableOpacity
+                      onPress={() => handleSelectResult(item)}
+                      activeOpacity={0.7}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 16,
+                        paddingVertical: 13,
+                        gap: 12,
+                        borderTopWidth: index === 0 ? 0 : 0.5,
+                        borderTopColor: borderFaint,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 8,
+                          backgroundColor: isDark ? colors.surface[700] : '#f2f2f7',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Ionicons name="location-outline" size={16} color={colors.primary[500]} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          numberOfLines={1}
+                          style={{ fontSize: 15, color: textColor, fontWeight: '500' }}
+                        >
+                          {getPlaceName(item)}
+                        </Text>
+                        <Text
+                          numberOfLines={1}
+                          style={{ fontSize: 13, color: colors.neutral[400], marginTop: 2 }}
+                        >
+                          {getPlaceSubtitle(item)}
+                        </Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={15} color={colors.neutral[300]} />
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            )}
+
+            {/* Empty state */}
+            {!isSearching && results.length === 0 && !showMap && (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 20,
+                    backgroundColor: isDark ? colors.surface[800] : '#e5e5ea',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  {selected.name}
+                  <Ionicons
+                    name={query.trim() ? 'search-outline' : 'map-outline'}
+                    size={28}
+                    color={colors.neutral[400]}
+                  />
+                </View>
+                <Text style={{ fontSize: 17, fontWeight: '600', color: textColor }}>
+                  {query.trim() ? 'Sin resultados' : 'Busca un lugar'}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => { setSelected(null); setQuery('') }}
-                  hitSlop={8}
+                <Text style={{ fontSize: 14, color: colors.neutral[400], textAlign: 'center', paddingHorizontal: 32 }}>
+                  {query.trim()
+                    ? 'Prueba con otro nombre o dirección'
+                    : 'Escribe el nombre de un lugar, ciudad o dirección'}
+                </Text>
+              </View>
+            )}
+
+            {/* Map + selected card */}
+            {showMap && selected && (
+              <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 16, gap: 12 }}>
+                <View
+                  style={{
+                    borderRadius: 16,
+                    overflow: 'hidden',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: isDark ? 0.3 : 0.1,
+                    shadowRadius: 8,
+                    elevation: 3,
+                  }}
                 >
-                  <Ionicons name="close-circle" size={18} color={colors.neutral[400]} />
+                  <MapView
+                    style={{ height: 220, width: '100%' }}
+                    region={{
+                      latitude: selected.lat,
+                      longitude: selected.lng,
+                      latitudeDelta: 0.005,
+                      longitudeDelta: 0.005,
+                    }}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                    pitchEnabled={false}
+                    rotateEnabled={false}
+                  >
+                    <Marker coordinate={{ latitude: selected.lat, longitude: selected.lng }} />
+                  </MapView>
+                </View>
+
+                {/* Selected place row */}
+                <View
+                  style={{
+                    backgroundColor: cardBg,
+                    borderRadius: 14,
+                    paddingHorizontal: 16,
+                    paddingVertical: 13,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: isDark ? 0.2 : 0.06,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 10,
+                      backgroundColor: colors.primary[500] + '18',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons name="location" size={16} color={colors.primary[500]} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      numberOfLines={1}
+                      style={{ fontSize: 15, color: textColor, fontWeight: '600' }}
+                    >
+                      {selected.name}
+                    </Text>
+                    {selected.city && (
+                      <Text numberOfLines={1} style={{ fontSize: 13, color: colors.neutral[400], marginTop: 1 }}>
+                        {selected.city}
+                      </Text>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => { setSelected(null); setQuery('') }}
+                    hitSlop={8}
+                  >
+                    <Ionicons name="close-circle" size={20} color={colors.neutral[300]} />
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  onPress={handleConfirm}
+                  activeOpacity={0.8}
+                  style={{
+                    backgroundColor: colors.primary[500],
+                    borderRadius: 14,
+                    paddingVertical: 15,
+                    alignItems: 'center',
+                    shadowColor: colors.primary[500],
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 4,
+                  }}
+                >
+                  <Text style={{ fontSize: 17, fontWeight: '600', color: colors.white }}>
+                    Confirmar ubicación
+                  </Text>
                 </TouchableOpacity>
               </View>
-
-              <TouchableOpacity
-                onPress={handleConfirm}
-                activeOpacity={0.8}
-                style={{
-                  backgroundColor: colors.primary[500],
-                  borderRadius: 14,
-                  paddingVertical: 13,
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 17, fontWeight: '600', color: colors.white }}>
-                  Confirmar ubicación
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
+            )}
+          </KeyboardAwareScrollView>
         </SafeAreaView>
       </Modal>
     </>

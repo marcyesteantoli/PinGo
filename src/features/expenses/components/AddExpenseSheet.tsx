@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
@@ -68,8 +69,7 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
 
   return (
     <BottomSheet visible={visible} onClose={handleClose} title={isEditMode ? 'Editar gasto' : 'Nuevo gasto'}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" bottomOffset={16}>
           <View className="gap-5 pb-4">
 
             {/* Amount - big and prominent */}
@@ -208,8 +208,7 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
               {isEditMode ? 'Guardar cambios' : 'Añadir gasto'}
             </Button>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </BottomSheet>
   )
 }

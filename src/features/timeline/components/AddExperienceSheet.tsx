@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native'
+import { View } from 'react-native'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { DatePickerInput } from '@components/ui/DatePickerInput'
@@ -66,8 +67,7 @@ export function AddExperienceSheet({
 
   return (
     <BottomSheet visible={visible} onClose={handleClose} title={title}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" bottomOffset={16}>
           <View className="gap-4 pb-4">
             <Controller
               control={control}
@@ -154,8 +154,7 @@ export function AddExperienceSheet({
               {submitLabel}
             </Button>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </BottomSheet>
   )
 }

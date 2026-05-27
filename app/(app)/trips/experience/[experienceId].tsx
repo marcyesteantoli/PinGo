@@ -423,6 +423,7 @@ export default function ExperienceDetailScreen() {
             cardBg={isDark ? colors.surface[800] : colors.white}
             labelColor={isDark ? colors.neutral[500] : colors.neutral[400]}
             borderColor={isDark ? colors.surface[700] : colors.neutral[100]}
+            onEditPress={() => setRatingSheetVisible(true)}
           />
         )}
 
