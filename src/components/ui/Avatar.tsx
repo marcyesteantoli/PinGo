@@ -25,6 +25,8 @@ const AVATAR_PALETTE = [
   { light: { bg: '#FFEEE8', text: '#E8380D' }, dark: { bg: '#3D0D04', text: '#FF453A' } },
   { light: { bg: '#FFF1DC', text: '#D97706' }, dark: { bg: '#2D1900', text: '#FF9F0A' } },
   { light: { bg: '#E0F5FD', text: '#0099CC' }, dark: { bg: '#022535', text: '#64D2FF' } },
+  { light: { bg: '#EBF0FF', text: '#3634A3' }, dark: { bg: '#0F0E26', text: '#7D7AFF' } },
+  { light: { bg: '#FFEBF2', text: '#D11A5B' }, dark: { bg: '#330A18', text: '#FF548F' } },
 ]
 
 function getInitials(name: string): string {

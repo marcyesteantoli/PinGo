@@ -102,7 +102,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
               onPress={() => router.push('/(app)/profile')}
-              className="w-8 h-8 rounded-full overflow-hidden"
+              className="w-8 h-8 items-center justify-center"
             >
               <Avatar
                 uri={profile?.avatar_url}

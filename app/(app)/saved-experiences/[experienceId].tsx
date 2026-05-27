@@ -10,7 +10,7 @@ import { useUpsertSavedNote } from '@features/saved/hooks/useUpsertSavedNote'
 import { useIsSaved } from '@features/saved/hooks/useIsSaved'
 import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExperience'
 import { Badge } from '@components/ui/Badge'
-import { RadarChart } from '@components/ui/RadarChart'
+import { AttributeRatingSection } from '@features/timeline/components/AttributeRatingSection'
 import { EXPERIENCE_TYPE_LABELS } from '@features/timeline/types'
 import { EXPERIENCE_ATTRIBUTES } from '@features/timeline/config/experienceAttributes'
 import { useTheme } from '@lib/theme'
@@ -18,6 +18,7 @@ import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import type { BadgeVariant } from '@components/ui/Badge'
 import type { Experience } from '@types/index'
+
 
 const TYPE_BADGE_VARIANT: Record<string, BadgeVariant> = {
   transport: 'transport',
@@ -74,7 +75,7 @@ export default function SavedExperienceDetailScreen() {
     )
   }
 
-  const { experience, attributeRatings, ratedCount, note } = data
+  const { experience, note } = data
   const attributes = EXPERIENCE_ATTRIBUTES[experience.type as Experience['type']] ?? []
   const hasAttributes = attributes.length > 0
   const location = experience.location
@@ -179,40 +180,6 @@ export default function SavedExperienceDetailScreen() {
           </View>
         )}
 
-        {/* Attribute ratings card */}
-        {hasAttributes && (
-          <View className="rounded-2xl mb-3" style={cardShadow}>
-            <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
-              <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-                Mis valoraciones
-              </Text>
-              <View
-                className="border-neutral-100 dark:border-surface-700"
-                style={{ borderTopWidth: 0.5 }}
-              >
-                {ratedCount >= 3 ? (
-                  <View className="py-2">
-                    <RadarChart
-                      attributes={attributes}
-                      userValues={attributeRatings}
-                      groupAvg={{}}
-                      size={200}
-                      isDark={isDark}
-                    />
-                  </View>
-                ) : (
-                  <View className="flex-row items-center px-4 py-3.5 gap-2.5">
-                    <Ionicons name="star-outline" size={18} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
-                    <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-                      Valora los atributos para ver tu gráfico
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </View>
-        )}
-
         {/* Personal note card */}
         <View className="rounded-2xl mb-3" style={cardShadow}>
           <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
@@ -248,6 +215,16 @@ export default function SavedExperienceDetailScreen() {
             </View>
           </View>
         </View>
+
+        {hasAttributes && (
+          <AttributeRatingSection
+            experienceId={experienceId}
+            experienceType={experience.type as Experience['type']}
+            cardBg={isDark ? colors.surface[800] : colors.white}
+            labelColor={isDark ? colors.neutral[500] : colors.neutral[400]}
+            borderColor={isDark ? colors.surface[700] : colors.neutral[100]}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   )

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Text, View } from 'react-native'
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing } from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { colors } from '@lib/colors'
 
@@ -9,8 +10,8 @@ interface ErrorToastProps {
   message: string
 }
 
-const SHOW = { duration: 280, easing: Easing.out(Easing.ease) }
-const HIDE = { duration: 200, easing: Easing.in(Easing.ease) }
+const SPRING = { damping: 15, stiffness: 350, mass: 1 }
+const HIDE = { duration: 180, easing: Easing.in(Easing.ease) }
 
 const toastShadow = {
   shadowColor: colors.error,
@@ -21,15 +22,16 @@ const toastShadow = {
 } as const
 
 export function ErrorToast({ visible, message }: ErrorToastProps) {
-  const translateY = useSharedValue(20)
+  const insets = useSafeAreaInsets()
+  const translateY = useSharedValue(-80)
   const opacity = useSharedValue(0)
 
   useEffect(() => {
     if (visible) {
-      translateY.value = withTiming(0, SHOW)
-      opacity.value = withTiming(1, SHOW)
+      translateY.value = withSpring(0, SPRING)
+      opacity.value = withTiming(1, { duration: 200 })
     } else {
-      translateY.value = withTiming(20, HIDE)
+      translateY.value = withTiming(-80, HIDE)
       opacity.value = withTiming(0, HIDE)
     }
   }, [visible])
@@ -44,11 +46,11 @@ export function ErrorToast({ visible, message }: ErrorToastProps) {
       pointerEvents="none"
       style={[
         animatedStyle,
-        { position: 'absolute', bottom: 96, left: 16, right: 16, zIndex: 100 },
+        { position: 'absolute', top: insets.top + 12, left: 16, right: 16, zIndex: 100 },
       ]}
     >
       <View className="rounded-2xl" style={toastShadow}>
-        <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden flex-row items-stretch">
+        <View className="bg-error-50 dark:bg-error-900 rounded-2xl overflow-hidden flex-row items-stretch border border-error-100 dark:border-error-800">
           <View className="w-[3px] bg-error" />
           <View className="flex-1 flex-row items-center px-4 py-3 gap-3">
             <Ionicons name="alert-circle-outline" size={18} color={colors.error} />

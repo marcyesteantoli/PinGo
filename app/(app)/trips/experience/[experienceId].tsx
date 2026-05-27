@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 // TODO: import PROVIDER_GOOGLE and set provider={PROVIDER_GOOGLE} on MapView when Google Maps API key is configured
@@ -20,6 +20,7 @@ import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExpe
 import { useSavedNote } from '@features/saved/hooks/useSavedNote'
 import { useUpsertSavedNote } from '@features/saved/hooks/useUpsertSavedNote'
 import { AttributeRatingSection } from '@features/timeline/components/AttributeRatingSection'
+import { RateExperienceSheet } from '@features/saved/components/RateExperienceSheet'
 import { DocumentViewer } from '@features/documents/components/DocumentViewer'
 import { Avatar } from '@components/ui/Avatar'
 import { Badge } from '@components/ui/Badge'
@@ -76,6 +77,7 @@ export default function ExperienceDetailScreen() {
   const [viewerDoc, setViewerDoc] = useState<DocumentWithExperience | null>(null)
   const [saveToast, setSaveToast] = useState(false)
   const [editSheetVisible, setEditSheetVisible] = useState(false)
+  const [ratingSheetVisible, setRatingSheetVisible] = useState(false)
   const saveToastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const { data: experiences } = useExperiences(tripId)
@@ -85,22 +87,12 @@ export default function ExperienceDetailScreen() {
   const { data: ratingsData } = useRatings(experienceId)
   const upsertRating = useUpsertRating(experienceId, tripId)
   const updateExperience = useUpdateExperience(tripId)
-  const { data: isSaved = false, isSuccess: isSavedLoaded } = useIsSaved(experienceId)
+  const { data: isSaved = false } = useIsSaved(experienceId)
   const toggleSave = useToggleSaveExperience(experienceId)
   const { data: savedNote } = useSavedNote(experienceId)
   const upsertNote = useUpsertSavedNote(experienceId)
   const [noteText, setNoteText] = useState<string | undefined>(undefined)
   const noteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const [ratingsExpanded, setRatingsExpanded] = useState(false)
-  const initialSavedRef = useRef(false)
-
-  useEffect(() => {
-    if (isSavedLoaded && !initialSavedRef.current) {
-      initialSavedRef.current = true
-      if (isSaved) setRatingsExpanded(true)
-    }
-  }, [isSavedLoaded, isSaved])
-
   function handleToggleSave() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     toggleSave.mutate(isSaved, {
@@ -424,27 +416,7 @@ export default function ExperienceDetailScreen() {
           </View>
         </View>
 
-        {/* Attribute ratings collapsed — only when saved */}
-        {isSaved && !ratingsExpanded && (
-          <View className="rounded-2xl mb-3" style={cardShadow}>
-            <TouchableOpacity
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                setRatingsExpanded(true)
-              }}
-              activeOpacity={0.7}
-              className="bg-white dark:bg-surface-800 rounded-2xl flex-row items-center px-4 py-3.5 gap-3"
-            >
-              <Ionicons name="star-outline" size={18} color={colors.primary[500]} />
-              <Text className="flex-1 text-[15px] text-neutral-800 dark:text-neutral-100">
-                Valorar atributos
-              </Text>
-              <Ionicons name="chevron-forward" size={16} color={isDark ? colors.neutral[600] : colors.neutral[400]} />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {isSaved && ratingsExpanded && (
+        {isSaved && (
           <AttributeRatingSection
             experienceId={experienceId}
             experienceType={experience.type}
@@ -529,11 +501,21 @@ export default function ExperienceDetailScreen() {
       <UndoToast
         visible={saveToast}
         message="¡Añadida a Mis Joyas!"
-        onUndo={() => {
+        actionLabel="Valorar"
+        onAction={() => {
           setSaveToast(false)
-          toggleSave.mutate(true)
+          setRatingSheetVisible(true)
         }}
       />
+
+      {experience && (
+        <RateExperienceSheet
+          visible={ratingSheetVisible}
+          onClose={() => setRatingSheetVisible(false)}
+          experienceId={experienceId}
+          experienceType={experience.type}
+        />
+      )}
     </SafeAreaView>
   )
 }

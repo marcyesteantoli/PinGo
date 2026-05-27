@@ -145,7 +145,7 @@ export function AppHeader({ title, scrollY, expandProgress, rightActions }: AppH
         )}
         <TouchableOpacity
           onPress={() => router.push('/(app)/profile')}
-          style={{ width: 44, height: 44, borderRadius: 22, overflow: 'hidden' }}
+          style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
         >
           <Avatar
             uri={profile?.avatar_url}
