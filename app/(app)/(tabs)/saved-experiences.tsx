@@ -32,6 +32,7 @@ const TYPE_BADGE_VARIANT: Record<string, BadgeVariant> = {
   accommodation: 'accommodation',
   activity: 'activity',
   restaurant: 'restaurant',
+  entertainment: 'entertainment',
   other: 'other',
 }
 
@@ -41,6 +42,7 @@ const TYPE_FILTERS: { key: string | null; label: string }[] = [
   { key: 'activity', label: 'Actividad' },
   { key: 'accommodation', label: 'Alojamiento' },
   { key: 'transport', label: 'Transporte' },
+  { key: 'entertainment', label: 'Entretenimiento' },
   { key: 'other', label: 'Otro' },
 ]
 

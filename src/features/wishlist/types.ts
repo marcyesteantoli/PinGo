@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const addWishlistItemSchema = z.object({
   name: z.string().min(1, 'Nombre requerido'),
-  type: z.enum(['city', 'restaurant', 'activity', 'accommodation', 'other']),
+  type: z.enum(['city', 'restaurant', 'activity', 'accommodation', 'entertainment', 'other']),
   location: z.object({
     name: z.string(),
     lat: z.number(),

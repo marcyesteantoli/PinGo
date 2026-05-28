@@ -7,11 +7,12 @@ import { colors } from '@lib/colors'
 type ExperienceType = Experience['type']
 
 const TYPE_ICONS: Record<ExperienceType, React.ComponentProps<typeof Ionicons>['name']> = {
-  transport: 'airplane-outline',
+  transport:     'airplane-outline',
   accommodation: 'bed-outline',
-  activity: 'compass-outline',
-  restaurant: 'restaurant-outline',
-  other: 'ellipse-outline',
+  activity:      'compass-outline',
+  restaurant:    'restaurant-outline',
+  entertainment: 'film-outline',
+  other:         'ellipse-outline',
 }
 
 interface ExperienceTypePickerProps {
@@ -20,14 +21,15 @@ interface ExperienceTypePickerProps {
   error?: string
 }
 
-const TYPES: ExperienceType[] = ['transport', 'accommodation', 'activity', 'restaurant', 'other']
+const TYPES: ExperienceType[] = ['transport', 'accommodation', 'activity', 'restaurant', 'entertainment', 'other']
 
 const TYPE_SELECTED_CLASSES: Record<ExperienceType, string> = {
-  transport:     'bg-cyan-500 border-cyan-500',
-  accommodation: 'bg-purple-500 border-purple-500',
-  activity:      'bg-lime-600 border-lime-600',
-  restaurant:    'bg-red-500 border-red-500',
-  other:         'bg-stone-500 border-stone-500',
+  transport:     'bg-activity-blue-main border-activity-blue-main',
+  accommodation: 'bg-activity-purple-main border-activity-purple-main',
+  activity:      'bg-activity-green-main border-activity-green-main',
+  restaurant:    'bg-activity-orange-main border-activity-orange-main',
+  entertainment: 'bg-activity-pink-main border-activity-pink-main',
+  other:         'bg-activity-gray-main border-activity-gray-main',
 }
 
 export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypePickerProps) {

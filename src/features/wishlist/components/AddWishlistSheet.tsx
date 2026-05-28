@@ -18,11 +18,12 @@ interface PickedLocation {
 }
 
 const TYPE_COLORS: Record<WishlistItemType, string> = {
-  city:          colors.primary[500],
-  restaurant:    '#ef4444',
-  activity:      '#16a34a',
-  accommodation: '#7c3aed',
-  other:         '#78716c',
+  city:          '#EF4444',
+  restaurant:    '#F97316',
+  activity:      '#22C55E',
+  accommodation: '#8B5CF6',
+  entertainment: '#EC4899',
+  other:         '#94A3B8',
 }
 
 const TYPES: {
@@ -30,11 +31,12 @@ const TYPES: {
   label: string
   icon: keyof typeof Ionicons.glyphMap
 }[] = [
-  { key: 'city',          label: 'Ciudad',      icon: 'business-outline' },
-  { key: 'restaurant',    label: 'Restaurante', icon: 'restaurant-outline' },
-  { key: 'activity',      label: 'Actividad',   icon: 'bicycle-outline' },
-  { key: 'accommodation', label: 'Alojamiento', icon: 'bed-outline' },
-  { key: 'other',         label: 'Otro',        icon: 'ellipsis-horizontal-outline' },
+  { key: 'city',          label: 'Ciudad',         icon: 'business-outline' },
+  { key: 'restaurant',    label: 'Restaurante',    icon: 'restaurant-outline' },
+  { key: 'activity',      label: 'Actividad',      icon: 'bicycle-outline' },
+  { key: 'accommodation', label: 'Alojamiento',    icon: 'bed-outline' },
+  { key: 'entertainment', label: 'Entretenimiento', icon: 'film-outline' },
+  { key: 'other',         label: 'Otro',           icon: 'ellipsis-horizontal-outline' },
 ]
 
 interface AddWishlistSheetProps {

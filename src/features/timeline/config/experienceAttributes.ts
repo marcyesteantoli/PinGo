@@ -31,5 +31,11 @@ export const EXPERIENCE_ATTRIBUTES: Record<Experience['type'], AttributeConfig[]
     { key: 'Precio',      emoji: '💰', question: '¿Mereció la pena el precio?' },
     { key: 'Facilidad',   emoji: '🎫', question: '¿Fue fácil de gestionar?' },
   ],
+  entertainment: [
+    { key: 'Experiencia',  emoji: '🎭', question: '¿Qué tal fue la experiencia?' },
+    { key: 'Precio',       emoji: '💰', question: '¿Mereció la pena el precio?' },
+    { key: 'Ambiente',     emoji: '✨', question: '¿Cómo era el ambiente?' },
+    { key: 'Duración',     emoji: '⏱️', question: '¿Fue bien de tiempo?' },
+  ],
   other: [],
 }

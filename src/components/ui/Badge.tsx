@@ -13,6 +13,8 @@ export type BadgeVariant =
   | 'accommodation'
   | 'activity'
   | 'restaurant'
+  | 'city'
+  | 'entertainment'
   | 'other'
 
 interface BadgeProps {
@@ -22,34 +24,38 @@ interface BadgeProps {
 }
 
 const variantClasses: Record<BadgeVariant, { container: string; text: string }> = {
-  primary:   { container: 'bg-primary-100 dark:bg-primary-600/40',     text: 'text-primary-700 dark:text-primary-300'     },
-  active:    { container: 'bg-primary-500 dark:bg-primary-600',        text: 'text-white'                                 },
-  success:   { container: 'bg-green-100 dark:bg-green-700/40',         text: 'text-green-700 dark:text-green-300'         },
-  warning:   { container: 'bg-amber-100 dark:bg-amber-700/40',         text: 'text-amber-700 dark:text-amber-300'         },
-  error:     { container: 'bg-red-100 dark:bg-red-700/40',             text: 'text-red-700 dark:text-red-300'             },
-  neutral:   { container: 'bg-neutral-200 dark:bg-surface-700',        text: 'text-neutral-700 dark:text-neutral-300'     },
-  transport:     { container: 'bg-cyan-100 dark:bg-cyan-700/40',     text: 'text-cyan-500 dark:text-cyan-300'     },
-  accommodation: { container: 'bg-purple-100 dark:bg-purple-700/40', text: 'text-purple-500 dark:text-purple-300' },
-  activity:      { container: 'bg-lime-100 dark:bg-lime-700/40',     text: 'text-lime-800 dark:text-lime-300'     },
-  restaurant:    { container: 'bg-red-100 dark:bg-red-700/40',       text: 'text-red-500 dark:text-red-300'       },
-  other:         { container: 'bg-stone-100 dark:bg-stone-700',      text: 'text-stone-600 dark:text-stone-400'   },
+  primary:       { container: 'bg-primary-100 dark:bg-primary-600/40',              text: 'text-primary-700 dark:text-primary-300'     },
+  active:        { container: 'bg-primary-500 dark:bg-primary-600',                 text: 'text-white'                                 },
+  success:       { container: 'bg-green-100 dark:bg-green-700/40',                  text: 'text-green-700 dark:text-green-300'         },
+  warning:       { container: 'bg-amber-100 dark:bg-amber-700/40',                  text: 'text-amber-700 dark:text-amber-300'         },
+  error:         { container: 'bg-red-100 dark:bg-red-700/40',                      text: 'text-red-700 dark:text-red-300'             },
+  neutral:       { container: 'bg-neutral-200 dark:bg-surface-700',                 text: 'text-neutral-700 dark:text-neutral-300'     },
+  transport:     { container: 'bg-activity-blue-bg dark:bg-activity-blue-darkBg',       text: 'text-activity-blue-main'   },
+  accommodation: { container: 'bg-activity-purple-bg dark:bg-activity-purple-darkBg',   text: 'text-activity-purple-main' },
+  activity:      { container: 'bg-activity-green-bg dark:bg-activity-green-darkBg',     text: 'text-activity-green-main'  },
+  restaurant:    { container: 'bg-activity-orange-bg dark:bg-activity-orange-darkBg',   text: 'text-activity-orange-main' },
+  city:          { container: 'bg-activity-red-bg dark:bg-activity-red-darkBg',         text: 'text-activity-red-main'    },
+  entertainment: { container: 'bg-activity-pink-bg dark:bg-activity-pink-darkBg',       text: 'text-activity-pink-main'   },
+  other:         { container: 'bg-activity-gray-bg dark:bg-activity-gray-darkBg',       text: 'text-activity-gray-main'   },
 }
 
-type CategoryType = 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'other'
+type CategoryType = 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'city' | 'entertainment' | 'other'
 
 const CATEGORY_ICONS: Record<CategoryType, {
   name: React.ComponentProps<typeof Ionicons>['name']
   light: string
   dark: string
 }> = {
-  transport:     { name: 'airplane-outline',   light: '#06b6d4', dark: '#67e8f9' },
-  accommodation: { name: 'bed-outline',        light: '#a855f7', dark: '#d8b4fe' },
-  activity:      { name: 'compass-outline',    light: '#3f6212', dark: '#bef264' },
-  restaurant:    { name: 'restaurant-outline', light: '#ef4444', dark: '#fca5a5' },
-  other:         { name: 'ellipse-outline',    light: '#57534e', dark: '#a8a29e' },
+  transport:     { name: 'airplane-outline',   light: '#3B82F6', dark: '#3B82F6' },
+  accommodation: { name: 'bed-outline',        light: '#8B5CF6', dark: '#8B5CF6' },
+  activity:      { name: 'compass-outline',    light: '#22C55E', dark: '#22C55E' },
+  restaurant:    { name: 'restaurant-outline', light: '#F97316', dark: '#F97316' },
+  city:          { name: 'business-outline',   light: '#EF4444', dark: '#EF4444' },
+  entertainment: { name: 'film-outline',       light: '#EC4899', dark: '#EC4899' },
+  other:         { name: 'ellipse-outline',    light: '#94A3B8', dark: '#94A3B8' },
 }
 
-const categorySet = new Set<string>(['transport', 'accommodation', 'activity', 'restaurant', 'other'])
+const categorySet = new Set<string>(['transport', 'accommodation', 'activity', 'restaurant', 'city', 'entertainment', 'other'])
 
 export function Badge({ label, variant = 'neutral', className = '' }: BadgeProps) {
   const { colorScheme } = useColorScheme()

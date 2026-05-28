@@ -13,6 +13,7 @@ const TYPE_LABELS: Record<WishlistItemType, string> = {
   restaurant: 'Restaurante',
   activity: 'Actividad',
   accommodation: 'Alojamiento',
+  entertainment: 'Entretenimiento',
   other: 'Otro',
 }
 
@@ -21,15 +22,26 @@ const TYPE_ICONS: Record<WishlistItemType, keyof typeof Ionicons.glyphMap> = {
   restaurant: 'restaurant-outline',
   activity: 'bicycle-outline',
   accommodation: 'bed-outline',
+  entertainment: 'film-outline',
   other: 'ellipsis-horizontal-outline',
 }
 
 const TYPE_COLORS: Record<WishlistItemType, string> = {
-  city: '#6366f1',
-  restaurant: '#f59e0b',
-  activity: '#10b981',
-  accommodation: '#3b82f6',
-  other: '#94a3b8',
+  city: '#EF4444',
+  restaurant: '#F97316',
+  activity: '#22C55E',
+  accommodation: '#8B5CF6',
+  entertainment: '#EC4899',
+  other: '#94A3B8',
+}
+
+const TYPE_BG_COLORS: Record<WishlistItemType, { light: string; dark: string }> = {
+  city:          { light: '#FEE2E2', dark: '#4E0606' },
+  restaurant:    { light: '#FFEDD5', dark: '#4E1E06' },
+  activity:      { light: '#DCFCE7', dark: '#064E3B' },
+  accommodation: { light: '#EDE9FE', dark: '#24064E' },
+  entertainment: { light: '#FCE7F3', dark: '#4E062A' },
+  other:         { light: '#F1F5F9', dark: '#334155' },
 }
 
 const ACTION_WIDTH = 72
@@ -86,7 +98,7 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited 
     <View className="p-4">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-1.5">
-          <View style={{ backgroundColor: typeColor + '20', borderRadius: 8, padding: 4 }}>
+          <View style={{ backgroundColor: isDark ? TYPE_BG_COLORS[item.type].dark : TYPE_BG_COLORS[item.type].light, borderRadius: 8, padding: 4 }}>
             <Ionicons name={typeIcon} size={14} color={typeColor} />
           </View>
           <Text style={{ color: typeColor }} className="text-[13px] font-semibold">

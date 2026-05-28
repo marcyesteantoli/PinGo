@@ -20,15 +20,17 @@ const TYPE_LABELS: Record<WishlistItemType, string> = {
   restaurant: 'Restaurante',
   activity: 'Actividad',
   accommodation: 'Alojamiento',
+  entertainment: 'Entretenimiento',
   other: 'Otro',
 }
 
 const TYPE_COLORS: Record<WishlistItemType, string> = {
-  city: '#6366f1',
-  restaurant: '#f59e0b',
-  activity: '#10b981',
-  accommodation: '#3b82f6',
-  other: '#94a3b8',
+  city: '#EF4444',
+  restaurant: '#F97316',
+  activity: '#22C55E',
+  accommodation: '#8B5CF6',
+  entertainment: '#EC4899',
+  other: '#94A3B8',
 }
 
 const TYPE_ICONS: Record<WishlistItemType, keyof typeof Ionicons.glyphMap> = {
@@ -36,6 +38,7 @@ const TYPE_ICONS: Record<WishlistItemType, keyof typeof Ionicons.glyphMap> = {
   restaurant: 'restaurant-outline',
   activity: 'bicycle-outline',
   accommodation: 'bed-outline',
+  entertainment: 'film-outline',
   other: 'ellipsis-horizontal-outline',
 }
 

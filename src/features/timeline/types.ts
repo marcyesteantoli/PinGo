@@ -9,7 +9,7 @@ const optionalTime = z
 
 export const createExperienceSchema = z.object({
   title: z.string().min(1, 'El título es obligatorio'),
-  type: z.enum(['transport', 'accommodation', 'activity', 'restaurant', 'other']),
+  type: z.enum(['transport', 'accommodation', 'activity', 'restaurant', 'entertainment', 'other']),
   date: z.string().min(1, 'La fecha es obligatoria'),
   start_time: optionalTime,
   end_time: optionalTime,
@@ -32,6 +32,7 @@ export const EXPERIENCE_TYPE_LABELS = {
   accommodation: 'Alojamiento',
   activity: 'Actividad',
   restaurant: 'Gastronomía',
+  entertainment: 'Entretenimiento',
   other: 'Otro',
 } as const
 

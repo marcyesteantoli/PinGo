@@ -85,7 +85,7 @@ export type Settlement = {
   created_at: string
 }
 
-export type WishlistItemType = 'city' | 'restaurant' | 'activity' | 'accommodation' | 'other'
+export type WishlistItemType = 'city' | 'restaurant' | 'activity' | 'accommodation' | 'entertainment' | 'other'
 
 export interface WishlistItem {
   id: string

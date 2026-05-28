@@ -16,6 +16,7 @@ const TYPE_BADGE_VARIANT: Record<Experience['type'], BadgeVariant> = {
   accommodation: 'accommodation',
   activity: 'activity',
   restaurant: 'restaurant',
+  entertainment: 'entertainment',
   other: 'other',
 }
 

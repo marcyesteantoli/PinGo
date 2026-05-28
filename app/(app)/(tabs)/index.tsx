@@ -3,11 +3,13 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, RefreshControl, Text, TouchableOpacity, View } from 'react-native'
 import Animated, {
   interpolate,
   interpolateColor,
+  scrollTo,
   useAnimatedReaction,
+  useAnimatedRef,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -25,13 +27,9 @@ import { useJoinTrip } from '@features/trips/hooks/useJoinTrip'
 import { useTrips } from '@features/trips/hooks/useTrips'
 import { joinTripSchema, type JoinTripFormData } from '@features/trips/types'
 import { useErrorToast } from '@lib/errorToast'
+import { SegmentedTabBar } from '@components/ui/SegmentedTabBar'
 
 type Segment = 'upcoming' | 'past'
-
-const SEGMENTS: { key: Segment; label: string }[] = [
-  { key: 'upcoming', label: 'Próximos' },
-  { key: 'past',     label: 'Pasados'  },
-]
 
 export default function DashboardScreen() {
   const router = useRouter()
@@ -50,6 +48,8 @@ export default function DashboardScreen() {
   const { control, handleSubmit, reset, formState: { errors } } = useForm<JoinTripFormData>({
     resolver: zodResolver(joinTripSchema),
   })
+
+  const scrollRef = useAnimatedRef<Animated.ScrollView>()
 
   const fabProgress = useSharedValue(0)
 
@@ -113,6 +113,11 @@ export default function DashboardScreen() {
   const pastTrips    = trips?.filter(t => t.end_date <  today) ?? []
   const displayedTrips = segment === 'upcoming' ? upcomingTrips : pastTrips
 
+  const handleSegmentChange = (key: string) => {
+    setSegment(key as Segment)
+    scrollTo(scrollRef, 0, 0, true)
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       <AppHeader
@@ -130,76 +135,60 @@ export default function DashboardScreen() {
           <Button onPress={() => refetch()} variant="ghost">Reintentar</Button>
         </View>
       ) : (
-        <Animated.FlatList
-          data={displayedTrips}
-          keyExtractor={(item) => item.id}
-          contentContainerClassName="px-5 pb-8"
+        <Animated.ScrollView
+          ref={scrollRef}
+          stickyHeaderIndices={[1]}
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+          showsVerticalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
-          ListHeaderComponent={
-            <View>
-              <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
-                Mis viajes
-              </Text>
-              <View className="mb-4 flex-row bg-neutral-200 dark:bg-surface-700 rounded-xl p-1">
-                {SEGMENTS.map(({ key, label }) => {
-                  const isActive = segment === key
-                  return (
-                    <TouchableOpacity
-                      key={key}
-                      onPress={() => setSegment(key)}
-                      activeOpacity={0.8}
-                      className={`flex-1 py-[7px] rounded-lg items-center ${
-                        isActive ? 'bg-white dark:bg-surface-600' : ''
-                      }`}
-                      style={isActive ? {
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.08,
-                        shadowRadius: 2,
-                        elevation: 2,
-                      } : undefined}
-                    >
-                      <Text
-                        className={`text-[13px] font-semibold ${
-                          isActive
-                            ? 'text-neutral-900 dark:text-neutral-50'
-                            : 'text-neutral-500 dark:text-neutral-400'
-                        }`}
-                      >
-                        {label}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                })}
-              </View>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <TripCard
-              trip={item}
-              onPress={() => router.push(`/(app)/trips/${item.id}/timeline`)}
+        >
+          {/* index 0: título scrollea hacia arriba */}
+          <View className="px-5">
+            <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
+              Mis viajes
+            </Text>
+          </View>
+
+          {/* index 1: tab bar sticky */}
+          <View className="bg-neutral-100 dark:bg-surface-900">
+            <SegmentedTabBar
+              tabs={[
+                { key: 'upcoming', label: 'Próximos' },
+                { key: 'past', label: 'Pasados' },
+              ]}
+              active={segment}
+              onChange={handleSegmentChange}
             />
-          )}
-          ItemSeparatorComponent={() => <View className="h-5" />}
-          ListEmptyComponent={
-            segment === 'upcoming' ? (
-              <EmptyState
-                icon="airplane-outline"
-                title="Sin viajes próximos"
-                subtitle="Crea tu primer viaje o únete con un código"
-              />
+          </View>
+
+          {/* index 2: contenido */}
+          <View className="px-5 pt-2 pb-8 gap-5">
+            {displayedTrips.length === 0 ? (
+              segment === 'upcoming' ? (
+                <EmptyState
+                  icon="airplane-outline"
+                  title="Sin viajes próximos"
+                  subtitle="Crea tu primer viaje o únete con un código"
+                />
+              ) : (
+                <EmptyState
+                  icon="checkmark-circle-outline"
+                  title="Sin viajes pasados"
+                  subtitle="Aquí aparecerán los viajes que hayas completado"
+                />
+              )
             ) : (
-              <EmptyState
-                icon="checkmark-circle-outline"
-                title="Sin viajes pasados"
-                subtitle="Aquí aparecerán los viajes que hayas completado"
-              />
-            )
-          }
-          onRefresh={refetch}
-          refreshing={isLoading}
-        />
+              displayedTrips.map((item) => (
+                <TripCard
+                  key={item.id}
+                  trip={item}
+                  onPress={() => router.push(`/(app)/trips/${item.id}/timeline`)}
+                />
+              ))
+            )}
+          </View>
+        </Animated.ScrollView>
       )}
 
       {/* Overlay para cerrar FAB */}

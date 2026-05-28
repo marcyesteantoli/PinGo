@@ -80,6 +80,15 @@ module.exports = {
           800: '#991b1b',
           900: '#7f1d1d',
         },
+        activity: {
+          blue:   { main: '#3B82F6', bg: '#DBEAFE', darkBg: '#061E4E' },
+          orange: { main: '#F97316', bg: '#FFEDD5', darkBg: '#4E1E06' },
+          pink:   { main: '#EC4899', bg: '#FCE7F3', darkBg: '#4E062A' },
+          red:    { main: '#EF4444', bg: '#FEE2E2', darkBg: '#4E0606' },
+          green:  { main: '#22C55E', bg: '#DCFCE7', darkBg: '#064E3B' },
+          purple: { main: '#8B5CF6', bg: '#EDE9FE', darkBg: '#24064E' },
+          gray:   { main: '#94A3B8', bg: '#F1F5F9', darkBg: '#334155' },
+        },
       },
       fontFamily: {
         sans: ['PlusJakartaSans_400Regular', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
