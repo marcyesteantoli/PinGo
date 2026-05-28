@@ -53,7 +53,7 @@ export default function NewTripScreen() {
         >
           {/* Hero */}
           <LinearGradient
-            colors={[colors.primary[500], colors.secondary[500]]}
+            colors={[colors.primary[400], colors.primary[600]]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{ paddingTop: 20, paddingBottom: 48, alignItems: 'center', gap: 10 }}

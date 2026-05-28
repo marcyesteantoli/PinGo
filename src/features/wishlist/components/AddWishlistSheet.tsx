@@ -19,7 +19,7 @@ interface PickedLocation {
 
 const TYPE_COLORS: Record<WishlistItemType, string> = {
   city:          colors.primary[500],
-  restaurant:    colors.secondary[500],
+  restaurant:    '#ef4444',
   activity:      '#16a34a',
   accommodation: '#7c3aed',
   other:         '#78716c',

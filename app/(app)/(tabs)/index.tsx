@@ -3,11 +3,18 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Text, TouchableOpacity, View } from 'react-native'
-import Animated from 'react-native-reanimated'
+import { Pressable, Text, TouchableOpacity, View } from 'react-native'
+import Animated, {
+  interpolate,
+  interpolateColor,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
-import { ctaShadow } from '@lib/shadows'
+import { ctaShadow, fabShadow } from '@lib/shadows'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { EmptyState } from '@components/ui/EmptyState'
@@ -33,6 +40,7 @@ export default function DashboardScreen() {
   const showError = useErrorToast()
   const [joinSheetVisible, setJoinSheetVisible] = useState(false)
   const [segment, setSegment] = useState<Segment>('upcoming')
+  const [fabOpen, setFabOpen] = useState(false)
 
   useEffect(() => {
     if (joinTrip.error) showError(joinTrip.error.message)
@@ -42,6 +50,52 @@ export default function DashboardScreen() {
   const { control, handleSubmit, reset, formState: { errors } } = useForm<JoinTripFormData>({
     resolver: zodResolver(joinTripSchema),
   })
+
+  const fabProgress = useSharedValue(0)
+
+  const toggleFab = () => {
+    const next = !fabOpen
+    setFabOpen(next)
+    fabProgress.value = withTiming(next ? 1 : 0, { duration: 200 })
+  }
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(fabProgress.value, [0, 1], [0, 45])}deg` }],
+  }))
+
+  const option1Style = useAnimatedStyle(() => ({
+    opacity: fabProgress.value,
+    transform: [{ translateY: interpolate(fabProgress.value, [0, 1], [20, 0]) }],
+  }))
+
+  const option2Style = useAnimatedStyle(() => ({
+    opacity: fabProgress.value,
+    transform: [{ translateY: interpolate(fabProgress.value, [0, 1], [40, 0]) }],
+  }))
+
+  const fabBgStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(fabProgress.value, [0, 1], ['#0046de', '#ef4444']),
+  }))
+
+  const fabVisible = useSharedValue(1)
+
+  useAnimatedReaction(
+    () => scrollY.value,
+    (current, prev) => {
+      if (prev === null) return
+      const dy = current - prev
+      if (dy > 8 && fabVisible.value === 1) {
+        fabVisible.value = withTiming(0, { duration: 200 })
+      } else if (dy < -8 && fabVisible.value === 0) {
+        fabVisible.value = withTiming(1, { duration: 200 })
+      }
+    }
+  )
+
+  const fabAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
+    opacity: fabVisible.value,
+  }))
 
   const onJoinSubmit = async (data: JoinTripFormData) => {
     try {
@@ -64,13 +118,8 @@ export default function DashboardScreen() {
       <AppHeader
         title="Mis viajes"
         scrollY={scrollY}
-        rightActions={[
-          { icon: 'add', onPress: () => router.push('/(app)/trips/new'), variant: 'primary' },
-          { icon: 'enter-outline', onPress: () => setJoinSheetVisible(true), variant: 'outline' },
-        ]}
       />
 
-      {/* Lista */}
       {isLoading ? (
         <View className="px-5 gap-3">
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
@@ -124,23 +173,6 @@ export default function DashboardScreen() {
                   )
                 })}
               </View>
-              <View className="flex-row gap-3 mb-3">
-                <Button
-                  onPress={() => router.push('/(app)/trips/new')}
-                  className="flex-1"
-                >
-                  <Ionicons name="add" size={18} color="#ffffff" />
-                  <Text className="text-white text-[17px] font-semibold ml-1.5">Crear viaje</Text>
-                </Button>
-                <Button
-                  onPress={() => setJoinSheetVisible(true)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  <Ionicons name="enter-outline" size={18} color="#0046de" />
-                  <Text className="text-primary-500 text-[17px] font-semibold ml-1.5">Unirse</Text>
-                </Button>
-              </View>
             </View>
           }
           renderItem={({ item }) => (
@@ -149,7 +181,7 @@ export default function DashboardScreen() {
               onPress={() => router.push(`/(app)/trips/${item.id}/timeline`)}
             />
           )}
-          ItemSeparatorComponent={() => <View className="h-3" />}
+          ItemSeparatorComponent={() => <View className="h-5" />}
           ListEmptyComponent={
             segment === 'upcoming' ? (
               <EmptyState
@@ -169,6 +201,58 @@ export default function DashboardScreen() {
           refreshing={isLoading}
         />
       )}
+
+      {/* Overlay para cerrar FAB */}
+      {fabOpen && (
+        <Pressable className="absolute inset-0" onPress={toggleFab} />
+      )}
+
+      {/* Speed Dial FAB */}
+      <Animated.View className="absolute right-5 items-end gap-3" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
+        {/* Opción Unirse */}
+        <Animated.View style={option2Style} className="flex-row items-center gap-3" pointerEvents={fabOpen ? 'auto' : 'none'}>
+          <TouchableOpacity
+            onPress={() => { toggleFab(); setJoinSheetVisible(true) }}
+            activeOpacity={0.8}
+            className="flex-row items-center gap-3"
+          >
+            <View className="px-4 py-2 bg-white dark:bg-surface-700 rounded-full" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 }}>
+              <Text className="text-[15px] font-semibold text-neutral-900 dark:text-neutral-50">Unirse</Text>
+            </View>
+            <View className="w-12 h-12 rounded-full bg-white dark:bg-surface-700 border border-primary-500 items-center justify-center" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 }}>
+              <Ionicons name="enter-outline" size={22} color="#0046de" />
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Opción Crear viaje */}
+        <Animated.View style={option1Style} className="flex-row items-center gap-3" pointerEvents={fabOpen ? 'auto' : 'none'}>
+          <TouchableOpacity
+            onPress={() => { toggleFab(); router.push('/(app)/trips/new') }}
+            activeOpacity={0.8}
+            className="flex-row items-center gap-3"
+          >
+            <View className="px-4 py-2 bg-white dark:bg-surface-700 rounded-full" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 }}>
+              <Text className="text-[15px] font-semibold text-neutral-900 dark:text-neutral-50">Crear viaje</Text>
+            </View>
+            <View className="w-12 h-12 rounded-full bg-primary-500 items-center justify-center" style={{ shadowColor: '#0046de', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 4 }}>
+              <Ionicons name="add" size={24} color="#ffffff" />
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* FAB principal */}
+        <TouchableOpacity
+          onPress={toggleFab}
+          activeOpacity={0.85}
+          className="w-14 h-14 rounded-full items-center justify-center"
+        >
+          <Animated.View style={[fabBgStyle, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28, ...fabShadow }]} />
+          <Animated.View style={iconStyle}>
+            <Ionicons name="add" size={28} color="#ffffff" />
+          </Animated.View>
+        </TouchableOpacity>
+      </Animated.View>
 
       {/* Join sheet */}
       <BottomSheet

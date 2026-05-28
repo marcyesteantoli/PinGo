@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
+import Animated, { interpolate, useAnimatedReaction, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
@@ -86,6 +86,22 @@ export default function TimelineScreen() {
   const { tripId, trip, isOwner } = useTripContext()
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
+
+  const fabVisible = useSharedValue(1)
+  useAnimatedReaction(
+    () => scrollY.value,
+    (current, prev) => {
+      if (prev === null) return
+      const dy = current - prev
+      if (dy > 8 && fabVisible.value === 1) fabVisible.value = withTiming(0, { duration: 200 })
+      else if (dy < -8 && fabVisible.value === 0) fabVisible.value = withTiming(1, { duration: 200 })
+    }
+  )
+  const fabAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
+    opacity: fabVisible.value,
+  }))
+
   const queryClient = useQueryClient()
   const { data: experiences, isLoading, error, refetch } = useExperiences(tripId)
   const { data: documents } = useDocuments(tripId)
@@ -251,7 +267,7 @@ export default function TimelineScreen() {
             : <View className="flex-1 w-[3px] bg-neutral-300 dark:bg-neutral-600" />
           }
         </View>
-        <View className="flex-1 pr-4 pb-3">
+        <View className="flex-1 pr-4 pb-5">
           <ExperienceCard
             experience={entry.experience}
             ratingAvg={ratingData?.avg ?? null}
@@ -308,13 +324,15 @@ export default function TimelineScreen() {
       )}
 
       {!isLoading && (
-        <TouchableOpacity
-          onPress={() => setSheetVisible(true)}
-          className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-          style={{ bottom: insets.bottom + 16, ...fabShadow }}
-        >
-          <Ionicons name="add" size={28} color="#ffffff" />
-        </TouchableOpacity>
+        <Animated.View className="absolute right-5" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
+          <TouchableOpacity
+            onPress={() => setSheetVisible(true)}
+            className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+            style={fabShadow}
+          >
+            <Ionicons name="add" size={28} color="#ffffff" />
+          </TouchableOpacity>
+        </Animated.View>
       )}
 
       <UndoToast

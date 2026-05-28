@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { Alert, RefreshControl, Text, TouchableOpacity, View } from 'react-native'
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
+import Animated, { interpolate, useAnimatedReaction, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { fabShadow } from '@lib/shadows'
@@ -62,6 +62,21 @@ export default function ExpensesScreen() {
 
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
+
+  const fabVisible = useSharedValue(1)
+  useAnimatedReaction(
+    () => scrollY.value,
+    (current, prev) => {
+      if (prev === null) return
+      const dy = current - prev
+      if (dy > 8 && fabVisible.value === 1) fabVisible.value = withTiming(0, { duration: 200 })
+      else if (dy < -8 && fabVisible.value === 0) fabVisible.value = withTiming(1, { duration: 200 })
+    }
+  )
+  const fabAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
+    opacity: fabVisible.value,
+  }))
 
   const handleSheetClose = () => {
     setSheetVisible(false)
@@ -131,7 +146,7 @@ export default function ExpensesScreen() {
 
           {/* Ajustes recomendados — sección principal accionable */}
           {debtTransactions.length > 0 && (
-            <View className="mt-6 gap-3">
+            <View className="mt-6 gap-5">
               <View className="flex-row items-center justify-between">
                 <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                   Ajustes recomendados
@@ -163,7 +178,7 @@ export default function ExpensesScreen() {
 
           {/* Saldados — historial de payments confirmados */}
           {(settlements?.length ?? 0) > 0 && (
-            <View className="mt-6 gap-3">
+            <View className="mt-6 gap-5">
               <TouchableOpacity
                 onPress={() => setSettledExpanded(!settledExpanded)}
                 className="flex-row items-center justify-between active:opacity-70"
@@ -193,7 +208,7 @@ export default function ExpensesScreen() {
 
           {/* Balances — colapsable, informacional */}
           { expenses && expenses?.length > 0 && balances.length > 0 && (
-            <View className="mt-6 gap-3">
+            <View className="mt-6 gap-5">
               <TouchableOpacity
                 onPress={() => setBalancesExpanded(!balancesExpanded)}
                 className="flex-row items-center justify-between active:opacity-70"
@@ -218,7 +233,7 @@ export default function ExpensesScreen() {
           )}
 
           {/* Lista de gastos — informacional */}
-          <View className="mt-6 gap-3">
+          <View className="mt-6 gap-5">
             <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
               Gastos ({expenses?.length ?? 0})
             </Text>
@@ -254,13 +269,15 @@ export default function ExpensesScreen() {
 
       {/* FAB */}
       {!isLoading && (
-        <TouchableOpacity
-          onPress={() => setSheetVisible(true)}
-          className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-          style={{ bottom: insets.bottom + 16, ...fabShadow }}
-        >
-          <Ionicons name="add" size={28} color="#ffffff" />
-        </TouchableOpacity>
+        <Animated.View className="absolute right-5" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
+          <TouchableOpacity
+            onPress={() => setSheetVisible(true)}
+            className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+            style={fabShadow}
+          >
+            <Ionicons name="add" size={28} color="#ffffff" />
+          </TouchableOpacity>
+        </Animated.View>
       )}
 
       <AddExpenseSheet

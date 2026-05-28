@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Alert, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Alert, Linking, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -125,13 +125,14 @@ export default function WishlistItemDetailScreen() {
           <Text className="text-[17px] ml-0.5" style={{ color: colors.primary[500] }}>Mis deseos</Text>
         </TouchableOpacity>
         <View className="flex-1" />
-        <TouchableOpacity
-          onPress={() => setEditSheetVisible(true)}
-          hitSlop={8}
-          className="px-3 py-1.5"
-        >
-          <Text className="text-[17px]" style={{ color: colors.primary[500] }}>Editar</Text>
-        </TouchableOpacity>
+        <View className="flex-row items-center gap-1">
+          <TouchableOpacity onPress={handleDelete} hitSlop={12} className="p-2">
+            <Ionicons name="trash-outline" size={20} color={colors.neutral[400]} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setEditSheetVisible(true)} hitSlop={12} className="p-2">
+            <Ionicons name="create-outline" size={22} color={colors.primary[500]} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -160,33 +161,38 @@ export default function WishlistItemDetailScreen() {
             </Text>
 
             {/* Visited toggle */}
-            <TouchableOpacity
-              onPress={handleToggleVisited}
-              activeOpacity={0.85}
-              disabled={toggleVisited.isPending}
-              className="rounded-xl py-3 items-center flex-row justify-center gap-2"
+            <View
+              className="flex-row items-center justify-between px-1 py-3 mt-1 rounded-xl"
               style={{
+                borderTopWidth: 0.5,
+                borderTopColor: isDark ? colors.surface[700] : colors.neutral[100],
                 backgroundColor: isVisited
-                  ? (isDark ? '#064e3b' : '#d1fae5')
-                  : (isDark ? colors.surface[700] : colors.neutral[100]),
+                  ? (isDark ? '#064e3b30' : '#d1fae540')
+                  : 'transparent',
               }}
             >
-              <Ionicons
-                name={isVisited ? 'checkmark-circle' : 'checkmark-circle-outline'}
-                size={20}
-                color={isVisited ? '#10b981' : (isDark ? colors.neutral[400] : colors.neutral[500])}
+              <View className="flex-row items-center gap-2">
+                <Ionicons
+                  name={isVisited ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                  size={20}
+                  color={isVisited ? '#10b981' : (isDark ? colors.neutral[400] : colors.neutral[500])}
+                />
+                <Text
+                  className="text-[15px] font-medium"
+                  style={{ color: isVisited ? '#10b981' : (isDark ? colors.neutral[300] : colors.neutral[700]) }}
+                >
+                  Visitado
+                </Text>
+              </View>
+              <Switch
+                value={isVisited}
+                onValueChange={handleToggleVisited}
+                disabled={toggleVisited.isPending}
+                trackColor={{ false: colors.neutral[300], true: '#10b981' }}
+                thumbColor="white"
+                ios_backgroundColor={colors.neutral[300]}
               />
-              <Text
-                className="text-[15px] font-semibold"
-                style={{
-                  color: isVisited
-                    ? '#10b981'
-                    : (isDark ? colors.neutral[300] : colors.neutral[600]),
-                }}
-              >
-                {isVisited ? 'Visitado' : 'Marcar como visitado'}
-              </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -270,18 +276,6 @@ export default function WishlistItemDetailScreen() {
           </View>
         </View>
 
-        {/* Delete button */}
-        <TouchableOpacity
-          onPress={handleDelete}
-          activeOpacity={0.85}
-          disabled={deleteItem.isPending}
-          className="rounded-xl py-3.5 items-center mt-2"
-          style={{ backgroundColor: isDark ? '#450a0a' : '#fee2e2' }}
-        >
-          <Text className="text-[15px] font-semibold text-red-600 dark:text-red-400">
-            Eliminar deseo
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
 
       <AddWishlistSheet

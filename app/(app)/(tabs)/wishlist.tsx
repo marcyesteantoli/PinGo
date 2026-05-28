@@ -18,6 +18,7 @@ import { WishlistCard } from '@features/wishlist/components/WishlistCard'
 import { AddWishlistSheet } from '@features/wishlist/components/AddWishlistSheet'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
+import { fabShadow } from '@lib/shadows'
 import type { WishlistItem, WishlistItemType } from '@types/index'
 
 const TYPE_FILTERS: { key: WishlistItemType | null; label: string }[] = [
@@ -51,6 +52,26 @@ export default function WishlistScreen() {
   const expandedSectionStyle = useAnimatedStyle(() => ({
     height: interpolate(sectionProgress.value, [0, 1], [57, 0]),
     overflow: 'hidden',
+  }))
+
+  const fabVisible = useSharedValue(1)
+
+  useAnimatedReaction(
+    () => scrollY.value,
+    (current, prev) => {
+      if (prev === null) return
+      const dy = current - prev
+      if (dy > 8 && fabVisible.value === 1) {
+        fabVisible.value = withTiming(0, { duration: 200 })
+      } else if (dy < -8 && fabVisible.value === 0) {
+        fabVisible.value = withTiming(1, { duration: 200 })
+      }
+    }
+  )
+
+  const fabAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
+    opacity: fabVisible.value,
   }))
 
   const [search, setSearch] = useState('')
@@ -289,20 +310,16 @@ onPress={() => router.push({ pathname: '/wishlist/[itemId]' as any, params: { it
       )}
 
       {/* FAB */}
-      <TouchableOpacity
-        onPress={handleOpenAdd}
-        activeOpacity={0.85}
-        className="absolute bottom-8 right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-        style={{
-          shadowColor: colors.primary[500],
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.4,
-          shadowRadius: 8,
-          elevation: 8,
-        }}
-      >
-        <Ionicons name="add" size={28} color={colors.white} />
-      </TouchableOpacity>
+      <Animated.View className="absolute right-5" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
+        <TouchableOpacity
+          onPress={handleOpenAdd}
+          activeOpacity={0.85}
+          className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+          style={fabShadow}
+        >
+          <Ionicons name="add" size={28} color="#ffffff" />
+        </TouchableOpacity>
+      </Animated.View>
 
       <AddWishlistSheet
         visible={sheetVisible}

@@ -5,7 +5,7 @@ import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as MediaLibrary from 'expo-media-library'
 import * as Haptics from 'expo-haptics'
-import { useSharedValue } from 'react-native-reanimated'
+import Animated, { interpolate, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
@@ -44,6 +44,21 @@ export default function MemoriesScreen() {
   const isDark = useColorScheme() === 'dark'
   const count = memories?.length ?? 0
   const scrollY = useSharedValue(0)
+
+  const fabVisible = useSharedValue(1)
+  useAnimatedReaction(
+    () => scrollY.value,
+    (current, prev) => {
+      if (prev === null) return
+      const dy = current - prev
+      if (dy > 8 && fabVisible.value === 1) fabVisible.value = withTiming(0, { duration: 200 })
+      else if (dy < -8 && fabVisible.value === 0) fabVisible.value = withTiming(1, { duration: 200 })
+    }
+  )
+  const fabAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
+    opacity: fabVisible.value,
+  }))
 
   const getUploader = (userId: string) => collaborators.find((c) => c.user_id === userId)
 
@@ -288,7 +303,7 @@ export default function MemoriesScreen() {
             style={{ width: Math.max(4, (count / LIMITS.MAX_PHOTOS_PER_TRIP) * 80) }}
           />
           <View
-            className="h-1.5 rounded-full bg-secondary-100 dark:bg-secondary-900/30"
+            className="h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-100/30"
             style={{ width: Math.max(0, 80 - (count / LIMITS.MAX_PHOTOS_PER_TRIP) * 80) }}
           />
         </View>
@@ -321,29 +336,31 @@ export default function MemoriesScreen() {
       )}
 
       {/* FAB — hidden in selection mode */}
-      {!isLoading && !selectionMode && (
-        addMemories.isPending && addMemories.progress ? (
-          <View
-            className="absolute right-5 h-14 px-4 rounded-full bg-white dark:bg-surface-800 flex-row items-center gap-2"
-            style={{ bottom: insets.bottom + 16, ...fabShadow }}
-          >
-            <ActivityIndicator size="small" color={colors.primary[500]} />
-            <Text className="text-neutral-900 dark:text-white text-sm font-medium">
-              {addMemories.progress.done}/{addMemories.progress.total}
-            </Text>
-          </View>
-        ) : (
-          count < LIMITS.MAX_PHOTOS_PER_TRIP && (
-            <TouchableOpacity
-              onPress={handlePickImage}
-              className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-              style={{ bottom: insets.bottom + 16, ...fabShadow }}
+      <Animated.View className="absolute right-5" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
+        {!isLoading && !selectionMode && (
+          addMemories.isPending && addMemories.progress ? (
+            <View
+              className="h-14 px-4 rounded-full bg-white dark:bg-surface-800 flex-row items-center gap-2"
+              style={fabShadow}
             >
-              <Ionicons name="add" size={28} color="#ffffff" />
-            </TouchableOpacity>
+              <ActivityIndicator size="small" color={colors.primary[500]} />
+              <Text className="text-neutral-900 dark:text-white text-sm font-medium">
+                {addMemories.progress.done}/{addMemories.progress.total}
+              </Text>
+            </View>
+          ) : (
+            count < LIMITS.MAX_PHOTOS_PER_TRIP && (
+              <TouchableOpacity
+                onPress={handlePickImage}
+                className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+                style={fabShadow}
+              >
+                <Ionicons name="add" size={28} color="#ffffff" />
+              </TouchableOpacity>
+            )
           )
-        )
-      )}
+        )}
+      </Animated.View>
 
       {/* Selection toolbar */}
       {selectionMode && <SelectionToolbar />}

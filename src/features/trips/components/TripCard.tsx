@@ -1,6 +1,5 @@
 import { memo, useEffect, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
 import { Share, Text, TextInput, TouchableOpacity, View } from 'react-native'
@@ -244,15 +243,10 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      style={{ backgroundColor: isDark ? colors.surface[800] : colors.white }}
+      style={{ backgroundColor: isDark ? colors.surface[800] : colors.white, flexDirection: 'row' }}
     >
-      <LinearGradient
-        colors={[colors.primary[500], colors.secondary[500]]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={{ height: 3, width: '100%' }}
-      />
-      <View style={{ padding: 16 }}>{cardBody}</View>
+      <View style={{ width: 4, backgroundColor: colors.primary[500] }} />
+      <View style={{ flex: 1, padding: 16 }}>{cardBody}</View>
     </TouchableOpacity>
   ) : (
     <TouchableOpacity
@@ -270,9 +264,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
         className="rounded-2xl"
         style={[
           { opacity: containerWidth > 0 ? 1 : 0 },
-          status === 'active'
-            ? { shadowColor: colors.primary[500], shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.22, shadowRadius: 12, elevation: 6 }
-            : cardShadow,
+          cardShadow,
         ]}
         onLayout={(e) => {
           const w = e.nativeEvent.layout.width

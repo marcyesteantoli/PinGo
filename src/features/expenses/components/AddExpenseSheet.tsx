@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
-import { Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'

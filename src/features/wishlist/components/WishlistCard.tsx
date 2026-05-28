@@ -144,7 +144,7 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited 
 
   return (
     <View
-      className="rounded-2xl mb-3"
+      className="rounded-2xl mb-5"
       style={[
         { opacity: containerWidth > 0 ? 1 : 0 },
         cardShadow,

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { SectionList, Text, TouchableOpacity, View } from 'react-native'
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
+import Animated, { interpolate, useAnimatedReaction, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
@@ -33,6 +33,21 @@ export default function DocumentsScreen() {
   const insets = useSafeAreaInsets()
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
+
+  const fabVisible = useSharedValue(1)
+  useAnimatedReaction(
+    () => scrollY.value,
+    (current, prev) => {
+      if (prev === null) return
+      const dy = current - prev
+      if (dy > 8 && fabVisible.value === 1) fabVisible.value = withTiming(0, { duration: 200 })
+      else if (dy < -8 && fabVisible.value === 0) fabVisible.value = withTiming(1, { duration: 200 })
+    }
+  )
+  const fabAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
+    opacity: fabVisible.value,
+  }))
 
   const sections = Object.values(
     (documents ?? []).reduce((acc: Record<string, { title: string; data: typeof documents }>, doc) => {
@@ -87,7 +102,7 @@ export default function DocumentsScreen() {
                   </View>
                 )}
                 renderItem={({ item }) => (
-                  <View className="mb-3">
+                  <View className="mb-5">
                     <DocumentCard
                       document={item as DocumentWithExperience}
                       onPress={() => setSelectedDocument(item as DocumentWithExperience)}
@@ -113,13 +128,15 @@ export default function DocumentsScreen() {
             )}
 
             {!isLoading && (
-              <TouchableOpacity
-                onPress={() => setSheetVisible(true)}
-                className="absolute right-5 w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-                style={{ bottom: insets.bottom + 16, ...fabShadow }}
-              >
-                <Ionicons name="add" size={28} color="#ffffff" />
-              </TouchableOpacity>
+              <Animated.View className="absolute right-5" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
+                <TouchableOpacity
+                  onPress={() => setSheetVisible(true)}
+                  className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+                  style={fabShadow}
+                >
+                  <Ionicons name="add" size={28} color="#ffffff" />
+                </TouchableOpacity>
+              </Animated.View>
             )}
 
             <UploadDocumentSheet
