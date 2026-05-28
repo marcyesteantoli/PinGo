@@ -17,7 +17,7 @@ interface ExpenseCardProps {
   onDelete?: () => void
 }
 
-type ExpenseCategory = 'restaurant' | 'transport' | 'accommodation' | 'activity' | 'other'
+type ExpenseCategory = 'restaurant' | 'transport' | 'accommodation' | 'activity' | 'entertainment' | 'other'
 
 function getExpenseCategory(description: string, experienceType?: ExpenseCategory | null): ExpenseCategory {
   if (experienceType) return experienceType
@@ -35,23 +35,26 @@ const CATEGORY_ICON: Record<ExpenseCategory, React.ComponentProps<typeof Ionicon
   transport:     'airplane-outline',
   accommodation: 'bed-outline',
   activity:      'compass-outline',
+  entertainment: 'film-outline',
   other:         'wallet-outline',
 }
 
 const CATEGORY_BG: Record<ExpenseCategory, string> = {
-  restaurant:    'bg-red-100 dark:bg-red-700/40',
-  transport:     'bg-cyan-100 dark:bg-cyan-700/40',
-  accommodation: 'bg-purple-100 dark:bg-purple-700/40',
-  activity:      'bg-lime-100 dark:bg-lime-700/40',
-  other:         'bg-neutral-100 dark:bg-surface-700',
+  restaurant:    'bg-activity-orange-bg dark:bg-[#4E1E06]',
+  transport:     'bg-activity-blue-bg dark:bg-[#061E4E]',
+  accommodation: 'bg-activity-purple-bg dark:bg-[#24064E]',
+  activity:      'bg-activity-green-bg dark:bg-[#064E3B]',
+  entertainment: 'bg-activity-pink-bg dark:bg-[#4E062A]',
+  other:         'bg-activity-gray-bg dark:bg-[#334155]',
 }
 
 const CATEGORY_ICON_COLORS: Record<ExpenseCategory, { light: string; dark: string }> = {
-  restaurant:    { light: '#ef4444', dark: '#fca5a5' },
-  transport:     { light: '#06b6d4', dark: '#67e8f9' },
-  accommodation: { light: '#a855f7', dark: '#d8b4fe' },
-  activity:      { light: '#3f6212', dark: '#bef264' },
-  other:         { light: colors.neutral[500], dark: colors.neutral[400] },
+  restaurant:    { light: '#F97316', dark: '#F97316' },
+  transport:     { light: '#3B82F6', dark: '#3B82F6' },
+  accommodation: { light: '#8B5CF6', dark: '#8B5CF6' },
+  activity:      { light: '#22C55E', dark: '#22C55E' },
+  entertainment: { light: '#EC4899', dark: '#EC4899' },
+  other:         { light: '#94A3B8', dark: '#94A3B8' },
 }
 
 const ACTION_WIDTH = 72
