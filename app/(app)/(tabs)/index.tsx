@@ -8,7 +8,6 @@ import Animated, {
   interpolate,
   interpolateColor,
   scrollTo,
-  useAnimatedReaction,
   useAnimatedRef,
   useAnimatedStyle,
   useSharedValue,
@@ -28,8 +27,52 @@ import { useTrips } from '@features/trips/hooks/useTrips'
 import { joinTripSchema, type JoinTripFormData } from '@features/trips/types'
 import { useErrorToast } from '@lib/errorToast'
 import { SegmentedTabBar } from '@components/ui/SegmentedTabBar'
+import { useStaggerEnter } from '@lib/useStaggerEnter'
+import { useFabScroll } from '@lib/useFabScroll'
+import { EASE_OUT, DURATION } from '@lib/animations'
+import type { TripWithCollaborators } from '@features/trips/hooks/useTrips'
 
 type Segment = 'upcoming' | 'past'
+
+function StaggeredTripCard({
+  trip,
+  index,
+  onPress,
+}: {
+  trip: TripWithCollaborators
+  index: number
+  onPress: () => void
+}) {
+  const staggerStyle = useStaggerEnter(index, { delay: 60, duration: 280 })
+  return (
+    <Animated.View style={staggerStyle}>
+      <TripCard trip={trip} onPress={onPress} />
+    </Animated.View>
+  )
+}
+
+function FabOption({
+  onPress,
+  children,
+}: {
+  onPress: () => void
+  children: React.ReactNode
+}) {
+  const scale = useSharedValue(1)
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => { scale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
+    >
+      <Animated.View style={[{ flexDirection: 'row', alignItems: 'center', gap: 12 }, animStyle]}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  )
+}
 
 export default function DashboardScreen() {
   const router = useRouter()
@@ -52,6 +95,7 @@ export default function DashboardScreen() {
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
 
   const fabProgress = useSharedValue(0)
+  const contentOpacity = useSharedValue(1)
 
   const toggleFab = () => {
     const next = !fabOpen
@@ -77,25 +121,21 @@ export default function DashboardScreen() {
     backgroundColor: interpolateColor(fabProgress.value, [0, 1], ['#0046de', '#ef4444']),
   }))
 
-  const fabVisible = useSharedValue(1)
+  const { fabAnimStyle } = useFabScroll(scrollY)
 
-  useAnimatedReaction(
-    () => scrollY.value,
-    (current, prev) => {
-      if (prev === null) return
-      const dy = current - prev
-      if (dy > 8 && fabVisible.value === 1) {
-        fabVisible.value = withTiming(0, { duration: 200 })
-      } else if (dy < -8 && fabVisible.value === 0) {
-        fabVisible.value = withTiming(1, { duration: 200 })
-      }
-    }
-  )
-
-  const fabAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
-    opacity: fabVisible.value,
+  const contentAnimStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
   }))
+
+  const handleSegmentChange = (key: string) => {
+    scrollTo(scrollRef, 0, 0, true)
+    contentOpacity.value = withTiming(0, { duration: 100, easing: EASE_OUT })
+    setTimeout(() => setSegment(key as Segment), 110)
+  }
+
+  useEffect(() => {
+    contentOpacity.value = withTiming(1, { duration: DURATION.normal, easing: EASE_OUT })
+  }, [segment])
 
   const onJoinSubmit = async (data: JoinTripFormData) => {
     try {
@@ -112,11 +152,6 @@ export default function DashboardScreen() {
   const upcomingTrips = trips?.filter(t => t.end_date >= today) ?? []
   const pastTrips    = trips?.filter(t => t.end_date <  today) ?? []
   const displayedTrips = segment === 'upcoming' ? upcomingTrips : pastTrips
-
-  const handleSegmentChange = (key: string) => {
-    setSegment(key as Segment)
-    scrollTo(scrollRef, 0, 0, true)
-  }
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
@@ -163,7 +198,7 @@ export default function DashboardScreen() {
           </View>
 
           {/* index 2: contenido */}
-          <View className="px-5 pt-2 pb-8 gap-5">
+          <Animated.View style={contentAnimStyle} className="px-5 pt-2 pb-8 gap-5">
             {displayedTrips.length === 0 ? (
               segment === 'upcoming' ? (
                 <EmptyState
@@ -179,15 +214,16 @@ export default function DashboardScreen() {
                 />
               )
             ) : (
-              displayedTrips.map((item) => (
-                <TripCard
+              displayedTrips.map((item, index) => (
+                <StaggeredTripCard
                   key={item.id}
                   trip={item}
+                  index={index}
                   onPress={() => router.push(`/(app)/trips/${item.id}/timeline`)}
                 />
               ))
             )}
-          </View>
+          </Animated.View>
         </Animated.ScrollView>
       )}
 
@@ -199,35 +235,27 @@ export default function DashboardScreen() {
       {/* Speed Dial FAB */}
       <Animated.View className="absolute right-5 items-end gap-3" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
         {/* Opción Unirse */}
-        <Animated.View style={option2Style} className="flex-row items-center gap-3" pointerEvents={fabOpen ? 'auto' : 'none'}>
-          <TouchableOpacity
-            onPress={() => { toggleFab(); setJoinSheetVisible(true) }}
-            activeOpacity={0.8}
-            className="flex-row items-center gap-3"
-          >
+        <Animated.View style={option2Style} pointerEvents={fabOpen ? 'auto' : 'none'}>
+          <FabOption onPress={() => { toggleFab(); setJoinSheetVisible(true) }}>
             <View className="px-4 py-2 bg-white dark:bg-surface-700 rounded-full" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 }}>
               <Text className="text-[15px] font-semibold text-neutral-900 dark:text-neutral-50">Unirse</Text>
             </View>
             <View className="w-12 h-12 rounded-full bg-white dark:bg-surface-700 border border-primary-500 items-center justify-center" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 }}>
               <Ionicons name="enter-outline" size={22} color="#0046de" />
             </View>
-          </TouchableOpacity>
+          </FabOption>
         </Animated.View>
 
         {/* Opción Crear viaje */}
-        <Animated.View style={option1Style} className="flex-row items-center gap-3" pointerEvents={fabOpen ? 'auto' : 'none'}>
-          <TouchableOpacity
-            onPress={() => { toggleFab(); router.push('/(app)/trips/new') }}
-            activeOpacity={0.8}
-            className="flex-row items-center gap-3"
-          >
+        <Animated.View style={option1Style} pointerEvents={fabOpen ? 'auto' : 'none'}>
+          <FabOption onPress={() => { toggleFab(); router.push('/(app)/trips/new') }}>
             <View className="px-4 py-2 bg-white dark:bg-surface-700 rounded-full" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 }}>
               <Text className="text-[15px] font-semibold text-neutral-900 dark:text-neutral-50">Crear viaje</Text>
             </View>
             <View className="w-12 h-12 rounded-full bg-primary-500 items-center justify-center" style={{ shadowColor: '#0046de', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 4 }}>
               <Ionicons name="add" size={24} color="#ffffff" />
             </View>
-          </TouchableOpacity>
+          </FabOption>
         </Animated.View>
 
         {/* FAB principal */}

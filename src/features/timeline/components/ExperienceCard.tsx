@@ -2,22 +2,39 @@ import { memo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
-import { Text, TouchableOpacity, View } from 'react-native'
-import { Badge } from '@components/ui/Badge'
-import type { BadgeVariant } from '@components/ui/Badge'
+import { Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { EASE_OUT, DURATION } from '@lib/animations'
 import { EmojiRating } from '@components/ui/EmojiRating'
-import { EXPERIENCE_TYPE_LABELS, formatTimeRange } from '../types'
+import { formatTimeRange } from '../types'
 import type { Experience } from '@types/index'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 
-const TYPE_BADGE_VARIANT: Record<Experience['type'], BadgeVariant> = {
-  transport: 'transport',
-  accommodation: 'accommodation',
-  activity: 'activity',
-  restaurant: 'restaurant',
-  entertainment: 'entertainment',
-  other: 'other',
+const TYPE_ICON: Record<Experience['type'], React.ComponentProps<typeof Ionicons>['name']> = {
+  transport:     'airplane-outline',
+  accommodation: 'bed-outline',
+  activity:      'compass-outline',
+  restaurant:    'restaurant-outline',
+  entertainment: 'film-outline',
+  other:         'ellipse-outline',
+}
+
+const TYPE_BG: Record<Experience['type'], string> = {
+  transport:     'bg-activity-blue-bg dark:bg-[#061E4E]',
+  accommodation: 'bg-activity-purple-bg dark:bg-[#24064E]',
+  activity:      'bg-activity-green-bg dark:bg-[#064E3B]',
+  restaurant:    'bg-activity-orange-bg dark:bg-[#4E1E06]',
+  entertainment: 'bg-activity-pink-bg dark:bg-[#4E062A]',
+  other:         'bg-activity-gray-bg dark:bg-[#334155]',
+}
+
+const TYPE_ICON_COLOR: Record<Experience['type'], string> = {
+  transport:     '#3B82F6',
+  accommodation: '#8B5CF6',
+  activity:      '#22C55E',
+  restaurant:    '#F97316',
+  entertainment: '#EC4899',
+  other:         '#94A3B8',
 }
 
 const EDIT_WIDTH = 72
@@ -86,6 +103,9 @@ export const ExperienceCard = memo(function ExperienceCard({
     translateX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
   }
 
+  const pressScale = useSharedValue(1)
+  const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }))
+
   const handleEditPress = () => {
     closeSwipe()
     onEdit?.()
@@ -114,42 +134,46 @@ export const ExperienceCard = memo(function ExperienceCard({
         <Animated.View style={[{ flexDirection: 'row', width: rowWidth }, cardStyle]}>
           <GestureDetector gesture={pan}>
             <View style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}>
-              <TouchableOpacity
+              <Pressable
                 onPress={onPress}
-                className="bg-white dark:bg-surface-800 px-4 pt-3 pb-3"
-                activeOpacity={0.7}
+                android_ripple={{ color: 'transparent', borderless: true }}
+                onPressIn={() => { pressScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
+                onPressOut={() => { pressScale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
               >
-                {/* Badge row */}
-                <View className="flex-row gap-1.5 mb-2">
-                  <Badge
-                    scheme="A"
-                    label={EXPERIENCE_TYPE_LABELS[experience.type]}
-                    variant={TYPE_BADGE_VARIANT[experience.type]}
-                  />
+              <Animated.View style={pressStyle} className="bg-white dark:bg-surface-800 px-4 pt-3.5 pb-3.5">
+                {/* Top section: icon + title/location */}
+                <View className="flex-row items-start gap-3">
+                  <View className={`w-11 h-11 rounded-xl items-center justify-center flex-shrink-0 ${TYPE_BG[experience.type]}`}>
+                    <Ionicons
+                      name={TYPE_ICON[experience.type]}
+                      size={22}
+                      color={TYPE_ICON_COLOR[experience.type]}
+                    />
+                  </View>
+
+                  <View className="flex-1">
+                    <Text className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 leading-snug" numberOfLines={2}>
+                      {experience.title}
+                    </Text>
+
+                    {location?.name && (
+                      <View className="flex-row items-center gap-1 mt-0.5">
+                        <Ionicons name="location-outline" size={13} color={colors.neutral[400]} />
+                        <Text className="text-sm text-neutral-500 dark:text-neutral-400 flex-1" numberOfLines={1}>
+                          {location.name}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
 
-                {/* Title */}
-                <Text className="text-base font-semibold text-neutral-900 dark:text-neutral-50 mb-0.5" numberOfLines={2}>
-                  {experience.title}
-                </Text>
-
-                {/* Location subtitle */}
-                {location?.name && (
-                  <View className="flex-row items-center gap-1 mt-0.5">
-                    <Ionicons name="location-outline" size={14} color={colors.neutral[400]} />
-                    <Text className="text-sm text-neutral-500 dark:text-neutral-400 flex-1" numberOfLines={1}>
-                      {location.name}
-                    </Text>
-                  </View>
-                )}
-
-                {/* Bottom row: time/confirmation left · rating right */}
+                {/* Full-width bottom row */}
                 {hasBottomRow && (
                   <View className="flex-row items-center justify-between mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-surface-700">
                     <View className="flex-row items-center gap-2">
                       {timeRange && (
                         <View className="flex-row items-center gap-1">
-                          <Ionicons name="time-outline" size={14} color={colors.neutral[400]} />
+                          <Ionicons name="time-outline" size={13} color={colors.neutral[400]} />
                           <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
                             {timeRange}
                           </Text>
@@ -171,7 +195,8 @@ export const ExperienceCard = memo(function ExperienceCard({
                     )}
                   </View>
                 )}
-              </TouchableOpacity>
+              </Animated.View>
+              </Pressable>
             </View>
           </GestureDetector>
 

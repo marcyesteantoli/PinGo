@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
-import { ActivityIndicator, Image, Text, TouchableOpacity, View, useColorScheme } from 'react-native'
+import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { WebView } from 'react-native-webview'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -184,11 +184,10 @@ export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps)
     <View
       className="rounded-2xl"
       style={{
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
+        ...Platform.select({
+          android: { borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,0,0,0.10)' },
+          default: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 },
+        }),
         opacity: containerWidth > 0 ? 1 : 0,
       }}
       onLayout={(e) => {

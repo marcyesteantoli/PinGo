@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react'
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { useEffect, useMemo, useState } from 'react'
+import { Alert, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Animated, {
-  interpolate,
   scrollTo,
   useAnimatedReaction,
   useAnimatedRef,
@@ -22,6 +21,9 @@ import { AddWishlistSheet } from '@features/wishlist/components/AddWishlistSheet
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { fabShadow } from '@lib/shadows'
+import { useStaggerEnter } from '@lib/useStaggerEnter'
+import { useFabScroll } from '@lib/useFabScroll'
+import { EASE_OUT, DURATION } from '@lib/animations'
 import type { WishlistItem, WishlistItemType } from '@types/index'
 
 const TYPE_FILTERS: { key: WishlistItemType | null; label: string }[] = [
@@ -34,6 +36,37 @@ const TYPE_FILTERS: { key: WishlistItemType | null; label: string }[] = [
 ]
 
 type VisitedFilter = 'pending' | 'visited'
+
+function StaggeredWishlistCard(props: React.ComponentProps<typeof WishlistCard> & { index: number }) {
+  const { index, ...rest } = props
+  const staggerStyle = useStaggerEnter(index, { delay: 55, duration: 280 })
+  return (
+    <Animated.View style={staggerStyle}>
+      <WishlistCard {...rest} />
+    </Animated.View>
+  )
+}
+
+function FilterPill({ isActive, label, onPress }: { isActive: boolean; label: string; onPress: () => void }) {
+  const scale = useSharedValue(1)
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => { scale.value = withTiming(0.95, { duration: DURATION.press, easing: EASE_OUT }) }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
+    >
+      <Animated.View
+        style={animStyle}
+        className={`px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
+      >
+        <Text className={`text-[13px] ${isActive ? 'font-semibold text-white' : 'font-normal text-neutral-600 dark:text-neutral-300'}`}>
+          {label}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  )
+}
 
 export default function WishlistScreen() {
   const { isDark } = useTheme()
@@ -52,27 +85,11 @@ export default function WishlistScreen() {
     }
   )
 
-  const fabVisible = useSharedValue(1)
-
-  useAnimatedReaction(
-    () => scrollY.value,
-    (current, prev) => {
-      if (prev === null) return
-      const dy = current - prev
-      if (dy > 8 && fabVisible.value === 1) {
-        fabVisible.value = withTiming(0, { duration: 200 })
-      } else if (dy < -8 && fabVisible.value === 0) {
-        fabVisible.value = withTiming(1, { duration: 200 })
-      }
-    }
-  )
-
-  const fabAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
-    opacity: fabVisible.value,
-  }))
+  const { fabAnimStyle } = useFabScroll(scrollY)
 
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
+  const contentOpacity = useSharedValue(1)
+  const contentAnimStyle = useAnimatedStyle(() => ({ opacity: contentOpacity.value }))
 
   const [search, setSearch] = useState('')
   const [activeType, setActiveType] = useState<WishlistItemType | null>(null)
@@ -135,9 +152,14 @@ export default function WishlistScreen() {
   }
 
   const handleFilterChange = (key: string) => {
-    setVisitedFilter(key as VisitedFilter)
     scrollTo(scrollRef, 0, 0, true)
+    contentOpacity.value = withTiming(0, { duration: 100, easing: EASE_OUT })
+    setTimeout(() => setVisitedFilter(key as VisitedFilter), 110)
   }
+
+  useEffect(() => {
+    contentOpacity.value = withTiming(1, { duration: DURATION.normal, easing: EASE_OUT })
+  }, [visitedFilter])
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
@@ -145,7 +167,6 @@ export default function WishlistScreen() {
         title="Mis deseos"
         scrollY={scrollY}
         expandProgress={sectionProgress}
-        rightActions={[{ icon: 'add', onPress: handleOpenAdd }]}
       />
 
       {isLoading ? (
@@ -177,7 +198,7 @@ export default function WishlistScreen() {
               ]}
               active={visitedFilter}
               onChange={handleFilterChange}
-              className="mb-3"
+              className="mx-5 mb-3"
             />
 
             <View className="px-5 pb-2.5">
@@ -202,28 +223,19 @@ export default function WishlistScreen() {
               contentContainerStyle={{ paddingBottom: 12, paddingHorizontal: 20, gap: 8 }}
               keyboardShouldPersistTaps="handled"
             >
-              {TYPE_FILTERS.map((filter) => {
-                const isActive = activeType === filter.key
-                return (
-                  <TouchableOpacity
-                    key={String(filter.key)}
-                    onPress={() => setActiveType(filter.key)}
-                    activeOpacity={0.7}
-                    className={`px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
-                  >
-                    <Text
-                      className={`text-[13px] ${isActive ? 'font-semibold text-white' : 'font-normal text-neutral-600 dark:text-neutral-300'}`}
-                    >
-                      {filter.label}
-                    </Text>
-                  </TouchableOpacity>
-                )
-              })}
+              {TYPE_FILTERS.map((filter) => (
+                <FilterPill
+                  key={String(filter.key)}
+                  isActive={activeType === filter.key}
+                  label={filter.label}
+                  onPress={() => setActiveType(filter.key)}
+                />
+              ))}
             </ScrollView>
           </View>
 
           {/* index 2: items */}
-          <View className="px-5 pt-1 pb-24 gap-3">
+          <Animated.View style={contentAnimStyle} className="px-5 pt-1 pb-24 gap-3">
             {filtered.length === 0 ? (
               items.length === 0 ? (
                 <View className="items-center justify-center px-8 pt-16">
@@ -273,10 +285,11 @@ export default function WishlistScreen() {
                 </View>
               ) : null
             ) : (
-              filtered.map((item) => (
-                <WishlistCard
+              filtered.map((item, index) => (
+                <StaggeredWishlistCard
                   key={item.id}
                   item={item}
+                  index={index}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   onPress={() => router.push({ pathname: '/wishlist/[itemId]' as any, params: { itemId: item.id } })}
                   onEdit={() => handleEdit(item)}
@@ -287,7 +300,7 @@ export default function WishlistScreen() {
                 />
               ))
             )}
-          </View>
+          </Animated.View>
         </Animated.ScrollView>
       )}
 

@@ -212,10 +212,10 @@ export function EmojiRating({ value, onChange, size = 'md' }: EmojiRatingProps) 
     const faceSize = size === 'lg' ? 28 : 22
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: size === 'lg' ? 5 : 3 }}>
-        <RatingFace level={getLevel(clamped)} size={faceSize} />
         <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
           {`${Number.isInteger(value) ? value : value.toFixed(1)}/10`}
         </Text>
+        <RatingFace level={getLevel(clamped)} size={faceSize} />
       </View>
     )
   }

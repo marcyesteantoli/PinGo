@@ -1,10 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { Alert, RefreshControl, Text, TouchableOpacity, View } from 'react-native'
 import Animated, {
-  interpolate,
   scrollTo,
-  useAnimatedReaction,
   useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -34,10 +32,42 @@ import { calculateBalances } from '@features/expenses/utils/calculateBalances'
 import { calculateDebtResolution } from '@features/expenses/utils/calculateDebtResolution'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
+import { useStaggerEnter } from '@lib/useStaggerEnter'
+import { useFabScroll } from '@lib/useFabScroll'
+import { EASE_OUT, DURATION } from '@lib/animations'
 import type { CreateExpenseFormData } from '@features/expenses/types'
 import type { ExpenseWithSplits } from '@/types'
 
 type ActiveTab = 'gastos' | 'ajustes' | 'saldos'
+
+function StaggeredExpenseCard({
+  expense,
+  index,
+  currentUserId,
+  onPress,
+  onEdit,
+  onDelete,
+}: {
+  expense: ExpenseWithSplits
+  index: number
+  currentUserId?: string
+  onPress: () => void
+  onEdit?: () => void
+  onDelete?: () => void
+}) {
+  const staggerStyle = useStaggerEnter(index, { delay: 50, distance: 8 })
+  return (
+    <Animated.View style={staggerStyle}>
+      <ExpenseCard
+        expense={expense}
+        currentUserId={currentUserId}
+        onPress={onPress}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    </Animated.View>
+  )
+}
 
 export default function ExpensesScreen() {
   const { tripId, collaborators } = useTripContext()
@@ -68,31 +98,24 @@ export default function ExpensesScreen() {
 
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
   const scrollY = useSharedValue(0)
+  const contentOpacity = useSharedValue(1)
+  const contentAnimStyle = useAnimatedStyle(() => ({ opacity: contentOpacity.value }))
   const scrollHandler = useAnimatedScrollHandler((e) => {
     scrollY.value = e.contentOffset.y
   })
 
-  const fabVisible = useSharedValue(1)
-  useAnimatedReaction(
-    () => scrollY.value,
-    (current, prev) => {
-      if (prev === null) return
-      const dy = current - prev
-      if (dy > 8 && fabVisible.value === 1) fabVisible.value = withTiming(0, { duration: 200 })
-      else if (dy < -8 && fabVisible.value === 0) fabVisible.value = withTiming(1, { duration: 200 })
-    }
-  )
-  const fabAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
-    opacity: fabVisible.value,
-  }))
+  const { fabVisible, fabAnimStyle } = useFabScroll(scrollY)
 
   const handleTabChange = (key: string) => {
-    setActiveTab(key as ActiveTab)
-    scrollY.value = 0
     scrollTo(scrollRef, 0, 0, true)
-    fabVisible.value = withTiming(1, { duration: 200 })
+    fabVisible.value = 1
+    contentOpacity.value = withTiming(0, { duration: 100, easing: EASE_OUT })
+    setTimeout(() => setActiveTab(key as ActiveTab), 110)
   }
+
+  useEffect(() => {
+    contentOpacity.value = withTiming(1, { duration: DURATION.normal, easing: EASE_OUT })
+  }, [activeTab])
 
   const handleSheetClose = () => {
     setSheetVisible(false)
@@ -176,7 +199,7 @@ export default function ExpensesScreen() {
             />
 
             {/* index 2: tab content */}
-            <View className="px-5 pt-2 pb-28 gap-5">
+            <Animated.View style={contentAnimStyle} className="px-5 pt-2 pb-28 gap-5">
               {/* Tab: Gastos */}
               {activeTab === 'gastos' && (
                 !expenses?.length ? (
@@ -188,12 +211,13 @@ export default function ExpensesScreen() {
                     onAction={() => setSheetVisible(true)}
                   />
                 ) : (
-                  expenses.map((expense) => {
+                  expenses.map((expense, index) => {
                     const isPayer = expense.payer_id === currentUser?.id
                     return (
-                      <ExpenseCard
+                      <StaggeredExpenseCard
                         key={expense.id}
                         expense={expense}
+                        index={index}
                         currentUserId={currentUser?.id}
                         onPress={() =>
                           router.push({
@@ -325,7 +349,7 @@ export default function ExpensesScreen() {
                   />
                 )
               )}
-            </View>
+            </Animated.View>
           </Animated.ScrollView>
 
           {/* FAB */}

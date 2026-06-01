@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
-import Animated, { interpolate, useAnimatedReaction, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
@@ -23,6 +23,8 @@ import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useRatingsForTrip } from '@features/timeline/hooks/useRatingsForTrip'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
 import { queryKeys } from '@lib/queryKeys'
+import { useStaggerEnter } from '@lib/useStaggerEnter'
+import { useFabScroll } from '@lib/useFabScroll'
 import type { Experience } from '@types/index'
 import type { CreateExperienceFormData } from '@features/timeline/types'
 
@@ -30,7 +32,7 @@ type Section = { title: string; data: Experience[] }
 
 type TimelineEntry =
   | { type: 'header'; title: string; count: number; isFirst: boolean; isToday: boolean }
-  | { type: 'item'; experience: Experience; isUndated: boolean }
+  | { type: 'item'; experience: Experience; isUndated: boolean; sectionIndex: number }
 
 function groupByDate(experiences: Experience[]): Section[] {
   const groups: Record<string, Experience[]> = {}
@@ -67,11 +69,41 @@ function toRows(sections: Section[]): TimelineEntry[] {
       isFirst: i === 0,
       isToday: !isUndated && s.title === today,
     })
-    s.data.forEach(exp =>
-      rows.push({ type: 'item', experience: exp, isUndated })
+    s.data.forEach((exp, j) =>
+      rows.push({ type: 'item', experience: exp, isUndated, sectionIndex: j })
     )
   })
   return rows
+}
+
+function StaggeredExperienceCardWrapper({
+  entry,
+  ratingData,
+  onDelete,
+  onEdit,
+  onPress,
+}: {
+  entry: { experience: Experience; sectionIndex: number }
+  ratingData: { avg: number | null; count: number } | undefined
+  onDelete: () => void
+  onEdit: () => void
+  onPress: () => void
+}) {
+  const staggerStyle = useStaggerEnter(entry.sectionIndex, { delay: 50, duration: 240, axis: 'x', distance: 8 })
+  return (
+    <Animated.View style={staggerStyle}>
+      <ExperienceCard
+        experience={entry.experience}
+        ratingAvg={ratingData?.avg ?? null}
+        ratingCount={ratingData?.count ?? 0}
+        canDelete
+        onDelete={onDelete}
+        canEdit
+        onEdit={onEdit}
+        onPress={onPress}
+      />
+    </Animated.View>
+  )
 }
 
 interface DeleteSheetState {
@@ -87,20 +119,7 @@ export default function TimelineScreen() {
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
 
-  const fabVisible = useSharedValue(1)
-  useAnimatedReaction(
-    () => scrollY.value,
-    (current, prev) => {
-      if (prev === null) return
-      const dy = current - prev
-      if (dy > 8 && fabVisible.value === 1) fabVisible.value = withTiming(0, { duration: 200 })
-      else if (dy < -8 && fabVisible.value === 0) fabVisible.value = withTiming(1, { duration: 200 })
-    }
-  )
-  const fabAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
-    opacity: fabVisible.value,
-  }))
+  const { fabAnimStyle } = useFabScroll(scrollY)
 
   const queryClient = useQueryClient()
   const { data: experiences, isLoading, error, refetch } = useExperiences(tripId)
@@ -268,13 +287,10 @@ export default function TimelineScreen() {
           }
         </View>
         <View className="flex-1 pr-4 pb-5">
-          <ExperienceCard
-            experience={entry.experience}
-            ratingAvg={ratingData?.avg ?? null}
-            ratingCount={ratingData?.count ?? 0}
-            canDelete
+          <StaggeredExperienceCardWrapper
+            entry={entry}
+            ratingData={ratingData}
             onDelete={() => handleDeleteIntent(entry.experience)}
-            canEdit
             onEdit={() => setEditExperience(entry.experience)}
             onPress={() => router.push({
                 pathname: '/(app)/trips/experience/[experienceId]',

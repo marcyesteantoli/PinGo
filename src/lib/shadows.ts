@@ -1,12 +1,18 @@
+import { Platform, StyleSheet } from 'react-native'
 import { colors } from '@lib/colors'
 
-export const cardShadow = {
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.06,
-  shadowRadius: 8,
-  elevation: 2,
-} as const
+export const cardShadow = Platform.select({
+  android: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0,0,0,0.10)',
+  },
+  default: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
+}) as object
 
 export const ctaShadow = {
   shadowColor: colors.primary[500],

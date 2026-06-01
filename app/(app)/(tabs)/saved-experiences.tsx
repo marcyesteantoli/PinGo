@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'expo-router'
 import {
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -18,22 +19,39 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
 import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
-import { Badge } from '@components/ui/Badge'
-import { EXPERIENCE_TYPE_LABELS } from '@features/timeline/types'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
+import { useStaggerEnter } from '@lib/useStaggerEnter'
+import { EASE_OUT, DURATION } from '@lib/animations'
 import type { SavedExperienceItem } from '@types/index'
-import type { BadgeVariant } from '@components/ui/Badge'
 import type { Experience } from '@types/index'
 
-const TYPE_BADGE_VARIANT: Record<string, BadgeVariant> = {
-  transport: 'transport',
-  accommodation: 'accommodation',
-  activity: 'activity',
-  restaurant: 'restaurant',
-  entertainment: 'entertainment',
-  other: 'other',
+const TYPE_ICON: Record<Experience['type'], React.ComponentProps<typeof Ionicons>['name']> = {
+  transport:     'airplane-outline',
+  accommodation: 'bed-outline',
+  activity:      'compass-outline',
+  restaurant:    'restaurant-outline',
+  entertainment: 'film-outline',
+  other:         'ellipse-outline',
+}
+
+const TYPE_BG: Record<Experience['type'], string> = {
+  transport:     'bg-activity-blue-bg dark:bg-[#061E4E]',
+  accommodation: 'bg-activity-purple-bg dark:bg-[#24064E]',
+  activity:      'bg-activity-green-bg dark:bg-[#064E3B]',
+  restaurant:    'bg-activity-orange-bg dark:bg-[#4E1E06]',
+  entertainment: 'bg-activity-pink-bg dark:bg-[#4E062A]',
+  other:         'bg-activity-gray-bg dark:bg-[#334155]',
+}
+
+const TYPE_ICON_COLOR: Record<Experience['type'], string> = {
+  transport:     '#3B82F6',
+  accommodation: '#8B5CF6',
+  activity:      '#22C55E',
+  restaurant:    '#F97316',
+  entertainment: '#EC4899',
+  other:         '#94A3B8',
 }
 
 const TYPE_FILTERS: { key: string | null; label: string }[] = [
@@ -61,66 +79,73 @@ function getLocationText(location: unknown): string | null {
 interface SavedExperienceCardProps {
   item: SavedExperienceItem
   onPress: () => void
+  index: number
 }
 
-function SavedExperienceCard({ item, onPress }: SavedExperienceCardProps) {
-  const { isDark } = useTheme()
+function SavedExperienceCard({ item, onPress, index }: SavedExperienceCardProps) {
   const { experience, note } = item
   const locationText = getLocationText(experience.location)
+  const type = experience.type as Experience['type']
+  const hasFooter = !!(note || experience.trip?.name)
+
+  const staggerStyle = useStaggerEnter(index, { delay: 50 })
+  const pressScale = useSharedValue(1)
+  const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }))
 
   return (
-    <View className="rounded-2xl mb-3" style={cardShadow}>
-      <TouchableOpacity
+    <Animated.View style={[staggerStyle, cardShadow]} className="rounded-2xl mb-3">
+      <Pressable
         onPress={onPress}
-        activeOpacity={0.75}
-        className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden"
+        onPressIn={() => { pressScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
+        onPressOut={() => { pressScale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
       >
-        <View className="p-4">
-          <View className="flex-row items-center justify-between mb-2">
-            <Badge
-              label={EXPERIENCE_TYPE_LABELS[experience.type as Experience['type']]}
-              variant={TYPE_BADGE_VARIANT[experience.type]}
-            />
-            {experience.trip?.name && (
-              <Text
-                numberOfLines={1}
-                className="text-[13px] text-neutral-500 dark:text-neutral-400 shrink ml-2"
-              >
-                {experience.trip.name}
+        <Animated.View style={pressStyle} className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
+        <View className="px-4 pt-3.5 pb-3.5">
+          {/* Top section: icon + title/location */}
+          <View className="flex-row items-start gap-3">
+            <View className={`w-11 h-11 rounded-xl items-center justify-center flex-shrink-0 ${TYPE_BG[type]}`}>
+              <Ionicons name={TYPE_ICON[type]} size={22} color={TYPE_ICON_COLOR[type]} />
+            </View>
+
+            <View className="flex-1">
+              <Text numberOfLines={2} className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 leading-snug">
+                {experience.title}
               </Text>
-            )}
+
+              {locationText && (
+                <View className="flex-row items-center gap-1 mt-0.5">
+                  <Ionicons name="location-outline" size={13} color={colors.neutral[400]} />
+                  <Text numberOfLines={1} className="text-sm text-neutral-500 dark:text-neutral-400 flex-1">
+                    {locationText}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
 
-          <Text
-            numberOfLines={2}
-            className={`text-[17px] font-semibold text-neutral-900 dark:text-neutral-50 ${locationText ? 'mb-1' : ''}`}
-          >
-            {experience.title}
-          </Text>
+          {/* Full-width footer */}
+          {hasFooter && (
+            <View className="flex-row items-center justify-between mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-surface-700">
+              {note ? (
+                <View className="flex-row items-center gap-1.5 flex-1 mr-2">
+                  <Ionicons name="chatbubble-outline" size={13} color={colors.neutral[400]} />
+                  <Text numberOfLines={1} className="text-sm text-neutral-500 dark:text-neutral-400 flex-1 italic">
+                    {note}
+                  </Text>
+                </View>
+              ) : <View className="flex-1" />}
 
-          {locationText && (
-            <View className="flex-row items-center gap-1">
-              <Ionicons name="location-outline" size={15} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
-              <Text numberOfLines={1} className="text-[13px] text-neutral-500 dark:text-neutral-400 flex-1">
-                {locationText}
-              </Text>
+              {experience.trip?.name && (
+                <Text numberOfLines={1} className="text-sm text-neutral-500 dark:text-neutral-400 shrink">
+                  {experience.trip.name}
+                </Text>
+              )}
             </View>
           )}
-
-          {note ? (
-            <View className="flex-row items-center gap-1.5 mt-2">
-              <Ionicons name="chatbubble-outline" size={13} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
-              <Text
-                numberOfLines={1}
-                className="text-[13px] text-neutral-500 dark:text-neutral-400 flex-1 italic"
-              >
-                {note}
-              </Text>
-            </View>
-          ) : null}
         </View>
-      </TouchableOpacity>
-    </View>
+        </Animated.View>
+      </Pressable>
+    </Animated.View>
   )
 }
 
@@ -236,9 +261,10 @@ export default function SavedExperiencesScreen() {
         <Animated.FlatList
           data={filtered}
           keyExtractor={(item) => item.experience.id}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <SavedExperienceCard
               item={item}
+              index={index}
               onPress={() => router.push(`/saved-experiences/${item.experience.id}`)}
             />
           )}

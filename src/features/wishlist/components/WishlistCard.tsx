@@ -1,21 +1,13 @@
 import { useState } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, Easing } from 'react-native-reanimated'
+import { EASE_OUT, DURATION } from '@lib/animations'
 import { useColorScheme } from 'nativewind'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import type { WishlistItem, WishlistItemType } from '@types/index'
-
-const TYPE_LABELS: Record<WishlistItemType, string> = {
-  city: 'Ciudad',
-  restaurant: 'Restaurante',
-  activity: 'Actividad',
-  accommodation: 'Alojamiento',
-  entertainment: 'Entretenimiento',
-  other: 'Otro',
-}
 
 const TYPE_ICONS: Record<WishlistItemType, keyof typeof Ionicons.glyphMap> = {
   city: 'business-outline',
@@ -58,7 +50,6 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited 
   const { colorScheme } = useColorScheme()
   const isDark = colorScheme === 'dark'
   const typeColor = TYPE_COLORS[item.type]
-  const typeLabel = TYPE_LABELS[item.type]
   const typeIcon = TYPE_ICONS[item.type]
   const locationText = [item.location?.city, item.location?.country].filter(Boolean).join(', ')
   const isVisited = !!item.visited_at
@@ -67,6 +58,10 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited 
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
   const effectiveWidth = ACTION_WIDTH * 3
+  const pressScale = useSharedValue(1)
+  const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }))
+  const iconScale = useSharedValue(1)
+  const iconAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: iconScale.value }] }))
 
   const pan = Gesture.Pan()
     .activeOffsetX([-10, 10])
@@ -94,63 +89,60 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited 
   const rowWidth = containerWidth > 0 ? containerWidth + effectiveWidth : undefined
   const cardWidth = containerWidth > 0 ? containerWidth : undefined
 
+  const hasFooter = !!(item.note || isVisited)
+
   const cardBody = (
-    <View className="p-4">
-      <View className="flex-row items-center justify-between mb-2">
-        <View className="flex-row items-center gap-1.5">
-          <View style={{ backgroundColor: isDark ? TYPE_BG_COLORS[item.type].dark : TYPE_BG_COLORS[item.type].light, borderRadius: 8, padding: 4 }}>
-            <Ionicons name={typeIcon} size={14} color={typeColor} />
-          </View>
-          <Text style={{ color: typeColor }} className="text-[13px] font-semibold">
-            {typeLabel}
-          </Text>
+    <View className="px-4 pt-3.5 pb-3.5">
+      {/* Top section: icon + title/location */}
+      <View className="flex-row items-start gap-3">
+        <View
+          className="w-11 h-11 rounded-xl items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: isDark ? TYPE_BG_COLORS[item.type].dark : TYPE_BG_COLORS[item.type].light }}
+        >
+          <Ionicons name={typeIcon} size={22} color={typeColor} />
         </View>
 
-        {isVisited && (
-          <View className="flex-row items-center gap-1 bg-emerald-100 dark:bg-emerald-900/40 rounded-full px-2 py-0.5">
-            <Ionicons name="checkmark-circle" size={13} color="#10b981" />
-            <Text className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              Visitado
-            </Text>
-          </View>
-        )}
+        <View className="flex-1">
+          <Text
+            numberOfLines={2}
+            className={`text-lg font-semibold text-neutral-900 dark:text-neutral-50 leading-snug ${isVisited ? 'line-through opacity-60' : ''}`}
+          >
+            {item.name}
+          </Text>
+
+          {locationText ? (
+            <View className="flex-row items-center gap-1 mt-0.5">
+              <Ionicons name="location-outline" size={13} color={colors.neutral[400]} />
+              <Text numberOfLines={1} className="text-sm text-neutral-500 dark:text-neutral-400 flex-1">
+                {locationText}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </View>
 
-      <Text
-        numberOfLines={2}
-        className={`text-[17px] font-semibold text-neutral-900 dark:text-neutral-50 ${isVisited ? 'line-through opacity-60' : ''} ${locationText ? 'mb-1' : ''}`}
-      >
-        {item.name}
-      </Text>
+      {/* Full-width footer */}
+      {hasFooter && (
+        <View className="flex-row items-center justify-between mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-surface-700">
+          {item.note ? (
+            <View className="flex-row items-center gap-1.5 flex-1 mr-2">
+              <Ionicons name="chatbubble-outline" size={13} color={colors.neutral[400]} />
+              <Text numberOfLines={1} className="text-sm text-neutral-500 dark:text-neutral-400 flex-1 italic">
+                {item.note}
+              </Text>
+            </View>
+          ) : <View className="flex-1" />}
 
-      {locationText ? (
-        <View className="flex-row items-center gap-1">
-          <Ionicons
-            name="location-outline"
-            size={15}
-            color={isDark ? colors.neutral[500] : colors.neutral[400]}
-          />
-          <Text numberOfLines={1} className="text-[13px] text-neutral-500 dark:text-neutral-400 flex-1">
-            {locationText}
-          </Text>
+          {isVisited && (
+            <View className="flex-row items-center gap-1 bg-emerald-100 dark:bg-emerald-900/40 rounded-full px-2 py-0.5">
+              <Ionicons name="checkmark-circle" size={13} color="#10b981" />
+              <Text className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                Visitado
+              </Text>
+            </View>
+          )}
         </View>
-      ) : null}
-
-      {item.note ? (
-        <View className="flex-row items-center gap-1.5 mt-2">
-          <Ionicons
-            name="chatbubble-outline"
-            size={13}
-            color={isDark ? colors.neutral[500] : colors.neutral[400]}
-          />
-          <Text
-            numberOfLines={1}
-            className="text-[13px] text-neutral-500 dark:text-neutral-400 flex-1 italic"
-          >
-            {item.note}
-          </Text>
-        </View>
-      ) : null}
+      )}
     </View>
   )
 
@@ -169,27 +161,39 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited 
       <View className="overflow-hidden rounded-2xl">
         <Animated.View style={[{ flexDirection: 'row', width: rowWidth }, cardStyle]}>
           <GestureDetector gesture={pan}>
-            <TouchableOpacity
+            <Pressable
               style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}
-              className="bg-white dark:bg-surface-800"
+              android_ripple={{ color: 'transparent', borderless: true }}
               onPress={onPress}
-              activeOpacity={0.75}
+              onPressIn={() => { pressScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
+              onPressOut={() => { pressScale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
             >
-              {cardBody}
-            </TouchableOpacity>
+              <Animated.View style={[pressStyle, { flex: 1 }]} className="bg-white dark:bg-surface-800">
+                {cardBody}
+              </Animated.View>
+            </Pressable>
           </GestureDetector>
 
           <TouchableOpacity
-            onPress={() => { closeSwipe(); onToggleVisited() }}
+            onPress={() => {
+              closeSwipe()
+              iconScale.value = withSequence(
+                withTiming(1.2, { duration: 100, easing: EASE_OUT }),
+                withTiming(1, { duration: 100, easing: EASE_OUT })
+              )
+              onToggleVisited()
+            }}
             style={{ width: ACTION_WIDTH, backgroundColor: '#10b981' }}
             className="items-center justify-center gap-1"
             activeOpacity={0.8}
           >
-            <Ionicons
-              name={isVisited ? 'close-circle-outline' : 'checkmark-circle-outline'}
-              size={20}
-              color={colors.white}
-            />
+            <Animated.View style={iconAnimStyle}>
+              <Ionicons
+                name={isVisited ? 'close-circle-outline' : 'checkmark-circle-outline'}
+                size={20}
+                color={colors.white}
+              />
+            </Animated.View>
             <Text style={{ color: colors.white, fontSize: 11, fontWeight: '600' }}>
               {isVisited ? 'Pendiente' : 'Visitado'}
             </Text>

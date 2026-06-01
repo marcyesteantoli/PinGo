@@ -5,6 +5,7 @@ import type { SharedValue } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Skeleton } from '@components/ui/Skeleton'
+import { useStaggerEnter } from '@lib/useStaggerEnter'
 import type { Memory } from '@types/index'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -61,7 +62,11 @@ function MemoryCell({
     }
   }
 
+  const rowIndex = Math.floor(index / 3)
+  const staggerStyle = useStaggerEnter(rowIndex, { delay: 80, duration: 280 })
+
   return (
+    <Animated.View style={staggerStyle}>
     <TouchableOpacity
       onPress={handlePress}
       onLongPress={handleLongPress}
@@ -112,6 +117,7 @@ function MemoryCell({
         </View>
       )}
     </TouchableOpacity>
+    </Animated.View>
   )
 }
 

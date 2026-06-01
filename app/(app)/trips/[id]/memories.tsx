@@ -5,7 +5,8 @@ import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as MediaLibrary from 'expo-media-library'
 import * as Haptics from 'expo-haptics'
-import Animated, { interpolate, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
+import Animated, { useSharedValue } from 'react-native-reanimated'
+import { useFabScroll } from '@lib/useFabScroll'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
@@ -45,20 +46,7 @@ export default function MemoriesScreen() {
   const count = memories?.length ?? 0
   const scrollY = useSharedValue(0)
 
-  const fabVisible = useSharedValue(1)
-  useAnimatedReaction(
-    () => scrollY.value,
-    (current, prev) => {
-      if (prev === null) return
-      const dy = current - prev
-      if (dy > 8 && fabVisible.value === 1) fabVisible.value = withTiming(0, { duration: 200 })
-      else if (dy < -8 && fabVisible.value === 0) fabVisible.value = withTiming(1, { duration: 200 })
-    }
-  )
-  const fabAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(fabVisible.value, [0, 1], [80, 0]) }],
-    opacity: fabVisible.value,
-  }))
+  const { fabAnimStyle } = useFabScroll(scrollY)
 
   const getUploader = (userId: string) => collaborators.find((c) => c.user_id === userId)
 

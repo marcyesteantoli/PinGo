@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useColorScheme } from 'nativewind'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
@@ -127,7 +127,10 @@ export function ExpenseCard({ expense, currentUserId, onPress, onEdit, onDelete 
       className="rounded-2xl"
       style={[
         { opacity: containerWidth > 0 ? 1 : 0 },
-        { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 },
+        Platform.select({
+          android: { borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,0,0,0.10)' },
+          default: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.07, shadowRadius: 4 },
+        }),
       ]}
       onLayout={(e) => {
         const w = e.nativeEvent.layout.width
