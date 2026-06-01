@@ -15,8 +15,8 @@ interface DatePickerInputProps {
   maximumDate?: Date
 }
 
-function parseDate(s?: string): Date {
-  if (!s) return new Date()
+function parseDate(s?: string, fallback?: Date): Date {
+  if (!s) return fallback ?? new Date()
   const [y, m, d] = s.split('-').map(Number)
   return new Date(y, m - 1, d)
 }
@@ -43,7 +43,7 @@ export function DatePickerInput({
   maximumDate,
 }: DatePickerInputProps) {
   const [show, setShow] = useState(false)
-  const pickerDate = parseDate(value)
+  const pickerDate = parseDate(value, minimumDate)
   const { isDark } = useTheme()
 
   const handleOpen = () => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Animated, {
   scrollTo,
@@ -11,7 +11,9 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
+import { Skeleton } from '@components/ui/Skeleton'
 import { SegmentedTabBar } from '@components/ui/SegmentedTabBar'
 import { useWishlistItems } from '@features/wishlist/hooks/useWishlistItems'
 import { useDeleteWishlistItem } from '@features/wishlist/hooks/useDeleteWishlistItem'
@@ -20,7 +22,7 @@ import { WishlistCard } from '@features/wishlist/components/WishlistCard'
 import { AddWishlistSheet } from '@features/wishlist/components/AddWishlistSheet'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
-import { fabShadow } from '@lib/shadows'
+import { cardShadow, fabShadow } from '@lib/shadows'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
 import { EASE_OUT, DURATION } from '@lib/animations'
@@ -37,6 +39,20 @@ const TYPE_FILTERS: { key: WishlistItemType | null; label: string }[] = [
 
 type VisitedFilter = 'pending' | 'visited'
 
+function WishlistCardSkeleton() {
+  return (
+    <View className="bg-white dark:bg-surface-800 rounded-2xl px-4 pt-3.5 pb-3.5" style={cardShadow}>
+      <View className="flex-row items-center gap-3">
+        <Skeleton width={44} height={44} className="rounded-xl" />
+        <View className="flex-1 gap-2">
+          <Skeleton height={18} className="w-3/4" />
+          <Skeleton height={13} className="w-2/5" />
+        </View>
+      </View>
+    </View>
+  )
+}
+
 function StaggeredWishlistCard(props: React.ComponentProps<typeof WishlistCard> & { index: number }) {
   const { index, ...rest } = props
   const staggerStyle = useStaggerEnter(index, { delay: 55, duration: 280 })
@@ -47,9 +63,10 @@ function StaggeredWishlistCard(props: React.ComponentProps<typeof WishlistCard> 
   )
 }
 
-function FilterPill({ isActive, label, onPress }: { isActive: boolean; label: string; onPress: () => void }) {
+function FilterPill({ isActive, label, count, onPress }: { isActive: boolean; label: string; count?: number; onPress: () => void }) {
   const scale = useSharedValue(1)
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
+  const isEmpty = count !== undefined && count === 0
   return (
     <Pressable
       onPress={onPress}
@@ -57,12 +74,19 @@ function FilterPill({ isActive, label, onPress }: { isActive: boolean; label: st
       onPressOut={() => { scale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
     >
       <Animated.View
-        style={animStyle}
-        className={`px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
+        style={[animStyle, isEmpty ? { opacity: 0.45 } : undefined]}
+        className={`flex-row items-center gap-1.5 px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
       >
         <Text className={`text-[13px] ${isActive ? 'font-semibold text-white' : 'font-normal text-neutral-600 dark:text-neutral-300'}`}>
           {label}
         </Text>
+        {count !== undefined && count > 0 && (
+          <View className={`px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20' : 'bg-primary-100 dark:bg-primary-600/40'}`}>
+            <Text className={`text-[10px] font-semibold ${isActive ? 'text-white' : 'text-primary-600 dark:text-primary-300'}`}>
+              {count}
+            </Text>
+          </View>
+        )}
       </Animated.View>
     </Pressable>
   )
@@ -97,6 +121,9 @@ export default function WishlistScreen() {
   const [sheetVisible, setSheetVisible] = useState(false)
   const [editItem, setEditItem] = useState<WishlistItem | undefined>(undefined)
 
+  const peekChecked = useRef(false)
+  const [peekReady, setPeekReady] = useState(false)
+
   const { data: items = [], isLoading } = useWishlistItems()
   const deleteItem = useDeleteWishlistItem()
   const toggleVisited = useToggleWishlistVisited()
@@ -122,6 +149,17 @@ export default function WishlistScreen() {
 
     return result
   }, [items, activeType, search, visitedFilter])
+
+  const typeCounts = useMemo(() => {
+    const base = items.filter((i) =>
+      visitedFilter === 'visited' ? !!i.visited_at : !i.visited_at
+    )
+    const map: Partial<Record<WishlistItemType, number>> = {}
+    for (const item of base) {
+      map[item.type] = (map[item.type] ?? 0) + 1
+    }
+    return map
+  }, [items, visitedFilter])
 
   const isFiltered = !!activeType || !!search.trim()
   const activeTypeLabel = TYPE_FILTERS.find((f) => f.key === activeType)?.label ?? ''
@@ -161,6 +199,17 @@ export default function WishlistScreen() {
     contentOpacity.value = withTiming(1, { duration: DURATION.normal, easing: EASE_OUT })
   }, [visitedFilter])
 
+  useEffect(() => {
+    if (isLoading || items.length === 0 || peekChecked.current) return
+    peekChecked.current = true
+    AsyncStorage.getItem('@tripsync/wishlist_swipe_peek_shown').then((val) => {
+      if (!val) {
+        setPeekReady(true)
+        void AsyncStorage.setItem('@tripsync/wishlist_swipe_peek_shown', '1')
+      }
+    })
+  }, [isLoading, items.length])
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       <AppHeader
@@ -170,9 +219,16 @@ export default function WishlistScreen() {
       />
 
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Cargando...</Text>
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View className="px-5">
+            <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
+              Mis deseos
+            </Text>
+          </View>
+          <View className="px-5 pt-1 pb-24 gap-3">
+            {[0, 1, 2, 3, 4].map((i) => <WishlistCardSkeleton key={i} />)}
+          </View>
+        </ScrollView>
       ) : (
         <Animated.ScrollView
           ref={scrollRef}
@@ -228,6 +284,7 @@ export default function WishlistScreen() {
                   key={String(filter.key)}
                   isActive={activeType === filter.key}
                   label={filter.label}
+                  count={filter.key !== null ? (typeCounts[filter.key] ?? 0) : undefined}
                   onPress={() => setActiveType(filter.key)}
                 />
               ))}
@@ -254,7 +311,7 @@ export default function WishlistScreen() {
                   <TouchableOpacity
                     onPress={handleOpenAdd}
                     activeOpacity={0.85}
-                    className="mt-6 bg-primary-500 rounded-[14px] px-6 py-3"
+                    className="mt-6 bg-primary-500 rounded-2xl px-6 py-3"
                   >
                     <Text className="text-white text-[15px] font-semibold">Añadir primer deseo</Text>
                   </TouchableOpacity>
@@ -290,6 +347,7 @@ export default function WishlistScreen() {
                   key={item.id}
                   item={item}
                   index={index}
+                  peekOnMount={peekReady && index === 0}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   onPress={() => router.push({ pathname: '/wishlist/[itemId]' as any, params: { itemId: item.id } })}
                   onEdit={() => handleEdit(item)}

@@ -34,7 +34,6 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
   const { data: profile } = useProfile(user?.id)
   const { isDark } = useTheme()
   const [membersVisible, setMembersVisible] = useState(false)
-  const [joinCodeVisible, setJoinCodeVisible] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -96,7 +95,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
               numberOfLines={1}
               style={compactTitleAnimStyle}
             >
-              · {trip.title}
+              {trip.title}
             </Animated.Text>
           </View>
           <View className="flex-row items-center gap-2">
@@ -247,49 +246,6 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
         </View>
       </BottomSheet>
 
-      <BottomSheet
-        visible={joinCodeVisible}
-        onClose={() => setJoinCodeVisible(false)}
-        title="Invitar viajeros"
-      >
-        <View className="pb-2">
-          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400 text-center mb-5">
-            Comparte este código para que otros puedan unirse al viaje
-          </Text>
-          <TouchableOpacity
-            onPress={handleCopy}
-            className="bg-neutral-100 dark:bg-surface-700 rounded-2xl py-5 mb-3 items-center flex-row justify-center gap-3"
-            activeOpacity={0.7}
-          >
-            <Text
-              className="text-[40px] font-bold tracking-[12px] text-neutral-900 dark:text-neutral-50"
-              style={{ fontVariant: ['tabular-nums'] }}
-            >
-              {trip.join_code}
-            </Text>
-            <Ionicons
-              name={copied ? 'checkmark-circle' : 'copy-outline'}
-              size={22}
-              color={copied ? colors.primary[500] : subtleColor}
-            />
-          </TouchableOpacity>
-          {copied && (
-            <Text className="text-[12px] text-primary-500 text-center mb-3">¡Copiado!</Text>
-          )}
-          <TouchableOpacity
-            onPress={() =>
-              Share.share({
-                message: `Únete a "${trip.title}" en PinGo con el código: ${trip.join_code}`,
-              })
-            }
-            className="bg-primary-500 rounded-2xl py-4 flex-row items-center gap-2 justify-center mb-2"
-            activeOpacity={0.8}
-          >
-            <Ionicons name="share-outline" size={20} color="white" />
-            <Text className="text-[17px] font-semibold text-white">Compartir código</Text>
-          </TouchableOpacity>
-        </View>
-      </BottomSheet>
     </SafeAreaView>
   )
 }

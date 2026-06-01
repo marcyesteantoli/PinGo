@@ -25,6 +25,13 @@ interface AddExperienceSheetProps {
   mode?: 'create' | 'edit'
 }
 
+function dateToString(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 export function AddExperienceSheet({
   visible,
   onClose,
@@ -37,14 +44,15 @@ export function AddExperienceSheet({
   mode = 'create',
 }: AddExperienceSheetProps) {
   const showError = useErrorToast()
+  const createDefaults = () => initialValues ?? { type: 'activity' as const, date: minDate ? dateToString(minDate) : undefined }
   const { control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<CreateExperienceFormData>({
     resolver: zodResolver(createExperienceSchema),
-    defaultValues: initialValues ?? { type: 'activity' },
+    defaultValues: createDefaults(),
   })
 
   useEffect(() => {
     if (visible) {
-      reset(initialValues ?? { type: 'activity' })
+      reset(createDefaults())
     }
   }, [visible])
 
@@ -53,7 +61,7 @@ export function AddExperienceSheet({
   }, [error])
 
   const handleClose = () => {
-    reset(initialValues ?? { type: 'activity' })
+    reset(createDefaults())
     onClose()
   }
 

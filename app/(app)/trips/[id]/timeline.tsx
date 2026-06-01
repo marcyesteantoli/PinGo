@@ -89,7 +89,7 @@ function StaggeredExperienceCardWrapper({
   onEdit: () => void
   onPress: () => void
 }) {
-  const staggerStyle = useStaggerEnter(entry.sectionIndex, { delay: 50, duration: 240, axis: 'x', distance: 8 })
+  const staggerStyle = useStaggerEnter(entry.sectionIndex, { delay: 50, duration: 240, axis: 'y', distance: 6 })
   return (
     <Animated.View style={staggerStyle}>
       <ExperienceCard
@@ -264,7 +264,7 @@ export default function TimelineScreen() {
                 <View className={
                   entry.isToday
                     ? 'mt-2 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-neutral-900'
-                    : 'mt-2 w-3 h-3 rounded-full bg-neutral-400 dark:bg-neutral-1000'
+                    : 'mt-2 w-3 h-3 rounded-full bg-neutral-400 dark:bg-neutral-600'
                 } />
                 <View className="h-2" />
                 <View className="flex-1 w-[3px] bg-neutral-300 dark:bg-neutral-600 rounded-t-full" />
@@ -311,9 +311,14 @@ export default function TimelineScreen() {
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
         </View>
       ) : error ? (
-        <View className="flex-1 items-center justify-center px-5">
-          <Text className="text-base text-error text-center mb-4">{error.message}</Text>
-          <TouchableOpacity onPress={() => refetch()}>
+        <View className="flex-1 items-center justify-center px-5 gap-3">
+          <Ionicons name="alert-circle-outline" size={32} color="#ef233c" />
+          <Text className="text-base text-error text-center">No pudimos cargar el itinerario. Comprueba tu conexión.</Text>
+          <TouchableOpacity
+            onPress={() => refetch()}
+            className="px-6 py-3 rounded-full border border-primary-500"
+            activeOpacity={0.7}
+          >
             <Text className="text-base text-primary-600 font-semibold">Reintentar</Text>
           </TouchableOpacity>
         </View>
@@ -340,7 +345,7 @@ export default function TimelineScreen() {
       )}
 
       {!isLoading && (
-        <Animated.View className="absolute right-5" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
+        <Animated.View className="absolute right-5" style={[fabAnimStyle, { bottom: 16, pointerEvents: 'box-none' }]}>
           <TouchableOpacity
             onPress={() => setSheetVisible(true)}
             className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"

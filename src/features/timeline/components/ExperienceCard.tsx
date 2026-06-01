@@ -152,7 +152,7 @@ export const ExperienceCard = memo(function ExperienceCard({
                   </View>
 
                   <View className="flex-1">
-                    <Text className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 leading-snug" numberOfLines={2}>
+                    <Text className="text-[17px] font-semibold text-neutral-900 dark:text-neutral-50 leading-snug" numberOfLines={2}>
                       {experience.title}
                     </Text>
 

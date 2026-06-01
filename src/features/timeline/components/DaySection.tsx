@@ -12,11 +12,9 @@ export function DaySection({ date, count }: DaySectionProps) {
 
   return (
     <View className="flex-1 flex-row items-center gap-2 py-4 pr-4">
-      <View className="w-3 h-px bg-primary-400 opacity-60" />
-
       {isToday ? (
         <View className="flex-row items-center gap-2 flex-1">
-          <Text className="text-xs font-semibold text-primary-500 dark:text-primary-400 uppercase tracking-wider">
+          <Text className="text-[13px] font-medium text-primary-500 dark:text-primary-400">
             {formatDateWithWeekday(date)}
           </Text>
           <View className="bg-primary-500 px-2 py-0.5 rounded-full">
@@ -24,7 +22,7 @@ export function DaySection({ date, count }: DaySectionProps) {
           </View>
         </View>
       ) : (
-        <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider flex-1">
+        <Text className="text-[13px] font-medium text-neutral-600 dark:text-neutral-400 flex-1">
           {isUndated ? 'Sin fecha' : formatDateWithWeekday(date)}
         </Text>
       )}

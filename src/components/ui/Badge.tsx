@@ -34,7 +34,7 @@ const variantClasses: Record<BadgeVariant, { container: string; text: string }> 
   accommodation: { container: 'bg-activity-purple-bg dark:bg-activity-purple-darkBg',   text: 'text-activity-purple-main' },
   activity:      { container: 'bg-activity-green-bg dark:bg-activity-green-darkBg',     text: 'text-activity-green-main'  },
   restaurant:    { container: 'bg-activity-orange-bg dark:bg-activity-orange-darkBg',   text: 'text-activity-orange-main' },
-  city:          { container: 'bg-activity-red-bg dark:bg-activity-red-darkBg',         text: 'text-activity-red-main'    },
+  city:          { container: 'bg-[#E0F2FE] dark:bg-[#06304E]',                         text: 'text-[#0EA5E9]'            },
   entertainment: { container: 'bg-activity-pink-bg dark:bg-activity-pink-darkBg',       text: 'text-activity-pink-main'   },
   other:         { container: 'bg-activity-gray-bg dark:bg-activity-gray-darkBg',       text: 'text-activity-gray-main'   },
 }
@@ -50,7 +50,7 @@ const CATEGORY_ICONS: Record<CategoryType, {
   accommodation: { name: 'bed-outline',        light: '#8B5CF6', dark: '#8B5CF6' },
   activity:      { name: 'compass-outline',    light: '#22C55E', dark: '#22C55E' },
   restaurant:    { name: 'restaurant-outline', light: '#F97316', dark: '#F97316' },
-  city:          { name: 'business-outline',   light: '#EF4444', dark: '#EF4444' },
+  city:          { name: 'business-outline',   light: '#0EA5E9', dark: '#0EA5E9' },
   entertainment: { name: 'film-outline',       light: '#EC4899', dark: '#EC4899' },
   other:         { name: 'ellipse-outline',    light: '#94A3B8', dark: '#94A3B8' },
 }

@@ -38,11 +38,12 @@ import type { BadgeVariant } from '@components/ui/Badge'
 type DocumentWithExperience = Document & { experience_title: string | null }
 
 const TYPE_BADGE_VARIANT: Record<string, BadgeVariant> = {
-  transport: 'transport',
+  transport:     'transport',
   accommodation: 'accommodation',
-  activity: 'activity',
-  restaurant: 'restaurant',
-  other: 'other',
+  activity:      'activity',
+  restaurant:    'restaurant',
+  entertainment: 'entertainment',
+  other:         'other',
 }
 
 interface DetailRowProps {

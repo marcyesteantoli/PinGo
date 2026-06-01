@@ -2,7 +2,7 @@ import { memo, useEffect, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
-import { Share, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, Share, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { Avatar } from '@components/ui/Avatar'
 import { Badge } from '@components/ui/Badge'
 import { BottomSheet } from '@components/ui/BottomSheet'
@@ -21,6 +21,8 @@ interface TripCardProps {
   trip: TripWithCollaborators
   onPress: () => void
 }
+
+// TODO: Design a first-run flow onboarding
 
 type TripStatus = 'upcoming' | 'active' | 'past'
 
@@ -61,7 +63,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
     if (updateTrip.error) showError(updateTrip.error.message)
   }, [updateTrip.error])
 
-  const [containerWidth, setContainerWidth] = useState(0)
+  const [containerWidth, setContainerWidth] = useState(() => Dimensions.get('window').width - 40)
   const [renameVisible, setRenameVisible] = useState(false)
   const [deleteVisible, setDeleteVisible] = useState(false)
   const [newTitle, setNewTitle] = useState(trip.title)
@@ -142,7 +144,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
 
   const { label, variant } = statusConfig[status]
   const borderColor = isDark ? colors.surface[700] : colors.white
-  const subtleColor = isDark ? colors.neutral[400] : colors.neutral[400]
+  const subtleColor = colors.neutral[400]
 
   const rowWidth = containerWidth > 0 ? containerWidth + ACTIONS_WIDTH : undefined
   const cardWidth = containerWidth > 0 ? containerWidth : undefined
@@ -239,20 +241,14 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
     </>
   )
 
-  const cardContent = status === 'active' ? (
+  const cardContent = (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      style={{ backgroundColor: isDark ? colors.surface[800] : colors.white, flexDirection: 'row' }}
-    >
-      <View style={{ width: 4, backgroundColor: colors.primary[500] }} />
-      <View style={{ flex: 1, padding: 16 }}>{cardBody}</View>
-    </TouchableOpacity>
-  ) : (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.8}
-      className="bg-white dark:bg-surface-800 rounded-2xl p-4"
+      className="rounded-2xl p-4"
+      style={{
+        backgroundColor: isDark ? colors.surface[800] : colors.white,
+      }}
     >
       {cardBody}
     </TouchableOpacity>
@@ -265,6 +261,10 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
         style={[
           { opacity: containerWidth > 0 ? 1 : 0 },
           cardShadow,
+          status === 'active' && {
+            borderWidth: 1.5,
+            borderColor: isDark ? 'rgba(0,70,222,0.50)' : 'rgba(0,70,222,0.35)',
+          },
         ]}
         onLayout={(e) => {
           const w = e.nativeEvent.layout.width
@@ -355,17 +355,14 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               Se eliminará «{trip.title}» y todos sus datos permanentemente. Esta acción no se puede deshacer.
             </Text>
           </View>
-          <TouchableOpacity
+          <Button
+            variant="destructive"
             onPress={handleDeleteConfirm}
-            disabled={deleteTrip.isPending}
-            className="bg-error rounded-2xl py-3.5 items-center"
-            activeOpacity={0.8}
+            isLoading={deleteTrip.isPending}
           >
-            <Text className="text-white font-semibold">
-              {deleteTrip.isPending ? 'Eliminando...' : 'Eliminar viaje'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setDeleteVisible(false)} className="py-2 items-center">
+            Eliminar viaje
+          </Button>
+          <TouchableOpacity onPress={() => setDeleteVisible(false)} className="py-3 items-center">
             <Text className="text-neutral-500 font-medium">Cancelar</Text>
           </TouchableOpacity>
         </View>

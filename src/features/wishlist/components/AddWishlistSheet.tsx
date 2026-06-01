@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { BottomSheet } from '@components/ui/BottomSheet'
@@ -9,6 +9,7 @@ import { useUpdateWishlistItem } from '../hooks/useUpdateWishlistItem'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import type { WishlistItem, WishlistItemType } from '@/types/index'
+import { TYPE_COLORS, WISHLIST_TYPES as TYPES } from '../constants'
 
 interface PickedLocation {
   name: string
@@ -16,28 +17,6 @@ interface PickedLocation {
   lng: number
   city?: string
 }
-
-const TYPE_COLORS: Record<WishlistItemType, string> = {
-  city:          '#EF4444',
-  restaurant:    '#F97316',
-  activity:      '#22C55E',
-  accommodation: '#8B5CF6',
-  entertainment: '#EC4899',
-  other:         '#94A3B8',
-}
-
-const TYPES: {
-  key: WishlistItemType
-  label: string
-  icon: keyof typeof Ionicons.glyphMap
-}[] = [
-  { key: 'city',          label: 'Ciudad',         icon: 'business-outline' },
-  { key: 'restaurant',    label: 'Restaurante',    icon: 'restaurant-outline' },
-  { key: 'activity',      label: 'Actividad',      icon: 'bicycle-outline' },
-  { key: 'accommodation', label: 'Alojamiento',    icon: 'bed-outline' },
-  { key: 'entertainment', label: 'Entretenimiento', icon: 'film-outline' },
-  { key: 'other',         label: 'Otro',           icon: 'ellipsis-horizontal-outline' },
-]
 
 interface AddWishlistSheetProps {
   visible: boolean
@@ -121,11 +100,9 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
   const inactiveChipBorder = isDark ? colors.surface[600] : colors.neutral[200]
 
   const LABEL_STYLE = {
-    fontSize: 12,
-    fontWeight: '600' as const,
+    fontSize: 13,
+    fontWeight: '500' as const,
     color: labelColor,
-    textTransform: 'uppercase' as const,
-    letterSpacing: 0.6,
     marginBottom: 6,
   }
 
@@ -252,19 +229,21 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
           activeOpacity={0.85}
           disabled={isPending}
           style={{
-            backgroundColor: colors.primary[500],
+            backgroundColor: isPending ? colors.primary[400] : colors.primary[500],
             borderRadius: 14,
             paddingVertical: 14,
             alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 52,
           }}
         >
-          <Text style={{ color: colors.white, fontSize: 16, fontWeight: '600' }}>
-            {isPending
-              ? 'Guardando...'
-              : isEdit
-              ? 'Guardar cambios'
-              : 'Añadir a mis deseos'}
-          </Text>
+          {isPending ? (
+            <ActivityIndicator color={colors.white} size="small" />
+          ) : (
+            <Text style={{ color: colors.white, fontSize: 16, fontWeight: '600' }}>
+              {isEdit ? 'Guardar cambios' : 'Añadir a mis deseos'}
+            </Text>
+          )}
         </TouchableOpacity>
 
       </View>

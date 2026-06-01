@@ -14,6 +14,7 @@ import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import type { WishlistItemType } from '@/types/index'
+import { TYPE_COLORS } from '@/features/wishlist/constants'
 
 const TYPE_LABELS: Record<WishlistItemType, string> = {
   city: 'Ciudad',
@@ -22,15 +23,6 @@ const TYPE_LABELS: Record<WishlistItemType, string> = {
   accommodation: 'Alojamiento',
   entertainment: 'Entretenimiento',
   other: 'Otro',
-}
-
-const TYPE_COLORS: Record<WishlistItemType, string> = {
-  city: '#EF4444',
-  restaurant: '#F97316',
-  activity: '#22C55E',
-  accommodation: '#8B5CF6',
-  entertainment: '#EC4899',
-  other: '#94A3B8',
 }
 
 const TYPE_ICONS: Record<WishlistItemType, keyof typeof Ionicons.glyphMap> = {

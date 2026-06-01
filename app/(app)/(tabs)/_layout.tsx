@@ -24,7 +24,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="trips"
         options={{
           title: 'Mis Viajes',
           tabBarIcon: ({ color, focused }) => (

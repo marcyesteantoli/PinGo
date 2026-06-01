@@ -5,7 +5,6 @@ import {
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native'
 import Animated, {
@@ -18,6 +17,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
+import { Skeleton } from '@components/ui/Skeleton'
 import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
@@ -76,6 +76,50 @@ function getLocationText(location: unknown): string | null {
   return null
 }
 
+function SavedExperienceCardSkeleton() {
+  return (
+    <View style={cardShadow} className="rounded-2xl bg-white dark:bg-surface-800 overflow-hidden">
+      <View className="px-4 pt-3.5 pb-3.5">
+        <View className="flex-row items-start gap-3">
+          <Skeleton width={44} height={44} className="rounded-xl" />
+          <View className="flex-1 gap-2 pt-0.5">
+            <Skeleton height={16} className="w-3/4" />
+            <Skeleton height={12} className="w-1/2" />
+          </View>
+        </View>
+      </View>
+    </View>
+  )
+}
+
+interface FilterChipProps {
+  label: string
+  isActive: boolean
+  onPress: () => void
+}
+
+function FilterChip({ label, isActive, onPress }: FilterChipProps) {
+  const scale = useSharedValue(1)
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => { scale.value = withTiming(0.95, { duration: DURATION.press, easing: EASE_OUT }) }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
+    >
+      <Animated.View
+        style={animStyle}
+        className={`px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
+      >
+        <Text className={`text-[13px] ${isActive ? 'font-semibold text-white' : 'font-normal text-neutral-600 dark:text-neutral-300'}`}>
+          {label}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  )
+}
+
 interface SavedExperienceCardProps {
   item: SavedExperienceItem
   onPress: () => void
@@ -93,7 +137,7 @@ function SavedExperienceCard({ item, onPress, index }: SavedExperienceCardProps)
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }))
 
   return (
-    <Animated.View style={[staggerStyle, cardShadow]} className="rounded-2xl mb-3">
+    <Animated.View style={[staggerStyle, cardShadow]} className="rounded-2xl">
       <Pressable
         onPress={onPress}
         onPressIn={() => { pressScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
@@ -101,14 +145,13 @@ function SavedExperienceCard({ item, onPress, index }: SavedExperienceCardProps)
       >
         <Animated.View style={pressStyle} className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
         <View className="px-4 pt-3.5 pb-3.5">
-          {/* Top section: icon + title/location */}
           <View className="flex-row items-start gap-3">
             <View className={`w-11 h-11 rounded-xl items-center justify-center flex-shrink-0 ${TYPE_BG[type]}`}>
               <Ionicons name={TYPE_ICON[type]} size={22} color={TYPE_ICON_COLOR[type]} />
             </View>
 
             <View className="flex-1">
-              <Text numberOfLines={2} className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 leading-snug">
+              <Text numberOfLines={2} className="text-[17px] font-semibold text-neutral-900 dark:text-neutral-50 leading-snug">
                 {experience.title}
               </Text>
 
@@ -123,9 +166,8 @@ function SavedExperienceCard({ item, onPress, index }: SavedExperienceCardProps)
             </View>
           </View>
 
-          {/* Full-width footer */}
           {hasFooter && (
-            <View className="flex-row items-center justify-between mt-2.5 pt-2.5 border-t border-neutral-100 dark:border-surface-700">
+            <View className="flex-row items-center justify-between mt-2.5 pt-2.5 border-t border-neutral-200 dark:border-surface-700">
               {note ? (
                 <View className="flex-row items-center gap-1.5 flex-1 mr-2">
                   <Ionicons name="chatbubble-outline" size={13} color={colors.neutral[400]} />
@@ -196,6 +238,9 @@ export default function SavedExperiencesScreen() {
   const isFiltered = !!activeType || !!search.trim()
   const activeTypeLabel = TYPE_FILTERS.find((f) => f.key === activeType)?.label ?? ''
 
+  const clearFiltersScale = useSharedValue(1)
+  const clearFiltersStyle = useAnimatedStyle(() => ({ transform: [{ scale: clearFiltersScale.value }] }))
+
   const listHeader = (
     <View>
       <Animated.View style={expandedSectionStyle}>
@@ -206,13 +251,13 @@ export default function SavedExperiencesScreen() {
 
       {/* Search bar */}
       <View className="pb-2.5">
-        <View className="flex-row items-center bg-white dark:bg-surface-800 rounded-xl px-3 py-2.5 gap-2">
+        <View className="flex-row items-center bg-white dark:bg-surface-700 rounded-xl px-3 py-2.5 gap-2">
           <Ionicons name="search" size={16} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
           <TextInput
             value={search}
             onChangeText={setSearch}
             placeholder="Buscar por lugar o nombre..."
-            placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
+            placeholderTextColor={colors.neutral[400]}
             className="flex-1 text-[15px] text-neutral-900 dark:text-neutral-50"
             style={{ padding: 0 }}
             returnKeyType="search"
@@ -228,23 +273,14 @@ export default function SavedExperiencesScreen() {
         contentContainerStyle={{ paddingBottom: 12, gap: 8 }}
         keyboardShouldPersistTaps="handled"
       >
-        {TYPE_FILTERS.map((filter) => {
-          const isActive = activeType === filter.key
-          return (
-            <TouchableOpacity
-              key={String(filter.key)}
-              onPress={() => setActiveType(filter.key)}
-              activeOpacity={0.7}
-              className={`px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
-            >
-              <Text
-                className={`text-[13px] ${isActive ? 'font-semibold text-white' : 'font-normal text-neutral-600 dark:text-neutral-300'}`}
-              >
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
+        {TYPE_FILTERS.map((filter) => (
+          <FilterChip
+            key={String(filter.key)}
+            label={filter.label}
+            isActive={activeType === filter.key}
+            onPress={() => setActiveType(filter.key)}
+          />
+        ))}
       </ScrollView>
     </View>
   )
@@ -254,8 +290,8 @@ export default function SavedExperiencesScreen() {
       <AppHeader title="Mis joyas" scrollY={scrollY} expandProgress={sectionProgress} />
 
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Cargando...</Text>
+        <View className="px-5 pt-2 gap-3">
+          {[0, 1, 2, 3].map((i) => <SavedExperienceCardSkeleton key={i} />)}
         </View>
       ) : (
         <Animated.FlatList
@@ -270,7 +306,27 @@ export default function SavedExperiencesScreen() {
           )}
           ListHeaderComponent={listHeader}
           ListEmptyComponent={
-            saved.length === 0 ? (
+            isFiltered ? (
+              <View className="items-center justify-center px-8 pt-16">
+                <Ionicons name="filter-outline" size={44} color={isDark ? colors.neutral[500] : colors.neutral[400]} style={{ marginBottom: 16 }} />
+                <Text className="text-[17px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
+                  {activeType
+                    ? `Sin joyas de tipo "${activeTypeLabel}"`
+                    : `Sin resultados para "${search}"`}
+                </Text>
+                <Pressable
+                  onPress={() => { setActiveType(null); setSearch('') }}
+                  onPressIn={() => { clearFiltersScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
+                  onPressOut={() => { clearFiltersScale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
+                >
+                  <Animated.View style={clearFiltersStyle} className="mt-3 px-5 py-2.5 rounded-full bg-neutral-200 dark:bg-surface-700">
+                    <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+                      Ver todas
+                    </Text>
+                  </Animated.View>
+                </Pressable>
+              </View>
+            ) : saved.length === 0 ? (
               <View className="flex-1 items-center justify-center px-8 pt-16">
                 <Ionicons name="bookmark-outline" size={52} color={isDark ? colors.neutral[500] : colors.neutral[400]} style={{ marginBottom: 16 }} />
                 <Text className="text-[18px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
@@ -280,26 +336,9 @@ export default function SavedExperiencesScreen() {
                   Guarda las experiencias que te han enamorado con el marcador en la ficha de cada experiencia.
                 </Text>
               </View>
-            ) : isFiltered ? (
-              <View className="items-center justify-center px-8 pt-16">
-                <Ionicons name="filter-outline" size={44} color={isDark ? colors.neutral[500] : colors.neutral[400]} style={{ marginBottom: 16 }} />
-                <Text className="text-[17px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
-                  {activeType
-                    ? `Sin joyas de tipo "${activeTypeLabel}"`
-                    : `Sin resultados para "${search}"`}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => { setActiveType(null); setSearch('') }}
-                  className="mt-3 px-5 py-2.5 rounded-full bg-neutral-200 dark:bg-surface-700"
-                >
-                  <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
-                    Ver todas
-                  </Text>
-                </TouchableOpacity>
-              </View>
             ) : null
           }
-          contentContainerClassName="px-5 pb-8"
+          contentContainerClassName="px-5 pb-8 gap-3"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           onScroll={scrollHandler}

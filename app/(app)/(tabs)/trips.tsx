@@ -3,10 +3,11 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Pressable, RefreshControl, Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, RefreshControl, Text, View } from 'react-native'
 import Animated, {
   interpolate,
   interpolateColor,
+  runOnJS,
   scrollTo,
   useAnimatedRef,
   useAnimatedStyle,
@@ -25,7 +26,6 @@ import { TripCard } from '@features/trips/components/TripCard'
 import { useJoinTrip } from '@features/trips/hooks/useJoinTrip'
 import { useTrips } from '@features/trips/hooks/useTrips'
 import { joinTripSchema, type JoinTripFormData } from '@features/trips/types'
-import { useErrorToast } from '@lib/errorToast'
 import { SegmentedTabBar } from '@components/ui/SegmentedTabBar'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
@@ -74,18 +74,13 @@ function FabOption({
   )
 }
 
-export default function DashboardScreen() {
+export default function TripsScreen() {
   const router = useRouter()
-  const { data: trips, isLoading, error, refetch } = useTrips()
+  const { data: trips, isLoading, isFetching, error, refetch } = useTrips()
   const joinTrip = useJoinTrip()
-  const showError = useErrorToast()
   const [joinSheetVisible, setJoinSheetVisible] = useState(false)
   const [segment, setSegment] = useState<Segment>('upcoming')
   const [fabOpen, setFabOpen] = useState(false)
-
-  useEffect(() => {
-    if (joinTrip.error) showError(joinTrip.error.message)
-  }, [joinTrip.error])
   const { scrollY, scrollHandler } = useAppHeader()
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<JoinTripFormData>({
@@ -118,7 +113,12 @@ export default function DashboardScreen() {
   }))
 
   const fabBgStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(fabProgress.value, [0, 1], ['#0046de', '#ef4444']),
+    backgroundColor: interpolateColor(fabProgress.value, [0, 1], ['#0046de', '#ef233c']),
+  }))
+
+  const fabMainScale = useSharedValue(1)
+  const fabMainAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: fabMainScale.value }],
   }))
 
   const { fabAnimStyle } = useFabScroll(scrollY)
@@ -128,9 +128,11 @@ export default function DashboardScreen() {
   }))
 
   const handleSegmentChange = (key: string) => {
+    if (key === segment) return
     scrollTo(scrollRef, 0, 0, true)
-    contentOpacity.value = withTiming(0, { duration: 100, easing: EASE_OUT })
-    setTimeout(() => setSegment(key as Segment), 110)
+    contentOpacity.value = withTiming(0, { duration: 100, easing: EASE_OUT }, () => {
+      runOnJS(setSegment)(key as Segment)
+    })
   }
 
   useEffect(() => {
@@ -165,15 +167,25 @@ export default function DashboardScreen() {
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
         </View>
       ) : error ? (
-        <View className="flex-1 items-center justify-center px-5">
-          <Text className="text-base text-error text-center mb-4">{error.message}</Text>
-          <Button onPress={() => refetch()} variant="ghost">Reintentar</Button>
-        </View>
+        <Animated.ScrollView
+          refreshControl={<RefreshControl refreshing={false} onRefresh={refetch} />}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        >
+          <EmptyState
+            icon="warning-outline"
+            title="No se pudo cargar"
+            subtitle={error.message}
+          />
+          <View className="items-center mt-4">
+            <Button onPress={() => refetch()} variant="ghost">Reintentar</Button>
+          </View>
+        </Animated.ScrollView>
       ) : (
         <Animated.ScrollView
           ref={scrollRef}
           stickyHeaderIndices={[1]}
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+          refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />}
           showsVerticalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
@@ -205,6 +217,8 @@ export default function DashboardScreen() {
                   icon="airplane-outline"
                   title="Sin viajes próximos"
                   subtitle="Crea tu primer viaje o únete con un código"
+                  actionLabel="Crear viaje"
+                  onAction={() => router.push('/(app)/trips/new')}
                 />
               ) : (
                 <EmptyState
@@ -227,10 +241,14 @@ export default function DashboardScreen() {
         </Animated.ScrollView>
       )}
 
-      {/* Overlay para cerrar FAB */}
-      {fabOpen && (
-        <Pressable className="absolute inset-0" onPress={toggleFab} />
-      )}
+      {/* Backdrop semi-transparente al abrir FAB */}
+      <Animated.View
+        className="absolute inset-0"
+        style={{ opacity: fabProgress, backgroundColor: 'rgba(0,0,0,0.3)' }}
+        pointerEvents={fabOpen ? 'auto' : 'none'}
+      >
+        <Pressable className="flex-1" onPress={toggleFab} />
+      </Animated.View>
 
       {/* Speed Dial FAB */}
       <Animated.View className="absolute right-5 items-end gap-3" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
@@ -259,22 +277,24 @@ export default function DashboardScreen() {
         </Animated.View>
 
         {/* FAB principal */}
-        <TouchableOpacity
+        <Pressable
           onPress={toggleFab}
-          activeOpacity={0.85}
-          className="w-14 h-14 rounded-full items-center justify-center"
+          onPressIn={() => { fabMainScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
+          onPressOut={() => { fabMainScale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
         >
-          <Animated.View style={[fabBgStyle, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28, ...fabShadow }]} />
-          <Animated.View style={iconStyle}>
-            <Ionicons name="add" size={28} color="#ffffff" />
+          <Animated.View style={[fabMainAnimStyle, { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' }]}>
+            <Animated.View style={[fabBgStyle, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28, ...fabShadow }]} />
+            <Animated.View style={iconStyle}>
+              <Ionicons name="add" size={28} color="#ffffff" />
+            </Animated.View>
           </Animated.View>
-        </TouchableOpacity>
+        </Pressable>
       </Animated.View>
 
       {/* Join sheet */}
       <BottomSheet
         visible={joinSheetVisible}
-        onClose={() => { setJoinSheetVisible(false); reset() }}
+        onClose={() => { setJoinSheetVisible(false); reset(); joinTrip.reset() }}
         title="Unirse a un viaje"
       >
         <View className="gap-4">
@@ -293,6 +313,9 @@ export default function DashboardScreen() {
               />
             )}
           />
+          {joinTrip.error && (
+            <Text className="text-[13px] text-error">{joinTrip.error.message}</Text>
+          )}
           <View style={ctaShadow}>
             <Button onPress={handleSubmit(onJoinSubmit)} isLoading={joinTrip.isPending}>
               Unirse al viaje

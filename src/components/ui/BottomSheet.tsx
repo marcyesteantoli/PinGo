@@ -7,7 +7,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDecay,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -17,7 +16,6 @@ const SCREEN_HEIGHT = Dimensions.get('window').height
 
 const OFFSCREEN_Y = SCREEN_HEIGHT
 const CLOSE_THRESHOLD = 80
-const SNAP_SPRING = { damping: 40, stiffness: 400, mass: 1 }
 
 interface BottomSheetProps {
   visible: boolean
@@ -85,7 +83,7 @@ export function BottomSheet({ visible, onClose, title, scrollable, children }: B
           })
         }
       } else {
-        translateY.value = withSpring(0, SNAP_SPRING)
+        translateY.value = withTiming(0, { duration: DURATION.sheet, easing: EASE_DRAWER })
         backdropOpacity.value = withTiming(1, { duration: 200 })
       }
     })

@@ -20,7 +20,7 @@ import { formatDate } from '@utils/date'
 import type { Collaborator, Trip, TripRole } from '@types/index'
 import type { CreateExpenseFormData } from '@features/expenses/types'
 
-type ExpenseCategory = 'restaurant' | 'transport' | 'accommodation' | 'activity' | 'other'
+type ExpenseCategory = 'restaurant' | 'transport' | 'accommodation' | 'activity' | 'entertainment' | 'other'
 
 function getExpenseCategory(description: string, experienceType?: ExpenseCategory | null): ExpenseCategory {
   if (experienceType) return experienceType
@@ -33,27 +33,30 @@ function getExpenseCategory(description: string, experienceType?: ExpenseCategor
 }
 
 const CATEGORY_ICON: Record<ExpenseCategory, React.ComponentProps<typeof Ionicons>['name']> = {
-  restaurant: 'restaurant-outline',
-  transport: 'airplane-outline',
+  restaurant:    'restaurant-outline',
+  transport:     'airplane-outline',
   accommodation: 'bed-outline',
-  activity: 'compass-outline',
-  other: 'wallet-outline',
+  activity:      'compass-outline',
+  entertainment: 'film-outline',
+  other:         'wallet-outline',
 }
 
 const CATEGORY_BG: Record<ExpenseCategory, string> = {
-  restaurant: 'bg-red-100 dark:bg-red-900/30',
-  transport: 'bg-cyan-100 dark:bg-cyan-900/30',
-  accommodation: 'bg-purple-100 dark:bg-purple-900/30',
-  activity: 'bg-lime-100 dark:bg-lime-900/30',
-  other: 'bg-neutral-100 dark:bg-surface-700',
+  restaurant:    'bg-activity-orange-bg dark:bg-[#4E1E06]',
+  transport:     'bg-activity-blue-bg dark:bg-[#061E4E]',
+  accommodation: 'bg-activity-purple-bg dark:bg-[#24064E]',
+  activity:      'bg-activity-green-bg dark:bg-[#064E3B]',
+  entertainment: 'bg-activity-pink-bg dark:bg-[#4E062A]',
+  other:         'bg-activity-gray-bg dark:bg-[#334155]',
 }
 
 const CATEGORY_ICON_COLOR: Record<ExpenseCategory, string> = {
-  restaurant: '#ef4444',
-  transport: '#06b6d4',
-  accommodation: '#a855f7',
-  activity: '#65a30d',
-  other: colors.neutral[500],
+  restaurant:    '#F97316',
+  transport:     '#3B82F6',
+  accommodation: '#8B5CF6',
+  activity:      '#22C55E',
+  entertainment: '#EC4899',
+  other:         '#94A3B8',
 }
 
 
