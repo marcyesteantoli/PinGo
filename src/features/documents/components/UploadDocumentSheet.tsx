@@ -1,13 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useTripContext } from '@features/trips/TripProvider'
-import { uploadDocumentSchema, type UploadDocumentFormData } from '../types'
+import { buildUploadDocumentSchema, type UploadDocumentFormData } from '../types'
 import { ExperiencePicker } from './ExperiencePicker'
 import { useErrorToast } from '@lib/errorToast'
 
@@ -23,13 +24,15 @@ export function UploadDocumentSheet({ visible, onClose, onSubmit, isLoading, err
   const showError = useErrorToast()
   const { tripId } = useTripContext()
   const { data: experiences } = useExperiences(tripId)
+  const { t } = useTranslation()
+  const schema = useMemo(() => buildUploadDocumentSchema(), [t])
 
   useEffect(() => {
     if (error) showError(error)
   }, [error])
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<UploadDocumentFormData>({
-    resolver: zodResolver(uploadDocumentSchema),
+    resolver: zodResolver(schema),
   })
 
   const handleClose = () => {
@@ -43,15 +46,15 @@ export function UploadDocumentSheet({ visible, onClose, onSubmit, isLoading, err
   }
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose} title="Subir documento">
+    <BottomSheet visible={visible} onClose={handleClose} title={t('docs_uploadSheet_title')}>
       <View className="gap-4 pb-4">
         <Controller
           control={control}
           name="name"
           render={({ field: { onChange, value } }) => (
             <Input
-              label="Nombre del documento"
-              placeholder="ej. Confirmación vuelo"
+              label={t('docs_uploadSheet_nameLabel')}
+              placeholder={t('docs_uploadSheet_namePlaceholder')}
               value={value}
               onChangeText={onChange}
               error={errors.name?.message}
@@ -72,13 +75,12 @@ export function UploadDocumentSheet({ visible, onClose, onSubmit, isLoading, err
           )}
         />
 
-
         <Button
           onPress={handleSubmit(handleSubmitForm)}
           isLoading={isLoading}
           size="lg"
         >
-          Seleccionar archivo
+          {t('docs_uploadSheet_submit')}
         </Button>
       </View>
     </BottomSheet>

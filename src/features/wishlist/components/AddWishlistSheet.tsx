@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { LocationPicker } from '@features/timeline/components/LocationPicker'
 import { useAddWishlistItem } from '../hooks/useAddWishlistItem'
@@ -9,7 +10,7 @@ import { useUpdateWishlistItem } from '../hooks/useUpdateWishlistItem'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import type { WishlistItem, WishlistItemType } from '@/types/index'
-import { TYPE_COLORS, WISHLIST_TYPES as TYPES } from '../constants'
+import { TYPE_COLORS, WISHLIST_TYPES } from '../constants'
 
 interface PickedLocation {
   name: string
@@ -36,6 +37,7 @@ function locationToPickedLocation(item: WishlistItem): PickedLocation | undefine
 
 export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistSheetProps) {
   const { isDark } = useTheme()
+  const { t } = useTranslation()
   const addItem = useAddWishlistItem()
   const updateItem = useUpdateWishlistItem(editItem?.id ?? '')
 
@@ -71,14 +73,14 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
 
   async function handleSubmit() {
     if (!name.trim()) {
-      Alert.alert('Nombre requerido', 'Añade un nombre para el lugar.')
+      Alert.alert(t('wishlist_name_required_title'), t('wishlist_name_required_body'))
       return
     }
 
     const callbacks = {
       onSuccess: () => { reset(); onClose() },
       onError: () => {
-        Alert.alert('Error', `No se pudo ${isEdit ? 'actualizar' : 'guardar'} el deseo. Inténtalo de nuevo.`)
+        Alert.alert(t('common_error'), isEdit ? t('wishlist_save_error_edit') : t('wishlist_save_error_create'))
       },
     }
 
@@ -109,11 +111,11 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
   const SECTION_GAP = 20
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose} title={isEdit ? 'Editar deseo' : 'Nuevo deseo'} scrollable>
+    <BottomSheet visible={visible} onClose={handleClose} title={isEdit ? t('wishlist_addSheet_edit') : t('wishlist_addSheet_create')} scrollable>
       <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
 
         {/* Nombre */}
-        <Text style={LABEL_STYLE}>Lugar</Text>
+        <Text style={LABEL_STYLE}>{t('wishlist_addSheet_place')}</Text>
         <View
           style={{
             backgroundColor: inputBg,
@@ -126,7 +128,7 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
           <TextInput
             value={name}
             onChangeText={setName}
-            placeholder="Nombre del lugar..."
+            placeholder={t('wishlist_addSheet_place_placeholder')}
             placeholderTextColor={placeholderColor}
             style={{
               fontSize: 15,
@@ -139,7 +141,7 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
         </View>
 
         {/* Tipo */}
-        <Text style={LABEL_STYLE}>Tipo</Text>
+        <Text style={LABEL_STYLE}>{t('wishlist_addSheet_type')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -147,13 +149,13 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
           style={{ marginBottom: SECTION_GAP }}
           contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
         >
-          {TYPES.map((t) => {
-            const isActive = type === t.key
-            const accent = TYPE_COLORS[t.key]
+          {WISHLIST_TYPES.map((typeItem) => {
+            const isActive = type === typeItem.key
+            const accent = TYPE_COLORS[typeItem.key]
             return (
               <TouchableOpacity
-                key={t.key}
-                onPress={() => setType(t.key)}
+                key={typeItem.key}
+                onPress={() => setType(typeItem.key)}
                 activeOpacity={0.7}
                 style={{
                   flexDirection: 'row',
@@ -168,7 +170,7 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
                 }}
               >
                 <Ionicons
-                  name={t.icon}
+                  name={typeItem.icon}
                   size={15}
                   color={isActive ? colors.white : (isDark ? colors.neutral[300] : colors.neutral[500])}
                 />
@@ -179,7 +181,7 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
                     color: isActive ? colors.white : (isDark ? colors.neutral[300] : colors.neutral[600]),
                   }}
                 >
-                  {t.label}
+                  {t(`wishlist_type_${typeItem.key}`)}
                 </Text>
               </TouchableOpacity>
             )
@@ -187,7 +189,7 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
         </ScrollView>
 
         {/* Ubicación */}
-        <Text style={LABEL_STYLE}>Ubicación (opcional)</Text>
+        <Text style={LABEL_STYLE}>{t('wishlist_addSheet_location')}</Text>
         <View style={{ marginBottom: SECTION_GAP }}>
           <LocationPicker
             value={location}
@@ -196,7 +198,7 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
         </View>
 
         {/* Nota */}
-        <Text style={LABEL_STYLE}>Nota (opcional)</Text>
+        <Text style={LABEL_STYLE}>{t('wishlist_addSheet_note')}</Text>
         <View
           style={{
             backgroundColor: inputBg,
@@ -209,7 +211,7 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
           <TextInput
             value={note}
             onChangeText={setNote}
-            placeholder="¿Por qué quieres ir? ¿Quién te lo recomendó?"
+            placeholder={t('wishlist_addSheet_note_placeholder')}
             placeholderTextColor={placeholderColor}
             multiline
             style={{
@@ -241,7 +243,7 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
             <ActivityIndicator color={colors.white} size="small" />
           ) : (
             <Text style={{ color: colors.white, fontSize: 16, fontWeight: '600' }}>
-              {isEdit ? 'Guardar cambios' : 'Añadir a mis deseos'}
+              {isEdit ? t('wishlist_addSheet_submitEdit') : t('wishlist_addSheet_submitCreate')}
             </Text>
           )}
         </TouchableOpacity>

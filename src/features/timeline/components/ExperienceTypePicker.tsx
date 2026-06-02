@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import { EXPERIENCE_TYPE_LABELS } from '../types'
+import { useTranslation } from 'react-i18next'
 import type { Experience } from '@types/index'
 import { colors } from '@lib/colors'
 
@@ -33,9 +33,10 @@ const TYPE_SELECTED_CLASSES: Record<ExperienceType, string> = {
 }
 
 export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypePickerProps) {
+  const { t } = useTranslation()
   return (
     <View className="gap-1">
-      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Tipo</Text>
+      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('timeline_typePicker_label')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
         <View className="flex-row gap-2 px-1 py-1">
           {TYPES.map((type) => {
@@ -58,7 +59,7 @@ export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypeP
                 <Text
                   className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}
                 >
-                  {EXPERIENCE_TYPE_LABELS[type]}
+                  {t(`expType_${type}`)}
                 </Text>
               </TouchableOpacity>
             )

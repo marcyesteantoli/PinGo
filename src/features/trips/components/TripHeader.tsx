@@ -20,6 +20,7 @@ import { useTheme } from '@lib/theme'
 import { useTripContext } from '../TripProvider'
 import { formatShortDate } from '@utils/date'
 import { colors } from '@lib/colors'
+import { useTranslation } from 'react-i18next'
 
 const COLLAPSE_THRESHOLD = 60
 
@@ -33,6 +34,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
   const { data: user } = useCurrentUser()
   const { data: profile } = useProfile(user?.id)
   const { isDark } = useTheme()
+  const { t, i18n } = useTranslation()
   const [membersVisible, setMembersVisible] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -60,7 +62,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
     }
   )
 
-  const dateRange = `${formatShortDate(trip.start_date)} - ${formatShortDate(trip.end_date)}`
+  const dateRange = `${formatShortDate(trip.start_date, i18n.language)} - ${formatShortDate(trip.end_date, i18n.language)}`
   const travelerCount = collaborators.length
   const borderColor = isDark ? colors.surface[800] : colors.white
   const subtleColor = isDark ? colors.neutral[200] : colors.neutral[400]
@@ -173,7 +175,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
                 )}
               </View>
               <Text className="text-[13px] text-neutral-400 dark:text-neutral-200">
-                {travelerCount} {travelerCount === 1 ? 'viajero' : 'viajeros'}
+                {t('tripHeader_travelers', { count: travelerCount })}
               </Text>
               <Ionicons name="chevron-forward" size={15} color={subtleColor} />
             </TouchableOpacity>
@@ -184,7 +186,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
       <BottomSheet
         visible={membersVisible}
         onClose={() => setMembersVisible(false)}
-        title="Viajeros"
+        title={t('tripHeader_membersSheet_title')}
       >
         <View className="mb-2">
           {collaborators.map((c, i) => (
@@ -200,7 +202,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
               {c.role === 'owner' && (
                 <View className="bg-primary-50 dark:bg-primary-900/30 rounded-full px-2.5 py-1">
                   <Text className="text-[11px] font-semibold text-primary-600 dark:text-primary-400">
-                    Organizador
+                    {t('tripHeader_role_owner')}
                   </Text>
                 </View>
               )}
@@ -208,7 +210,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
           ))}
           <View className="mt-4 pt-4" style={{ borderTopWidth: 1, borderTopColor: isDark ? colors.surface[700] : colors.neutral[100] }}>
             <Text className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400 mb-3">
-              Código de invitación
+              {t('tripHeader_invite_label')}
             </Text>
             <TouchableOpacity
               onPress={handleCopy}
@@ -228,19 +230,19 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
               />
             </TouchableOpacity>
             {copied && (
-              <Text className="text-[12px] text-primary-500 text-center mb-2">¡Copiado!</Text>
+              <Text className="text-[12px] text-primary-500 text-center mb-2">{t('tripHeader_invite_copied')}</Text>
             )}
             <TouchableOpacity
               onPress={() =>
                 Share.share({
-                  message: `Únete a "${trip.title}" en PinGo con el código: ${trip.join_code}`,
+                  message: t('tripCard_share_message', { title: trip.title, code: trip.join_code }),
                 })
               }
               className="bg-primary-500 rounded-2xl py-3.5 flex-row items-center gap-2 justify-center mb-2"
               activeOpacity={0.8}
             >
               <Ionicons name="share-outline" size={18} color="white" />
-              <Text className="text-[15px] font-semibold text-white">Compartir código</Text>
+              <Text className="text-[15px] font-semibold text-white">{t('tripHeader_invite_share')}</Text>
             </TouchableOpacity>
           </View>
         </View>

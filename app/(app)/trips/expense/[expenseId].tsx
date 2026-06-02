@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useQueryClient } from '@tanstack/react-query'
@@ -76,6 +77,7 @@ export default function ExpenseDetailScreen() {
   const { expenseId, tripId } = useLocalSearchParams<{ expenseId: string; tripId: string }>()
   const router = useRouter()
   const { isDark } = useTheme()
+  const { t } = useTranslation()
   const { data: currentUser } = useCurrentUser()
   const queryClient = useQueryClient()
 
@@ -99,12 +101,12 @@ export default function ExpenseDetailScreen() {
   const handleDelete = () => {
     if (!expense) return
     Alert.alert(
-      'Eliminar gasto',
-      `¿Eliminar "${expense.description}"?`,
+      t('common_delete'),
+      t('wishlist_delete_body', { name: expense.description }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common_cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('common_delete'),
           style: 'destructive',
           onPress: () => deleteExpense.mutate(expense.id, { onSuccess: () => router.back() }),
         },
@@ -132,9 +134,9 @@ export default function ExpenseDetailScreen() {
         </View>
         {!isLoading && !expense && (
           <View className="flex-1 items-center justify-center gap-3">
-            <Text className="text-sm text-neutral-500 dark:text-neutral-400">Gasto no encontrado</Text>
+            <Text className="text-sm text-neutral-500 dark:text-neutral-400">{t('expenseDetail_notFound')}</Text>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text className="text-sm font-medium text-primary-500">Volver</Text>
+              <Text className="text-sm font-medium text-primary-500">{t('common_back')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -160,7 +162,7 @@ export default function ExpenseDetailScreen() {
           className="flex-1 text-center text-base font-semibold text-neutral-900 dark:text-neutral-50"
           style={{ marginLeft: -36 }}
         >
-          Detalle del gasto
+          {t('expenseDetail_title')}
         </Text>
       </View>
 
@@ -192,7 +194,7 @@ export default function ExpenseDetailScreen() {
         >
           <View className="flex-row items-center px-4 py-3.5 gap-3">
             <Ionicons name="calendar-outline" size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
-            <Text className="flex-1 text-sm text-neutral-500 dark:text-neutral-400">Fecha</Text>
+            <Text className="flex-1 text-sm text-neutral-500 dark:text-neutral-400">{t('expenseDetail_field_date')}</Text>
             <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
               {formatDate(expense.created_at)}
             </Text>
@@ -202,11 +204,11 @@ export default function ExpenseDetailScreen() {
 
           <View className="flex-row items-center px-4 py-3.5 gap-3">
             <Ionicons name="person-outline" size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
-            <Text className="flex-1 text-sm text-neutral-500 dark:text-neutral-400">Pagado por</Text>
+            <Text className="flex-1 text-sm text-neutral-500 dark:text-neutral-400">{t('expenseDetail_field_paidBy')}</Text>
             <View className="flex-row items-center gap-2">
               <Avatar uri={expense.payer.avatar_url} name={expense.payer.name} size="sm" />
               <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
-                {isCurrentUserPayer ? 'Tú' : expense.payer.name.split(' ')[0]}
+                {isCurrentUserPayer ? t('common_youLabel') : expense.payer.name.split(' ')[0]}
               </Text>
             </View>
           </View>
@@ -222,7 +224,7 @@ export default function ExpenseDetailScreen() {
                 })}
               >
                 <Ionicons name="compass-outline" size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
-                <Text className="flex-1 text-sm text-neutral-500 dark:text-neutral-400">Experiencia</Text>
+                <Text className="flex-1 text-sm text-neutral-500 dark:text-neutral-400">{t('expenseDetail_field_experience')}</Text>
                 <View className="flex-row items-center gap-1">
                   <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-50" numberOfLines={1} style={{ maxWidth: 160 }}>
                     {expense.experience.title}
@@ -237,7 +239,7 @@ export default function ExpenseDetailScreen() {
 
           <View className="flex-row items-center px-4 py-3.5 gap-3">
             <Ionicons name="cash-outline" size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
-            <Text className="flex-1 text-sm text-neutral-500 dark:text-neutral-400">Moneda</Text>
+            <Text className="flex-1 text-sm text-neutral-500 dark:text-neutral-400">{t('expenseDetail_field_currency')}</Text>
             <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
               {expense.currency}
             </Text>
@@ -248,7 +250,7 @@ export default function ExpenseDetailScreen() {
         {expense.splits.length > 0 && (
           <View className="mt-4">
             <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2 px-1">
-              Participantes ({expense.splits.length})
+              {t('expenseDetail_participants', { count: expense.splits.length })}
             </Text>
             <View
               className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden"
@@ -258,7 +260,7 @@ export default function ExpenseDetailScreen() {
                 const collaborator = collaborators.find((c) => c.user_id === split.user_id)
                 const isPayer = split.user_id === expense.payer_id
                 const isMe = split.user_id === currentUser?.id
-                const name = collaborator?.name ?? (isPayer ? expense.payer.name : 'Participante')
+                const name = collaborator?.name ?? (isPayer ? expense.payer.name : t('common_someone'))
                 const avatarUrl = collaborator?.avatar_url ?? (isPayer ? expense.payer.avatar_url : null)
 
                 return (
@@ -270,7 +272,7 @@ export default function ExpenseDetailScreen() {
                       <Avatar uri={avatarUrl} name={name} size="md" />
                       <View className="flex-1 ml-3">
                         <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
-                          {isMe ? 'Tú' : name.split(' ')[0]}
+                          {isMe ? t('common_youLabel') : name.split(' ')[0]}
                         </Text>
                         <Text className="text-xs text-neutral-500 dark:text-neutral-400">
                           {formatCurrency(split.amount, expense.currency)}
@@ -279,7 +281,7 @@ export default function ExpenseDetailScreen() {
                       {isPayer && (
                         <View className="flex-row items-center gap-1 bg-blue-100 dark:bg-blue-900/30 rounded-full px-2 py-0.5">
                           <Ionicons name="card-outline" size={10} color="#3b82f6" />
-                          <Text className="text-xs text-blue-600 dark:text-blue-400">Pagó</Text>
+                          <Text className="text-xs text-blue-600 dark:text-blue-400">{t('expenseDetail_paidBadge')}</Text>
                         </View>
                       )}
                     </View>
@@ -304,14 +306,14 @@ export default function ExpenseDetailScreen() {
             style={{ borderColor: colors.error }}
           >
             <Ionicons name="trash-outline" size={18} color={colors.error} />
-            <Text style={{ color: colors.error }} className="text-sm font-semibold">Eliminar</Text>
+            <Text style={{ color: colors.error }} className="text-sm font-semibold">{t('common_delete')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setEditSheetVisible(true)}
             className="flex-1 h-12 rounded-xl bg-primary-500 items-center justify-center flex-row gap-2"
           >
             <Ionicons name="pencil-outline" size={18} color={colors.white} />
-            <Text className="text-sm font-semibold text-white">Editar</Text>
+            <Text className="text-sm font-semibold text-white">{t('common_edit')}</Text>
           </TouchableOpacity>
         </View>
       )}

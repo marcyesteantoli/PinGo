@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { useState } from 'react'
 import { Modal, Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 
@@ -30,6 +31,8 @@ function TimePickerInput({ value, onChange, placeholder = '--:--', error, minTim
   const [show, setShow] = useState(false)
   const pickerDate = parseTime(value)
   const { isDark } = useTheme()
+  const { t } = useTranslation()
+  const doneLabel = t('timeline_timePicker_done')
 
   const handleOpen = () => {
     onChange(dateToTime(pickerDate))
@@ -70,7 +73,7 @@ function TimePickerInput({ value, onChange, placeholder = '--:--', error, minTim
             <View style={{ backgroundColor: isDark ? colors.surface[800] : colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
               <View className="flex-row justify-end px-4 pt-3 pb-1">
                 <TouchableOpacity onPress={() => setShow(false)}>
-                  <Text className="text-base font-semibold" style={{ color: colors.primary[500] }}>Listo</Text>
+                  <Text className="text-base font-semibold" style={{ color: colors.primary[500] }}>{doneLabel}</Text>
                 </TouchableOpacity>
               </View>
               {show && (
@@ -120,21 +123,22 @@ export function TimeRangePicker({
   startTimeError,
   endTimeError,
 }: TimeRangePickerProps) {
+  const { t } = useTranslation()
   return (
     <View className="gap-1">
-      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Franja horaria (opcional)</Text>
+      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('timeline_timePicker_label')}</Text>
       <View className="flex-row gap-3 items-start">
         <TimePickerInput
           value={startTime}
           onChange={onStartTimeChange}
-          placeholder="09:00"
+          placeholder={t('timeline_timePicker_start')}
           error={startTimeError}
         />
         <Text className="text-neutral-500 dark:text-neutral-400 text-base" style={{ paddingTop: 10 }}>—</Text>
         <TimePickerInput
           value={endTime}
           onChange={onEndTimeChange}
-          placeholder="18:00"
+          placeholder={t('timeline_timePicker_end')}
           error={endTimeError}
           minTime={startTime}
         />

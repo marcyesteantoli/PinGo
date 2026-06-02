@@ -1,14 +1,16 @@
 import { memo, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
-import { Dimensions, Share, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Dimensions, ScrollView, Share, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { Avatar } from '@components/ui/Avatar'
 import { Badge } from '@components/ui/Badge'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { DateRangePicker } from '@components/ui/DateRangePicker'
 import { formatDateRange } from '@utils/date'
+import { SUPPORTED_CURRENCIES } from '@utils/currencies'
 import { useTheme } from '@lib/theme'
 import type { TripWithCollaborators } from '@features/trips/hooks/useTrips'
 import { useDeleteTrip } from '../hooks/useDeleteTrip'
@@ -50,6 +52,7 @@ function getTripDays(start: string, end: string): number {
 
 export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps) {
   const { isDark } = useTheme()
+  const { t, i18n } = useTranslation()
   const { collaborators } = trip
   const days = getTripDays(trip.start_date, trip.end_date)
   const status = getTripStatus(trip.start_date, trip.end_date)
@@ -69,6 +72,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
   const [newTitle, setNewTitle] = useState(trip.title)
   const [newStartDate, setNewStartDate] = useState(trip.start_date)
   const [newEndDate, setNewEndDate] = useState(trip.end_date)
+  const [newCurrency, setNewCurrency] = useState(trip.currency)
 
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
@@ -101,6 +105,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
     setNewTitle(trip.title)
     setNewStartDate(trip.start_date)
     setNewEndDate(trip.end_date)
+    setNewCurrency(trip.currency)
     setRenameVisible(true)
   }
 
@@ -115,7 +120,8 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
     const titleChanged = trimmed !== trip.title
     const startChanged = newStartDate !== trip.start_date
     const endChanged = newEndDate !== trip.end_date
-    if (!titleChanged && !startChanged && !endChanged) {
+    const currencyChanged = newCurrency !== trip.currency
+    if (!titleChanged && !startChanged && !endChanged && !currencyChanged) {
       setRenameVisible(false)
       return
     }
@@ -125,6 +131,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
         title: trimmed,
         start_date: startChanged ? newStartDate : undefined,
         end_date: endChanged ? newEndDate : undefined,
+        currency: currencyChanged ? newCurrency : undefined,
       },
       { onSuccess: () => setRenameVisible(false) }
     )
@@ -137,9 +144,9 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
   }
 
   const statusConfig: Record<TripStatus, { label: string; variant: 'active' | 'primary' | 'neutral' }> = {
-    active:   { label: 'En curso',             variant: 'active'  },
-    upcoming: { label: `En ${daysUntil} días`, variant: 'primary' },
-    past:     { label: 'Completado',           variant: 'neutral' },
+    active:   { label: t('tripCard_status_active'),                             variant: 'active'  },
+    upcoming: { label: t('tripCard_status_upcoming', { count: daysUntil }),     variant: 'primary' },
+    past:     { label: t('tripCard_status_past'),                               variant: 'neutral' },
   }
 
   const { label, variant } = statusConfig[status]
@@ -164,11 +171,11 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
       <View className="flex-row items-center gap-1.5 mb-3.5">
         <Ionicons name="calendar-outline" size={14} color={subtleColor} />
         <Text className="text-[13px] text-neutral-500 dark:text-neutral-400">
-          {formatDateRange(trip.start_date, trip.end_date)}
+          {formatDateRange(trip.start_date, trip.end_date, i18n.language)}
         </Text>
         <View className="rounded bg-neutral-100 dark:bg-surface-700 px-1.5 py-0.5">
           <Text className="text-[12px] font-medium text-neutral-500 dark:text-neutral-400">
-            {days} {days === 1 ? 'día' : 'días'}
+            {t('tripCard_days', { count: days })}
           </Text>
         </View>
       </View>
@@ -220,7 +227,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               )}
             </View>
             <Text className="text-[12px] font-medium text-neutral-500 dark:text-neutral-400">
-              {collaborators.length} {collaborators.length === 1 ? 'persona' : 'personas'}
+              {t('tripCard_persons', { count: collaborators.length })}
             </Text>
           </View>
         ) : (
@@ -229,7 +236,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
         <TouchableOpacity
           onPress={() =>
             Share.share({
-              message: `Únete a "${trip.title}" en PinGo con el código: ${trip.join_code}`,
+              message: t('tripCard_share_message', { title: trip.title, code: trip.join_code }),
             })
           }
           activeOpacity={0.7}
@@ -287,7 +294,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               activeOpacity={0.8}
             >
               <Ionicons name="pencil-outline" size={20} color={colors.white} />
-              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>Editar</Text>
+              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>{t('common_edit')}</Text>
             </TouchableOpacity>
 
             {/* Delete action */}
@@ -298,7 +305,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               activeOpacity={0.8}
             >
               <Ionicons name="trash-outline" size={20} color={colors.white} />
-              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>Eliminar</Text>
+              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>{t('common_delete')}</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -308,12 +315,13 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
       <BottomSheet
         visible={renameVisible}
         onClose={() => setRenameVisible(false)}
-        title="Editar viaje"
+        title={t('tripCard_editSheet_title')}
+        scrollable
       >
         <View className="gap-4 mb-2">
           <View className="gap-1">
             <Text className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
-              Nombre del viaje
+              {t('newTrip_name_label')}
             </Text>
             <TextInput
               value={newTitle}
@@ -323,7 +331,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               onSubmitEditing={handleRenameConfirm}
               className="rounded-xl px-4 py-2.5 text-[17px] text-neutral-900 dark:text-neutral-50 bg-neutral-100 dark:bg-surface-700"
               placeholderTextColor={colors.neutral[400]}
-              placeholder="Nombre del viaje"
+              placeholder={t('newTrip_name_placeholder')}
             />
           </View>
           <DateRangePicker
@@ -333,11 +341,51 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
             onEndDateChange={setNewEndDate}
             minDate=""
           />
+          <View className="gap-2">
+            <Text className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
+              {t('newTrip_currency_label')}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {SUPPORTED_CURRENCIES.map((c) => {
+                const isSelected = newCurrency === c.code
+                return (
+                  <TouchableOpacity
+                    key={c.code}
+                    onPress={() => setNewCurrency(c.code)}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 5,
+                      paddingHorizontal: 12,
+                      paddingVertical: 7,
+                      borderRadius: 20,
+                      borderWidth: 1.5,
+                      borderColor: isSelected ? colors.primary[500] : colors.neutral[200],
+                      backgroundColor: isSelected ? '#e8f0fe' : 'transparent',
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: isSelected ? colors.primary[500] : colors.neutral[500] }}>
+                      {c.symbol}
+                    </Text>
+                    <Text style={{ fontSize: 13, fontWeight: isSelected ? '600' : '400', color: isSelected ? colors.primary[600] : colors.neutral[700] }}>
+                      {c.code}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </ScrollView>
+          </View>
           <Button
             onPress={handleRenameConfirm}
             isLoading={updateTrip.isPending}
           >
-            Guardar
+            {t('common_saveNew')}
           </Button>
         </View>
       </BottomSheet>
@@ -346,13 +394,13 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
       <BottomSheet
         visible={deleteVisible}
         onClose={() => setDeleteVisible(false)}
-        title="Eliminar viaje"
+        title={t('tripCard_deleteSheet_title')}
       >
         <View className="gap-4 mb-2">
           <View className="flex-row items-start gap-3 bg-error/10 rounded-2xl p-4">
             <Ionicons name="warning-outline" size={20} color={colors.error} />
             <Text className="text-sm text-neutral-700 dark:text-neutral-300 flex-1">
-              Se eliminará «{trip.title}» y todos sus datos permanentemente. Esta acción no se puede deshacer.
+              {t('tripCard_deleteSheet_body', { title: trip.title })}
             </Text>
           </View>
           <Button
@@ -360,10 +408,10 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
             onPress={handleDeleteConfirm}
             isLoading={deleteTrip.isPending}
           >
-            Eliminar viaje
+            {t('tripCard_deleteSheet_title')}
           </Button>
           <TouchableOpacity onPress={() => setDeleteVisible(false)} className="py-3 items-center">
-            <Text className="text-neutral-500 font-medium">Cancelar</Text>
+            <Text className="text-neutral-500 font-medium">{t('common_cancel')}</Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import MapView, { Marker } from 'react-native-maps'
@@ -77,6 +78,7 @@ function getPlaceSubtitle(r: NominatimResult): string {
 
 export function LocationPicker({ value, onChange, error }: LocationPickerProps) {
   const { isDark } = useTheme()
+  const { t } = useTranslation()
   const [modalVisible, setModalVisible] = useState(false)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<NominatimResult[]>([])
@@ -174,7 +176,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
             numberOfLines={1}
             style={{ flex: 1, fontSize: 16, color: value ? textColor : placeholderColor }}
           >
-            {value ? value.name : 'Añadir ubicación'}
+            {value ? value.name : t('timeline_locationPicker_placeholder')}
           </Text>
           {value ? (
             <TouchableOpacity onPress={() => onChange(undefined)} hitSlop={8}>
@@ -206,7 +208,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
             }}
           >
             <TouchableOpacity onPress={handleClose} style={{ minWidth: 72 }}>
-              <Text style={{ fontSize: 17, color: colors.primary[500] }}>Cancelar</Text>
+              <Text style={{ fontSize: 17, color: colors.primary[500] }}>{t('common_cancel')}</Text>
             </TouchableOpacity>
             <Text
               style={{
@@ -217,7 +219,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                 color: textColor,
               }}
             >
-              Ubicación
+              {t('timeline_locationPicker_title')}
             </Text>
             <TouchableOpacity
               onPress={handleConfirm}
@@ -231,7 +233,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                   color: selected ? colors.primary[500] : colors.neutral[400],
                 }}
               >
-                Listo
+                {t('timeline_locationPicker_done')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -260,7 +262,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                 <TextInput
                   value={query}
                   onChangeText={handleQueryChange}
-                  placeholder="Buscar lugar..."
+                  placeholder={t('timeline_locationPicker_search')}
                   placeholderTextColor={colors.neutral[400]}
                   autoFocus
                   returnKeyType="search"
@@ -372,12 +374,12 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                   />
                 </View>
                 <Text style={{ fontSize: 17, fontWeight: '600', color: textColor }}>
-                  {query.trim() ? 'Sin resultados' : 'Busca un lugar'}
+                  {query.trim() ? t('timeline_locationPicker_empty_noResults_title') : t('timeline_locationPicker_empty_initial_title')}
                 </Text>
                 <Text style={{ fontSize: 14, color: colors.neutral[400], textAlign: 'center', paddingHorizontal: 32 }}>
                   {query.trim()
-                    ? 'Prueba con otro nombre o dirección'
-                    : 'Escribe el nombre de un lugar, ciudad o dirección'}
+                    ? t('timeline_locationPicker_empty_noResults_subtitle')
+                    : t('timeline_locationPicker_empty_initial_subtitle')}
                 </Text>
               </View>
             )}
@@ -479,7 +481,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                   }}
                 >
                   <Text style={{ fontSize: 17, fontWeight: '600', color: colors.white }}>
-                    Confirmar ubicación
+                    {t('timeline_locationPicker_confirm')}
                   </Text>
                 </TouchableOpacity>
               </View>

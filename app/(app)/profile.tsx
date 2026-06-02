@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from '@components/ui/Avatar'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useProfile } from '@features/auth/hooks/useProfile'
@@ -23,14 +24,13 @@ import { useTrips } from '@features/trips/hooks/useTrips'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import { useTheme } from '@lib/theme'
-
-function formatMonthYear(dateStr: string): string {
-  return new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(new Date(dateStr))
-}
+import { useLanguage, type SupportedLanguage } from '@lib/language'
 
 export default function ProfileScreen() {
   const router = useRouter()
   const { isDark, toggleTheme } = useTheme()
+  const { language, changeLanguage } = useLanguage()
+  const { t } = useTranslation()
   const { data: user } = useCurrentUser()
   const { data: profile } = useProfile(user?.id)
   const { data: trips = [] } = useTrips()
@@ -41,7 +41,9 @@ export default function ProfileScreen() {
 
   const displayName = profile?.name ?? user?.user_metadata?.name ?? '—'
   const email = user?.email ?? '—'
-  const memberSince = user?.created_at ? formatMonthYear(user.created_at) : '—'
+  const memberSince = user?.created_at
+    ? new Intl.DateTimeFormat(language === 'es' ? 'es-ES' : 'en-US', { month: 'long', year: 'numeric' }).format(new Date(user.created_at))
+    : '—'
   const appVersion = Constants.expoConfig?.version ?? '1.0.0'
 
   const uniqueCompanions = useMemo(() => {
@@ -83,10 +85,10 @@ export default function ProfileScreen() {
   }
 
   const handleSignOut = () => {
-    Alert.alert('Cerrar sesión', '¿Seguro que quieres salir?', [
-      { text: 'Cancelar', style: 'cancel' },
+    Alert.alert(t('profile_signout_title'), t('profile_signout_confirm'), [
+      { text: t('common_cancel'), style: 'cancel' },
       {
-        text: 'Cerrar sesión',
+        text: t('profile_signout'),
         style: 'destructive',
         onPress: () => signOut.mutate(),
       },
@@ -101,6 +103,11 @@ export default function ProfileScreen() {
   const sectionLabel = 'text-[13px] font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mx-4 mb-2 mt-6'
   const divider = 'h-px bg-neutral-100 dark:bg-surface-700 ml-[52px]'
 
+  const LANGUAGES: { key: SupportedLanguage; label: string; flag: string }[] = [
+    { key: 'es', label: t('lang_es'), flag: '🇪🇸' },
+    { key: 'en', label: t('lang_en'), flag: '🇬🇧' },
+  ]
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top', 'bottom']}>
       {/* Nav bar */}
@@ -113,7 +120,7 @@ export default function ProfileScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.primary[500]} />
         </TouchableOpacity>
         <Text className="text-[17px] font-semibold text-neutral-900 dark:text-neutral-50">
-          Perfil
+          {t('profile_title')}
         </Text>
         <View className="w-9" />
       </View>
@@ -150,7 +157,7 @@ export default function ProfileScreen() {
               {trips.length}
             </Text>
             <Text className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-              Viajes
+              {t('profile_stats_trips')}
             </Text>
           </View>
           <View className="w-px bg-neutral-100 dark:bg-surface-700 my-3" />
@@ -159,18 +166,18 @@ export default function ProfileScreen() {
               {uniqueCompanions}
             </Text>
             <Text className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-              Compañeros
+              {t('profile_stats_companions')}
             </Text>
           </View>
         </View>
 
         {/* Sección: Cuenta */}
-        <Text className={sectionLabel}>Cuenta</Text>
+        <Text className={sectionLabel}>{t('profile_section_account')}</Text>
         <View className={sectionCard} style={cardShadow}>
           {/* Nombre */}
           <View className={rowBase}>
             <Ionicons name="person-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text className={`${labelBase} flex-1`}>Nombre</Text>
+            <Text className={`${labelBase} flex-1`}>{t('profile_field_name')}</Text>
             {editingName ? (
               <View className="flex-row items-center gap-2">
                 <TextInput
@@ -205,7 +212,7 @@ export default function ProfileScreen() {
           {/* Email */}
           <View className={rowBase}>
             <Ionicons name="mail-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text className={`${labelBase} flex-1`}>Email</Text>
+            <Text className={`${labelBase} flex-1`}>{t('profile_field_email')}</Text>
             <Text className={valueBase}>{email}</Text>
           </View>
 
@@ -214,13 +221,13 @@ export default function ProfileScreen() {
           {/* Miembro desde */}
           <View className={rowBase}>
             <Ionicons name="calendar-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text className={`${labelBase} flex-1`}>Miembro desde</Text>
+            <Text className={`${labelBase} flex-1`}>{t('profile_field_member')}</Text>
             <Text className={valueBase} style={{ textTransform: 'capitalize' }}>{memberSince}</Text>
           </View>
         </View>
 
         {/* Sección: Apariencia */}
-        <Text className={sectionLabel}>Apariencia</Text>
+        <Text className={sectionLabel}>{t('profile_section_appearance')}</Text>
         <View className={sectionCard} style={cardShadow}>
           <View className={rowBase}>
             <Ionicons
@@ -229,7 +236,7 @@ export default function ProfileScreen() {
               color={isDark ? colors.primary[400] : colors.tertiary[400]}
               style={{ marginRight: 12 }}
             />
-            <Text className={`${labelBase} flex-1`}>Modo oscuro</Text>
+            <Text className={`${labelBase} flex-1`}>{t('profile_darkMode')}</Text>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
@@ -237,8 +244,29 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Sección: Idioma */}
+        <Text className={sectionLabel}>{t('profile_section_language')}</Text>
+        <View className={sectionCard} style={cardShadow}>
+          {LANGUAGES.map((lang, i) => (
+            <View key={lang.key}>
+              {i > 0 && <View className={divider} />}
+              <TouchableOpacity
+                onPress={() => changeLanguage(lang.key)}
+                className={rowBase}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 20, marginRight: 12 }}>{lang.flag}</Text>
+                <Text className={`${labelBase} flex-1`}>{lang.label}</Text>
+                {language === lang.key && (
+                  <Ionicons name="checkmark-circle" size={22} color={colors.primary[500]} />
+                )}
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+
         {/* Sección: App */}
-        <Text className={sectionLabel}>App</Text>
+        <Text className={sectionLabel}>{t('profile_section_app')}</Text>
         <View className={sectionCard} style={cardShadow}>
           <View className={rowBase}>
             <Ionicons
@@ -247,12 +275,11 @@ export default function ProfileScreen() {
               color={iconColor}
               style={{ marginRight: 12 }}
             />
-            <Text className={`${labelBase} flex-1`}>Versión</Text>
+            <Text className={`${labelBase} flex-1`}>{t('profile_field_version')}</Text>
             <Text className={valueBase}>{appVersion}</Text>
           </View>
           <View className={divider} />
           <TouchableOpacity
-            // TODO (producción): crear términos de uso y actualizar esta URL antes de publicar en App Store / Play Store
             onPress={() => Linking.openURL('https://pingo.app/terminos')}
             className={rowBase}
             activeOpacity={0.7}
@@ -263,12 +290,11 @@ export default function ProfileScreen() {
               color={iconColor}
               style={{ marginRight: 12 }}
             />
-            <Text className={`${labelBase} flex-1`}>Términos de uso</Text>
+            <Text className={`${labelBase} flex-1`}>{t('profile_terms')}</Text>
             <Ionicons name="chevron-forward" size={16} color={iconColor} />
           </TouchableOpacity>
           <View className={divider} />
           <TouchableOpacity
-            // TODO (producción): crear política de privacidad y actualizar esta URL antes de publicar en App Store / Play Store
             onPress={() => Linking.openURL('https://pingo.app/privacidad')}
             className={rowBase}
             activeOpacity={0.7}
@@ -279,13 +305,13 @@ export default function ProfileScreen() {
               color={iconColor}
               style={{ marginRight: 12 }}
             />
-            <Text className={`${labelBase} flex-1`}>Privacidad</Text>
+            <Text className={`${labelBase} flex-1`}>{t('profile_privacy')}</Text>
             <Ionicons name="chevron-forward" size={16} color={iconColor} />
           </TouchableOpacity>
         </View>
 
         {/* Sección: Sesión */}
-        <Text className={sectionLabel}>Sesión</Text>
+        <Text className={sectionLabel}>{t('profile_section_session')}</Text>
         <View className={sectionCard} style={cardShadow}>
           <TouchableOpacity
             onPress={handleSignOut}
@@ -299,7 +325,7 @@ export default function ProfileScreen() {
               style={{ marginRight: 12 }}
             />
             <Text className="text-[17px] text-error font-medium">
-              Cerrar sesión
+              {t('profile_signout')}
             </Text>
           </TouchableOpacity>
         </View>

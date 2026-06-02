@@ -10,9 +10,11 @@ import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent'
 import { queryClient } from '@lib/queryClient'
 import { supabase } from '@lib/supabase'
 import { ThemeProvider, useTheme } from '@lib/theme'
+import { LanguageProvider } from '@lib/language'
 import { ErrorToastProvider, ErrorToastPortal } from '@lib/errorToast'
 import { getLastActiveTripId } from '@lib/lastActiveTrip'
 import { ShareDocumentSheet } from '@features/documents/components/ShareDocumentSheet'
+import { initI18n } from '@/i18n'
 import { DEV_MODE } from '@/dev/mockData'
 import '../global.css'
 
@@ -55,7 +57,7 @@ function AppShell() {
     if (DEV_MODE) {
       const inAuthGroup = segmentsRef.current[0] === '(auth)'
       if (inAuthGroup) {
-        router.replace('/(app)')
+        router.replace('/(app)/(tabs)/trips')
       }
       return
     }
@@ -65,7 +67,7 @@ function AppShell() {
       if (!session && !inAuthGroup) router.replace('/(auth)/login')
       else if (session && inAuthGroup) {
         queryClient.clear()
-        router.replace('/(app)')
+        router.replace('/(app)/(tabs)/trips')
       }
     })
     return () => subscription.unsubscribe()
@@ -93,16 +95,23 @@ export default function RootLayout() {
     PlusJakartaSans_700Bold,
     PlusJakartaSans_800ExtraBold,
   })
+  const [i18nReady, setI18nReady] = useState(false)
 
-  if (!fontsLoaded) return null
+  useEffect(() => {
+    initI18n().then(() => setI18nReady(true))
+  }, [])
+
+  if (!fontsLoaded || !i18nReady) return null
 
   return (
     <ShareIntentProvider options={{ scheme: 'pingo' }}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <ErrorToastProvider>
-            <AppShell />
-          </ErrorToastProvider>
+          <LanguageProvider>
+            <ErrorToastProvider>
+              <AppShell />
+            </ErrorToastProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ShareIntentProvider>

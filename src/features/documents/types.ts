@@ -1,8 +1,11 @@
 import { z } from 'zod'
+import { i18n } from '@/i18n'
 
-export const uploadDocumentSchema = z.object({
-  name: z.string().min(1, 'El nombre es obligatorio'),
-  experience_id: z.string().uuid('Selecciona una experiencia'),
-})
+export function buildUploadDocumentSchema() {
+  return z.object({
+    name: z.string().min(1, i18n.t('validation_required_docName')),
+    experience_id: z.string().uuid(i18n.t('validation_required_experience')),
+  })
+}
 
-export type UploadDocumentFormData = z.infer<typeof uploadDocumentSchema>
+export type UploadDocumentFormData = z.infer<ReturnType<typeof buildUploadDocumentSchema>>

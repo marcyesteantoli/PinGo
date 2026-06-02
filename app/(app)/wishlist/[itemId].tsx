@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Alert, Linking, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import MapView, { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -16,15 +17,6 @@ import { cardShadow } from '@lib/shadows'
 import type { WishlistItemType } from '@/types/index'
 import { TYPE_COLORS } from '@/features/wishlist/constants'
 
-const TYPE_LABELS: Record<WishlistItemType, string> = {
-  city: 'Ciudad',
-  restaurant: 'Restaurante',
-  activity: 'Actividad',
-  accommodation: 'Alojamiento',
-  entertainment: 'Entretenimiento',
-  other: 'Otro',
-}
-
 const TYPE_ICONS: Record<WishlistItemType, keyof typeof Ionicons.glyphMap> = {
   city: 'business-outline',
   restaurant: 'restaurant-outline',
@@ -38,6 +30,7 @@ export default function WishlistItemDetailScreen() {
   const router = useRouter()
   const { itemId } = useLocalSearchParams<{ itemId: string }>()
   const { isDark } = useTheme()
+  const { t } = useTranslation()
 
   const { data: items = [] } = useWishlistItems()
   const item = items.find((i) => i.id === itemId)
@@ -61,7 +54,7 @@ export default function WishlistItemDetailScreen() {
           <Ionicons name="chevron-back" size={22} color={colors.primary[500]} />
         </TouchableOpacity>
         <View className="flex-1 items-center justify-center">
-          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Deseo no encontrado</Text>
+          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">{t('wishlist_detail_notFound')}</Text>
         </View>
       </SafeAreaView>
     )
@@ -78,12 +71,12 @@ export default function WishlistItemDetailScreen() {
 
   function handleDelete() {
     Alert.alert(
-      'Eliminar deseo',
-      `¿Eliminar "${item.name}" de tu lista?`,
+      t('wishlist_delete_title'),
+      t('wishlist_delete_body', { name: item.name }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common_cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('common_delete'),
           style: 'destructive',
           onPress: () => {
             deleteItem.mutate(item.id, {
@@ -117,7 +110,7 @@ export default function WishlistItemDetailScreen() {
           className="flex-row items-center pl-2 pr-3 min-w-[80px]"
         >
           <Ionicons name="chevron-back" size={22} color={colors.primary[500]} />
-          <Text className="text-[17px] ml-0.5" style={{ color: colors.primary[500] }}>Mis deseos</Text>
+          <Text className="text-[17px] ml-0.5" style={{ color: colors.primary[500] }}>{t('wishlist_detail_back')}</Text>
         </TouchableOpacity>
         <View className="flex-1" />
         <View className="flex-row items-center gap-1">
@@ -144,7 +137,7 @@ export default function WishlistItemDetailScreen() {
                 <Ionicons name={TYPE_ICONS[item.type]} size={15} color={typeColor} />
               </View>
               <Text style={{ color: typeColor }} className="text-[13px] font-semibold">
-                {TYPE_LABELS[item.type]}
+                {t(`wishlist_type_${item.type}`)}
               </Text>
             </View>
 
@@ -176,7 +169,7 @@ export default function WishlistItemDetailScreen() {
                   className="text-[15px] font-medium"
                   style={{ color: isVisited ? '#10b981' : (isDark ? colors.neutral[300] : colors.neutral[700]) }}
                 >
-                  Visitado
+                  {t('wishlist_detail_visited')}
                 </Text>
               </View>
               <Switch
@@ -239,7 +232,7 @@ export default function WishlistItemDetailScreen() {
         <View className="rounded-2xl mb-3" style={cardShadow}>
           <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
             <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-              Mi nota
+              {t('wishlist_detail_noteLabel')}
             </Text>
             <View
               className="px-4 py-3 border-neutral-100 dark:border-surface-700"
@@ -256,7 +249,7 @@ export default function WishlistItemDetailScreen() {
                   clearTimeout(noteTimer.current)
                   updateNote.mutate(noteText ?? item.note ?? '')
                 }}
-                placeholder="¿Por qué quieres ir? ¿Quién te lo recomendó?"
+                placeholder={t('wishlist_detail_notePlaceholder')}
                 placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
                 multiline
                 style={{

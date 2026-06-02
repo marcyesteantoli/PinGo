@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from '@components/ui/Avatar'
 import { formatCurrency } from '@utils/currency'
 import type { UserBalance } from '@types/index'
@@ -6,9 +7,11 @@ import type { UserBalance } from '@types/index'
 interface BalanceCardProps {
   balance: UserBalance
   isCurrentUser?: boolean
+  currency?: string
 }
 
-export function BalanceCard({ balance, isCurrentUser }: BalanceCardProps) {
+export function BalanceCard({ balance, isCurrentUser, currency = 'EUR' }: BalanceCardProps) {
+  const { t } = useTranslation()
   const isPositive = balance.balance > 0.005
   const isNegative = balance.balance < -0.005
   const isEven = !isPositive && !isNegative
@@ -41,20 +44,20 @@ export function BalanceCard({ balance, isCurrentUser }: BalanceCardProps) {
 
         <View className="flex-1 gap-0.5">
           <Text className="text-sm font-semibold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
-            {isCurrentUser ? `${balance.name} (tú)` : balance.name}
+            {isCurrentUser ? `${balance.name} ${t('common_youSuffix')}` : balance.name}
           </Text>
           <Text className="text-[13px] text-neutral-500 dark:text-neutral-400">
-            Ha pagado: {formatCurrency(balance.paid)} · Su parte: {formatCurrency(balance.owes)}
+            {t('expenses_balance_paid')} {formatCurrency(balance.paid, currency)} · {t('expenses_balance_owes')} {formatCurrency(balance.owes, currency)}
           </Text>
         </View>
 
         <View className="items-end gap-1">
           <Text className={`text-base font-bold ${balanceText}`}>
-            {isEven ? '—' : `${isPositive ? '+' : ''}${formatCurrency(balance.balance)}`}
+            {isEven ? '—' : `${isPositive ? '+' : ''}${formatCurrency(balance.balance, currency)}`}
           </Text>
           <View className={`rounded-full px-2 py-0.5 ${badgeStyle}`}>
             <Text className={`text-xs font-medium ${badgeText}`}>
-              {isEven ? 'En paz' : isPositive ? 'Te deben' : 'Debes'}
+              {isEven ? t('expenses_balance_even') : isPositive ? t('expenses_balance_owed') : t('expenses_balance_owes_badge')}
             </Text>
           </View>
         </View>

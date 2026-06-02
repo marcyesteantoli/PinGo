@@ -1,5 +1,6 @@
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from '@components/ui/Avatar'
 import { formatCurrency } from '@utils/currency'
 import type { DebtTransaction } from '../utils/calculateDebtResolution'
@@ -11,6 +12,7 @@ interface DebtResolutionCardProps {
   isCurrentUserTo?: boolean
   onSettle?: () => void
   isSettling?: boolean
+  currency?: string
 }
 
 export function DebtResolutionCard({
@@ -19,9 +21,11 @@ export function DebtResolutionCard({
   isCurrentUserTo,
   onSettle,
   isSettling,
+  currency = 'EUR',
 }: DebtResolutionCardProps) {
-  const fromLabel = isCurrentUserFrom ? 'Tú' : transaction.fromName.split(' ')[0]
-  const toLabel = isCurrentUserTo ? 'Tú' : transaction.toName.split(' ')[0]
+  const { t } = useTranslation()
+  const fromLabel = isCurrentUserFrom ? t('common_youLabel') : transaction.fromName.split(' ')[0]
+  const toLabel = isCurrentUserTo ? t('common_youLabel') : transaction.toName.split(' ')[0]
 
   const accentColor = isCurrentUserFrom
     ? colors.primary[500]
@@ -30,9 +34,9 @@ export function DebtResolutionCard({
       : colors.neutral[500]
 
   const contextLabel = isCurrentUserFrom
-    ? 'Debes pagar'
+    ? t('expenses_debt_youOwe')
     : isCurrentUserTo
-      ? 'Te deben'
+      ? t('expenses_debt_owedTo')
       : null
 
   const contextSubLabel = isCurrentUserFrom
@@ -59,7 +63,7 @@ export function DebtResolutionCard({
           </Text>
         </View>
         <Text className="text-xl font-bold" style={{ color: accentColor }}>
-          {formatCurrency(transaction.amount)}
+          {formatCurrency(transaction.amount, currency)}
         </Text>
       </View>
 
@@ -122,7 +126,7 @@ export function DebtResolutionCard({
               className="text-sm font-semibold"
               style={{ color: isCurrentUserFrom ? colors.white : colors.success[600] }}
             >
-              {isSettling ? 'Guardando...' : isCurrentUserFrom ? 'He pagado' : 'He cobrado'}
+              {isSettling ? t('common_saving') : isCurrentUserFrom ? t('expenses_debt_ctaPay') : t('expenses_debt_ctaReceived')}
             </Text>
           </TouchableOpacity>
         </View>

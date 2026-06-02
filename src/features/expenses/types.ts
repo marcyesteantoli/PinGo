@@ -1,11 +1,16 @@
 import { z } from 'zod'
+import { i18n } from '@/i18n'
 
-export const createExpenseSchema = z.object({
-  description: z.string().min(1, 'La descripción es obligatoria'),
-  amount: z.number({ invalid_type_error: 'El importe es obligatorio' }).positive('El importe debe ser mayor que 0'),
-  experience_id: z.string().uuid().optional(),
-  participant_ids: z.array(z.string().uuid()).min(1, 'Selecciona al menos un participante'),
-  payer_id: z.string().uuid().optional(),
-})
+export function buildCreateExpenseSchema() {
+  return z.object({
+    description: z.string().min(1, i18n.t('validation_required_description')),
+    amount: z
+      .number({ invalid_type_error: i18n.t('validation_required_amount') })
+      .positive(i18n.t('validation_amount_positive')),
+    experience_id: z.string().uuid().optional(),
+    participant_ids: z.array(z.string().uuid()).min(1, i18n.t('validation_required_participants')),
+    payer_id: z.string().uuid().optional(),
+  })
+}
 
-export type CreateExpenseFormData = z.infer<typeof createExpenseSchema>
+export type CreateExpenseFormData = z.infer<ReturnType<typeof buildCreateExpenseSchema>>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { SectionList, Text, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { useFabScroll } from '@lib/useFabScroll'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -25,6 +26,7 @@ const AnimatedSectionList = Animated.createAnimatedComponent(SectionList)
 
 export default function DocumentsScreen() {
   const { tripId } = useTripContext()
+  const { t } = useTranslation()
   const { data: documents, isLoading, isFetching, refetch } = useDocuments(tripId)
   const uploadDocument = useUploadDocument()
   const deleteDocument = useDeleteDocument()
@@ -39,7 +41,7 @@ export default function DocumentsScreen() {
 
   const sections = Object.values(
     (documents ?? []).reduce((acc: Record<string, { title: string; data: typeof documents }>, doc) => {
-      const key = doc.experience_title ?? 'Sin título'
+      const key = doc.experience_title ?? t('docs_noTitle')
       if (!acc[key]) acc[key] = { title: key, data: [] }
       acc[key].data!.push(doc)
       return acc
@@ -101,9 +103,9 @@ export default function DocumentsScreen() {
                 ListEmptyComponent={
                   <EmptyState
                     icon="document-text-outline"
-                    title="Sin documentos"
-                    subtitle="Sube reservas, entradas y confirmaciones"
-                    actionLabel="Subir documento"
+                    title={t('docs_empty_title')}
+                    subtitle={t('docs_empty_subtitle')}
+                    actionLabel={t('docs_empty_action')}
                     onAction={() => setSheetVisible(true)}
                   />
                 }

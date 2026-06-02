@@ -3,7 +3,8 @@
     "allow": [
       "mcp__plugin_supabase_supabase__execute_sql",
       "Bash(xargs grep -l \"rating\\\\|Rating\\\\|star\\\\|Star\")",
-      "mcp__plugin_supabase_supabase__apply_migration"
+      "mcp__plugin_supabase_supabase__apply_migration",
+      "Bash(node \".agents/skills/impeccable/scripts/context.mjs\")"
     ]
   },
   "enabledPlugins": {

@@ -1,5 +1,6 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { Dimensions, Keyboard, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
 import Animated, {
@@ -27,6 +28,7 @@ interface BottomSheetProps {
 
 export function BottomSheet({ visible, onClose, title, scrollable, children }: BottomSheetProps) {
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation()
   const paddingBottom = Math.max(insets.bottom + 16, 32)
   const [modalVisible, setModalVisible] = useState(false)
 
@@ -140,7 +142,7 @@ export function BottomSheet({ visible, onClose, title, scrollable, children }: B
               <View className="flex-row items-center justify-between mb-5">
                 <Text className="text-[20px] font-semibold text-neutral-900 dark:text-neutral-50">{title}</Text>
                 <TouchableOpacity onPress={() => { Keyboard.dismiss(); onClose() }} className="p-2 -mr-1">
-                  <Text className="text-[17px] text-primary-500 dark:text-primary-300">Cerrar</Text>
+                  <Text className="text-[17px] text-primary-500 dark:text-primary-300">{t('bottomSheet_close')}</Text>
                 </TouchableOpacity>
               </View>
             )}

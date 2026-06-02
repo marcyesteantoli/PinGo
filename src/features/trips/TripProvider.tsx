@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, ReactNode } from 'react'
 import { ActivityIndicator, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
@@ -34,6 +35,7 @@ export function useTripContext() {
 }
 
 export function TripProvider({ tripId, children }: { tripId: string; children: ReactNode }) {
+  const { t } = useTranslation()
   useEffect(() => {
     saveLastActiveTripId(tripId)
   }, [tripId])
@@ -77,10 +79,10 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
     return (
       <View className="flex-1 items-center justify-center px-6 gap-4 bg-neutral-100 dark:bg-surface-900">
         <Text className="text-base text-neutral-600 dark:text-neutral-300 text-center">
-          {error ? 'Error al cargar el viaje.' : 'Este viaje no está disponible.'}
+          {error ? t('trips_error_title') : t('experience_notFound')}
         </Text>
         <Button onPress={() => router.back()} variant="ghost">
-          Volver
+          {t('common_back')}
         </Button>
       </View>
     )

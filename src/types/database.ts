@@ -31,6 +31,7 @@ export interface Database {
           title: string
           start_date: string
           end_date: string
+          currency: string
           created_by: string
           join_code: string
           created_at: string
@@ -40,6 +41,7 @@ export interface Database {
           title: string
           start_date: string
           end_date: string
+          currency?: string
           created_by: string
           join_code?: string
           created_at?: string
@@ -48,6 +50,7 @@ export interface Database {
           title?: string
           start_date?: string
           end_date?: string
+          currency?: string
         }
       }
       trip_collaborators: {

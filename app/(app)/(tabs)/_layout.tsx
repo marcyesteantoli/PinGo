@@ -1,10 +1,12 @@
 import { Tabs } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useColorScheme } from 'nativewind'
+import { useTranslation } from 'react-i18next'
 
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme()
   const isDark = colorScheme === 'dark'
+  const { t } = useTranslation()
 
   return (
     <Tabs
@@ -26,7 +28,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="trips"
         options={{
-          title: 'Mis Viajes',
+          title: t('tabs_trips'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'airplane' : 'airplane-outline'} size={24} color={color} />
           ),
@@ -35,7 +37,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="saved-experiences"
         options={{
-          title: 'Mis Joyas',
+          title: t('tabs_saved'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'bookmark' : 'bookmark-outline'} size={24} color={color} />
           ),
@@ -44,7 +46,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="wishlist"
         options={{
-          title: 'Mis Deseos',
+          title: t('tabs_wishlist'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'heart' : 'heart-outline'} size={24} color={color} />
           ),

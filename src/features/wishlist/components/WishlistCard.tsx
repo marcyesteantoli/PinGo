@@ -5,6 +5,7 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, withDelay, useReducedMotion, Easing } from 'react-native-reanimated'
 import { EASE_OUT, DURATION } from '@lib/animations'
 import { useColorScheme } from 'nativewind'
+import { useTranslation } from 'react-i18next'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import type { WishlistItem } from '@types/index'
@@ -24,6 +25,7 @@ interface WishlistCardProps {
 export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited, peekOnMount }: WishlistCardProps) {
   const { colorScheme } = useColorScheme()
   const isDark = colorScheme === 'dark'
+  const { t } = useTranslation()
   const typeColor = TYPE_COLORS[item.type]
   const typeIcon = TYPE_ICONS[item.type]
   const locationText = [item.location?.city, item.location?.country].filter(Boolean).join(', ')
@@ -197,7 +199,7 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited,
             <View className="flex-row items-center gap-1 bg-emerald-100 dark:bg-emerald-900/40 rounded-full px-2 py-0.5">
               <Ionicons name="checkmark-circle" size={13} color="#10b981" />
               <Text className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                Visitado
+                {t('wishlistCard_action_visited')}
               </Text>
             </View>
           )}
@@ -245,7 +247,7 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited,
               />
             </Animated.View>
             <Text style={{ color: colors.white, fontSize: 11, fontWeight: '600' }}>
-              {localVisited ? 'Pendiente' : 'Visitado'}
+              {localVisited ? t('wishlistCard_action_pending') : t('wishlistCard_action_visited')}
             </Text>
           </TouchableOpacity>
 
@@ -256,7 +258,7 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited,
             activeOpacity={0.8}
           >
             <Ionicons name="pencil-outline" size={20} color={colors.white} />
-            <Text style={{ color: colors.white, fontSize: 11, fontWeight: '600' }}>Editar</Text>
+            <Text style={{ color: colors.white, fontSize: 11, fontWeight: '600' }}>{t('common_edit')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -266,7 +268,7 @@ export function WishlistCard({ item, onPress, onEdit, onDelete, onToggleVisited,
             activeOpacity={0.8}
           >
             <Ionicons name="trash-outline" size={20} color={colors.white} />
-            <Text style={{ color: colors.white, fontSize: 11, fontWeight: '600' }}>Eliminar</Text>
+            <Text style={{ color: colors.white, fontSize: 11, fontWeight: '600' }}>{t('common_delete')}</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>

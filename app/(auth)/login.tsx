@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'expo-router'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { useSignIn } from '@features/auth/hooks/useSignIn'
-import { loginSchema, type LoginFormData } from '@features/auth/types'
+import { buildLoginSchema, type LoginFormData } from '@features/auth/types'
 import { cardShadow, ctaShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
 
@@ -16,21 +17,24 @@ export default function LoginScreen() {
   const signIn = useSignIn()
   const passwordRef = useRef<TextInput>(null)
   const showError = useErrorToast()
+  const { t } = useTranslation()
+
+  const schema = useMemo(() => buildLoginSchema(), [t])
 
   useEffect(() => {
     if (signIn.error) showError(signIn.error.message)
   }, [signIn.error])
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(schema),
   })
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       await signIn.mutateAsync(data)
-      router.replace('/(app)')
+      router.replace('/(app)/(tabs)/trips')
     } catch {
-      // El error se muestra via signIn.error
+      // error shown via signIn.error
     }
   }
 
@@ -54,8 +58,8 @@ export default function LoginScreen() {
                 style={{ width: 56, height: 56, borderRadius: 14 }}
               />
             </View>
-            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50 mt-2">Bienvenido</Text>
-            <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Inicia sesión para continuar</Text>
+            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50 mt-2">{t('auth_login_title')}</Text>
+            <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">{t('auth_login_subtitle')}</Text>
           </View>
 
           <View
@@ -67,8 +71,8 @@ export default function LoginScreen() {
               name="email"
               render={({ field: { onChange, value } }) => (
                 <Input
-                  label="Email"
-                  placeholder="tu@email.com"
+                  label={t('auth_login_emailLabel')}
+                  placeholder={t('auth_login_emailPlaceholder')}
                   leftIcon="mail-outline"
                   value={value}
                   onChangeText={onChange}
@@ -76,7 +80,7 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                   autoComplete="email"
                   error={errors.email?.message}
-                  accessibilityLabel="Campo de email"
+                  accessibilityLabel={t('auth_login_emailA11y')}
                   returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   blurOnSubmit={false}
@@ -90,15 +94,15 @@ export default function LoginScreen() {
               render={({ field: { onChange, value } }) => (
                 <Input
                   ref={passwordRef}
-                  label="Contraseña"
-                  placeholder="••••••••"
+                  label={t('auth_login_passwordLabel')}
+                  placeholder={t('auth_login_passwordPlaceholder')}
                   leftIcon="lock-closed-outline"
                   value={value}
                   onChangeText={onChange}
                   secureTextEntry
                   autoComplete="current-password"
                   error={errors.password?.message}
-                  accessibilityLabel="Campo de contraseña"
+                  accessibilityLabel={t('auth_login_passwordA11y')}
                   returnKeyType="done"
                   onSubmitEditing={handleSubmit(onSubmit)}
                 />
@@ -111,15 +115,15 @@ export default function LoginScreen() {
                 isLoading={signIn.isPending}
                 size="lg"
               >
-                Iniciar sesión
+                {t('auth_login_submit')}
               </Button>
             </View>
           </View>
 
           <View className="flex-row items-center justify-center mt-8 gap-1">
-            <Text className="text-sm text-neutral-500 dark:text-neutral-400">¿Sin cuenta?</Text>
+            <Text className="text-sm text-neutral-500 dark:text-neutral-400">{t('auth_login_noAccount')}</Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-              <Text className="text-sm font-semibold text-secondary-600 dark:text-secondary-400">Regístrate</Text>
+              <Text className="text-sm font-semibold text-secondary-600 dark:text-secondary-400">{t('auth_login_registerLink')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

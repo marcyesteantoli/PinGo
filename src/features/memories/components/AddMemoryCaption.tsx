@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Image, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
@@ -24,6 +25,7 @@ export function AddMemoryCaption({
   imageUri,
 }: AddMemoryCaptionProps) {
   const showError = useErrorToast()
+  const { t } = useTranslation()
   const { control, handleSubmit, reset } = useForm<{ caption: string }>({
     defaultValues: { caption: '' },
   })
@@ -43,7 +45,7 @@ export function AddMemoryCaption({
   }
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose} title="Añadir recuerdo">
+    <BottomSheet visible={visible} onClose={handleClose} title={t('memories_addCaption_title')}>
       <View className="gap-4 pb-4">
         {imageUri && (
           <Image
@@ -58,8 +60,8 @@ export function AddMemoryCaption({
           name="caption"
           render={({ field: { onChange, value } }) => (
             <Input
-              label="Descripción (opcional)"
-              placeholder="¿Qué estás recordando?"
+              label={t('memories_addCaption_label')}
+              placeholder={t('memories_addCaption_placeholder')}
               value={value}
               onChangeText={onChange}
               maxLength={200}
@@ -72,7 +74,7 @@ export function AddMemoryCaption({
 
 
         <Button onPress={handleSubmit(handleSubmitForm)} isLoading={isLoading} size="lg">
-          {imageUri ? 'Añadir recuerdo' : 'Seleccionar foto'}
+          {imageUri ? t('memories_addCaption_submitWithImage') : t('memories_addCaption_submitNoImage')}
         </Button>
       </View>
     </BottomSheet>

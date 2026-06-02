@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@lib/colors'
@@ -25,6 +26,7 @@ const toastShadow = {
 
 export function UndoToast({ visible, message, onUndo, actionLabel, onAction }: UndoToastProps) {
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation()
   const translateY = useSharedValue(-80)
   const opacity = useSharedValue(0)
 
@@ -67,7 +69,7 @@ export function UndoToast({ visible, message, onUndo, actionLabel, onAction }: U
                   hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
                 >
                   <Text className="text-primary-500 dark:text-primary-400 text-[15px] font-semibold">
-                    {actionLabel ?? 'Deshacer'}
+                    {actionLabel ?? t('common_undoAction')}
                   </Text>
                 </TouchableOpacity>
               </>

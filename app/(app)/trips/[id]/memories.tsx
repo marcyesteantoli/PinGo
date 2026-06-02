@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ActivityIndicator, Alert, Text, TouchableOpacity, View, useColorScheme } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -28,6 +29,7 @@ import type { Memory } from '@types/index'
 export default function MemoriesScreen() {
   const { tripId, isOwner, collaborators } = useTripContext()
   const { data: memories, isLoading } = useMemories(tripId)
+  const { t } = useTranslation()
   const addMemory = useAddMemory()
   const addMemories = useAddMemories()
   const deleteMemory = useDeleteMemory()
@@ -81,12 +83,12 @@ export default function MemoriesScreen() {
     if (selectedIds.size === 0) return
     const count = selectedIds.size
     Alert.alert(
-      `Eliminar ${count} foto${count > 1 ? 's' : ''}`,
-      'Esta acción no se puede deshacer.',
+      t(count === 1 ? 'memories_bulk_delete_title_one' : 'memories_bulk_delete_title_other', { count }),
+      t('common_actionCannotBeUndone'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common_cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('common_delete'),
           style: 'destructive',
           onPress: () => {
             selectedIds.forEach((id) => deleteMemory.mutate({ memoryId: id, tripId }))
@@ -103,8 +105,8 @@ export default function MemoriesScreen() {
     const { status } = await MediaLibrary.requestPermissionsAsync()
     if (status !== 'granted') {
       Alert.alert(
-        'Acceso denegado',
-        'Ve a Ajustes › Privacidad › Fotos para permitir guardar imágenes.'
+        t('memories_permission_denied_title'),
+        t('memories_permission_denied_body')
       )
       return
     }
@@ -127,11 +129,11 @@ export default function MemoriesScreen() {
     if (saved > 0) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       Alert.alert(
-        'Guardado',
-        `${saved} foto${saved > 1 ? 's guardadas' : ' guardada'} en tu galería.`
+        t('memories_saved_title'),
+        t(saved === 1 ? 'memories_saved_one' : 'memories_saved_other', { count: saved })
       )
     } else {
-      Alert.alert('Error', 'No se pudo guardar ninguna imagen.')
+      Alert.alert(t('common_error'), t('memories_save_error'))
     }
     exitSelectionMode()
   }
@@ -153,9 +155,9 @@ export default function MemoriesScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
       Alert.alert(
-        'Acceso a fotos denegado',
-        'Ve a Ajustes › Privacidad › Fotos y permite el acceso a PinGo.',
-        [{ text: 'Entendido', style: 'default' }]
+        t('memories_pick_denied_title'),
+        t('memories_pick_denied_body'),
+        [{ text: t('common_understood'), style: 'default' }]
       )
       return
     }
@@ -178,7 +180,7 @@ export default function MemoriesScreen() {
         { tripId, assets: result.assets },
         {
           onError: () => {
-            Alert.alert('Error', 'Algunas fotos no se pudieron subir. Inténtalo de nuevo.')
+            Alert.alert(t('common_error'), t('memories_upload_error'))
           },
         }
       )
@@ -205,7 +207,7 @@ export default function MemoriesScreen() {
     const err = addMemory.error as any
     if (!err) return null
     if (err.code === 'LIMIT_REACHED') return err.message
-    return err.message ?? 'Ha ocurrido un error. Inténtalo de nuevo.'
+    return err.message ?? t('common_error')
   })()
 
   // ─── Selection toolbar ───────────────────────────────────────────────────────
@@ -224,15 +226,15 @@ export default function MemoriesScreen() {
       {/* Left: cancel */}
       <TouchableOpacity onPress={exitSelectionMode} hitSlop={8} className="items-center gap-1">
         <Ionicons name="close-circle-outline" size={26} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
-        <Text className="text-neutral-500 dark:text-neutral-400 text-xs">Cancelar</Text>
+        <Text className="text-neutral-500 dark:text-neutral-400 text-xs">{t('memories_bulk_cancel')}</Text>
       </TouchableOpacity>
 
       {/* Center: selection count + select all */}
       <TouchableOpacity onPress={selectAll} hitSlop={8} className="items-center gap-1">
         <Text className="text-primary-400 text-base font-semibold">
-          {selectedIds.size} {selectedIds.size === 1 ? 'seleccionada' : 'seleccionadas'}
+          {t(selectedIds.size === 1 ? 'memories_bulk_selected_one' : 'memories_bulk_selected_other', { count: selectedIds.size })}
         </Text>
-        <Text className="text-primary-400/70 text-xs">Seleccionar todo</Text>
+        <Text className="text-primary-400/70 text-xs">{t('memories_bulk_selectAll')}</Text>
       </TouchableOpacity>
 
       {/* Right: actions */}
@@ -251,7 +253,7 @@ export default function MemoriesScreen() {
           <Text
             className={`text-xs ${selectedIds.size === 0 ? 'text-neutral-400' : 'text-neutral-800 dark:text-white'}`}
           >
-            Guardar
+            {t('memories_bulk_save')}
           </Text>
         </TouchableOpacity>
 
@@ -269,7 +271,7 @@ export default function MemoriesScreen() {
           <Text
             className={`text-xs ${selectedIds.size === 0 ? 'text-neutral-400' : 'text-red-500'}`}
           >
-            Eliminar
+            {t('common_delete')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -283,7 +285,7 @@ export default function MemoriesScreen() {
       {/* Counter */}
       <View className="flex-row items-center justify-between px-5 py-3">
         <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-          {count} de {LIMITS.MAX_PHOTOS_PER_TRIP} fotos
+          {t('memories_counter', { count, max: LIMITS.MAX_PHOTOS_PER_TRIP })}
         </Text>
         <View className="flex-row items-center gap-1">
           <View
@@ -306,9 +308,9 @@ export default function MemoriesScreen() {
       ) : !memories?.length ? (
         <EmptyState
           icon="images-outline"
-          title="Sin recuerdos"
-          subtitle="Guarda los mejores momentos del viaje"
-          actionLabel="Añadir foto"
+          title={t('memories_empty_title')}
+          subtitle={t('memories_empty_subtitle')}
+          actionLabel={t('memories_empty_action')}
           onAction={handlePickImage}
         />
       ) : (
@@ -372,7 +374,7 @@ export default function MemoriesScreen() {
           deleteMemory.mutate({ memoryId: id, tripId })
           setViewerIndex(-1)
         }}
-        getUploaderName={(userId) => getUploader(userId)?.name ?? 'Desconocido'}
+        getUploaderName={(userId) => getUploader(userId)?.name ?? t('common_someone')}
         getUploaderAvatar={(userId) => getUploader(userId)?.avatar_url}
       />
       </View>

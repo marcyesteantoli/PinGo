@@ -10,16 +10,9 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated'
+import { useTranslation } from 'react-i18next'
 import { colors } from '@lib/colors'
 import { RatingFace } from './RatingFace'
-
-const LABELS: Record<number, string> = {
-  1: 'Decepcionante', 2: 'Muy malo',
-  3: 'Malo', 4: 'Regular',
-  5: 'Aceptable', 6: 'Bien',
-  7: 'Muy bien', 8: 'Genial',
-  9: 'Increíble', 10: 'Perfecto',
-}
 
 const THUMB_SIZE = 30
 
@@ -52,6 +45,7 @@ interface RatingSliderProps {
 }
 
 function RatingSlider({ value, onChange }: RatingSliderProps) {
+  const { t } = useTranslation()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const [trackWidth, setTrackWidth] = useState(0)
@@ -192,7 +186,7 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <RatingFace level={getLevel(displayValue)} size={36} />
         <Text className="text-base font-medium text-neutral-700 dark:text-neutral-200">
-          {LABELS[displayValue]}
+          {t(`rating_score_${displayValue}` as any)}
         </Text>
       </View>
     </View>

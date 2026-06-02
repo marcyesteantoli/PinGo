@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
   Alert,
@@ -111,6 +112,7 @@ export function MemoryDetail({
   const scheme = useColorScheme()
   const isDark = scheme === 'dark'
   const theme = getTheme(isDark)
+  const { t } = useTranslation()
 
   const scrollRef = useRef<any>(null)
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
@@ -188,8 +190,8 @@ export function MemoryDetail({
     const { status } = await MediaLibrary.requestPermissionsAsync()
     if (status !== 'granted') {
       Alert.alert(
-        'Acceso denegado',
-        'Ve a Ajustes › Privacidad › Fotos para permitir guardar imágenes.'
+        t('memories_permission_denied_title'),
+        t('memories_permission_denied_body')
       )
       return
     }
@@ -201,7 +203,7 @@ export function MemoryDetail({
       await MediaLibrary.saveToLibraryAsync(localUri)
       await FileSystem.deleteAsync(localUri, { idempotent: true })
     } catch {
-      Alert.alert('Error', 'No se pudo guardar la imagen. Inténtalo de nuevo.')
+      Alert.alert(t('common_error'), t('memories_save_error'))
     } finally {
       setDownloading(false)
     }

@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { fabShadow } from '@lib/shadows'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
@@ -14,7 +15,7 @@ import { TripHeader } from '@features/trips/components/TripHeader'
 import { useTripContext } from '@features/trips/TripProvider'
 import { AddExperienceSheet } from '@features/timeline/components/AddExperienceSheet'
 import { DeleteExperienceSheet } from '@features/timeline/components/DeleteExperienceSheet'
-import { DaySection } from '@features/timeline/components/DaySection'
+import { DaySection, UNDATED_SENTINEL as UNDATED_DISPLAY } from '@features/timeline/components/DaySection'
 import { ExperienceCard } from '@features/timeline/components/ExperienceCard'
 import { useCreateExperience } from '@features/timeline/hooks/useCreateExperience'
 import { useDeleteExperience } from '@features/timeline/hooks/useDeleteExperience'
@@ -28,6 +29,8 @@ import { useFabScroll } from '@lib/useFabScroll'
 import type { Experience } from '@types/index'
 import type { CreateExperienceFormData } from '@features/timeline/types'
 
+const UNDATED_SENTINEL = '__undated__'
+
 type Section = { title: string; data: Experience[] }
 
 type TimelineEntry =
@@ -37,7 +40,7 @@ type TimelineEntry =
 function groupByDate(experiences: Experience[]): Section[] {
   const groups: Record<string, Experience[]> = {}
   for (const exp of experiences) {
-    const key = exp.date ?? 'Sin fecha'
+    const key = exp.date ?? UNDATED_SENTINEL
     if (!groups[key]) groups[key] = []
     groups[key].push(exp)
   }
@@ -50,18 +53,18 @@ function groupByDate(experiences: Experience[]): Section[] {
     })
 
   const dated = Object.entries(groups)
-    .filter(([k]) => k !== 'Sin fecha')
+    .filter(([k]) => k !== UNDATED_SENTINEL)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([title, data]) => ({ title, data: sortByTime(data) }))
-  const undated = groups['Sin fecha'] ?? []
-  return undated.length > 0 ? [...dated, { title: 'Sin fecha', data: undated }] : dated
+  const undated = groups[UNDATED_SENTINEL] ?? []
+  return undated.length > 0 ? [...dated, { title: UNDATED_SENTINEL, data: undated }] : dated
 }
 
 function toRows(sections: Section[]): TimelineEntry[] {
   const today = new Date().toISOString().slice(0, 10)
   const rows: TimelineEntry[] = []
   sections.forEach((s, i) => {
-    const isUndated = s.title === 'Sin fecha'
+    const isUndated = s.title === UNDATED_SENTINEL
     rows.push({
       type: 'header',
       title: s.title,
@@ -116,6 +119,7 @@ export default function TimelineScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { tripId, trip, isOwner } = useTripContext()
+  const { t } = useTranslation()
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
 
@@ -184,7 +188,7 @@ export default function TimelineScreen() {
     )
 
     pendingDeleteRef.current = { experienceId: experience.id, snapshot }
-    setToastMessage(`"${experience.title}" eliminada`)
+    setToastMessage(t('timeline_deleted', { title: experience.title }))
     setToastVisible(true)
 
     toastTimerRef.current = setTimeout(() => {
@@ -256,7 +260,7 @@ export default function TimelineScreen() {
       return (
         <View className="flex-row">
           <View className="w-10 items-center">
-            {entry.title === 'Sin fecha' ? (
+            {entry.title === UNDATED_SENTINEL ? (
               <View className="flex-1" />
             ) : (
               <>
@@ -271,7 +275,7 @@ export default function TimelineScreen() {
               </>
             )}
           </View>
-          <DaySection date={entry.title} count={entry.count} />
+          <DaySection date={entry.title === UNDATED_SENTINEL ? UNDATED_DISPLAY : entry.title} count={entry.count} />
         </View>
       )
     }
@@ -313,13 +317,13 @@ export default function TimelineScreen() {
       ) : error ? (
         <View className="flex-1 items-center justify-center px-5 gap-3">
           <Ionicons name="alert-circle-outline" size={32} color="#ef233c" />
-          <Text className="text-base text-error text-center">No pudimos cargar el itinerario. Comprueba tu conexión.</Text>
+          <Text className="text-base text-error text-center">{t('timeline_error_body')}</Text>
           <TouchableOpacity
             onPress={() => refetch()}
             className="px-6 py-3 rounded-full border border-primary-500"
             activeOpacity={0.7}
           >
-            <Text className="text-base text-primary-600 font-semibold">Reintentar</Text>
+            <Text className="text-base text-primary-600 font-semibold">{t('common_retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -331,9 +335,9 @@ export default function TimelineScreen() {
           ListEmptyComponent={
             <EmptyState
               icon="calendar-outline"
-              title="Sin experiencias"
-              subtitle="Añade vuelos, hoteles, actividades y más"
-              actionLabel="Añadir experiencia"
+              title={t('timeline_empty_title')}
+              subtitle={t('timeline_empty_subtitle')}
+              actionLabel={t('timeline_empty_action')}
               onAction={() => setSheetVisible(true)}
             />
           }

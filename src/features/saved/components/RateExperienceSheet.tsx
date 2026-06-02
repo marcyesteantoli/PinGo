@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Image, ImageSourcePropType, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import Animated, {
@@ -29,13 +30,7 @@ const RATING_ICONS = [
   require('../../../../assets/images/ratingIcons/5.png'),
 ]
 
-const RATING_OPTIONS = [
-  { label: 'Malo',     icon: RATING_ICONS[0], value: 2  },
-  { label: 'Regular',  icon: RATING_ICONS[1], value: 4  },
-  { label: 'Bien',     icon: RATING_ICONS[2], value: 6  },
-  { label: 'Genial',   icon: RATING_ICONS[3], value: 8  },
-  { label: 'Perfecto', icon: RATING_ICONS[4], value: 10 },
-] as const
+const RATING_VALUES = [2, 4, 6, 8, 10] as const
 
 
 function getScoreIcon(score: number) {
@@ -103,6 +98,7 @@ interface SummaryScreenProps {
 }
 
 function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChange, onNoteBlur, onClose }: SummaryScreenProps) {
+  const { t } = useTranslation()
   const radarOpacity = useSharedValue(0)
   const radarStyle = useAnimatedStyle(() => ({ opacity: radarOpacity.value }))
 
@@ -136,7 +132,7 @@ function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChang
             textAlign: 'center',
           }}
         >
-          ¡Valoración guardada!
+          {t('rating_saved')}
         </Text>
       </View>
 
@@ -169,7 +165,7 @@ function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChang
               <Text
                 style={{ flex: 1, fontSize: 15, fontWeight: '500', color: isDark ? colors.neutral[200] : colors.neutral[800] }}
               >
-                {attr.key}
+                {t(`expAttr_label_${attr.key}` as any)}
               </Text>
               {score !== undefined ? (
                 <>
@@ -180,7 +176,7 @@ function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChang
                 </>
               ) : (
                 <Text style={{ fontSize: 14, color: isDark ? colors.neutral[500] : colors.neutral[400] }}>
-                  Omitido
+                  {t('rating_skipped')}
                 </Text>
               )}
             </View>
@@ -209,13 +205,13 @@ function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChang
             textTransform: 'uppercase',
           }}
         >
-          Mi nota
+          {t('rating_noteLabel')}
         </Text>
         <TextInput
           value={noteText}
           onChangeText={onNoteChange}
           onBlur={onNoteBlur}
-          placeholder="Añade una nota personal..."
+          placeholder={t('rating_notePlaceholder')}
           placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
           multiline
           style={{
@@ -240,7 +236,7 @@ function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChang
           alignItems: 'center',
         }}
       >
-        <Text style={{ color: colors.white, fontSize: 16, fontWeight: '600' }}>Listo</Text>
+        <Text style={{ color: colors.white, fontSize: 16, fontWeight: '600' }}>{t('rating_done')}</Text>
       </TouchableOpacity>
     </View>
   )
@@ -256,7 +252,16 @@ interface RateExperienceSheetProps {
 
 export function RateExperienceSheet({ visible, onClose, experienceId, experienceType, initialNote }: RateExperienceSheetProps) {
   const { isDark } = useTheme()
+  const { t } = useTranslation()
   const attributes = EXPERIENCE_ATTRIBUTES[experienceType]
+
+  const ratingOptions = useMemo(() => [
+    { label: t('rating_option_bad'),     icon: RATING_ICONS[0], value: 2  },
+    { label: t('rating_option_ok'),      icon: RATING_ICONS[1], value: 4  },
+    { label: t('rating_option_good'),    icon: RATING_ICONS[2], value: 6  },
+    { label: t('rating_option_great'),   icon: RATING_ICONS[3], value: 8  },
+    { label: t('rating_option_perfect'), icon: RATING_ICONS[4], value: 10 },
+  ], [t])
   const { data } = useAttributeRatings(experienceId)
   const upsert = useUpsertAttributeRating(experienceId)
   const upsertNote = useUpsertSavedNote(experienceId)
@@ -398,7 +403,7 @@ export function RateExperienceSheet({ visible, onClose, experienceId, experience
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Text style={{ fontSize: 15, color: isDark ? colors.neutral[400] : colors.neutral[500] }}>
-                Omitir
+                {t('rating_skip')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -420,7 +425,7 @@ export function RateExperienceSheet({ visible, onClose, experienceId, experience
                       textAlign: 'center',
                     }}
                   >
-                    {attr.key}
+                    {t(`expAttr_label_${attr.key}` as any)}
                   </Text>
                   <Text
                     style={{
@@ -430,11 +435,11 @@ export function RateExperienceSheet({ visible, onClose, experienceId, experience
                       textAlign: 'center',
                     }}
                   >
-                    {attr.question}
+                    {t(`expAttr_${experienceType}_${attr.key}_question`)}
                   </Text>
 
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 36, width: '100%' }}>
-                    {RATING_OPTIONS.map((opt) => (
+                    {ratingOptions.map((opt) => (
                       <RatingButton
                         key={opt.value}
                         icon={opt.icon}

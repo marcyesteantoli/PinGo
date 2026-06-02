@@ -1,4 +1,5 @@
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import type { Experience } from '@types/index'
 
 interface ExperiencePickerProps {
@@ -9,11 +10,12 @@ interface ExperiencePickerProps {
 }
 
 export function ExperiencePicker({ experiences, value, onChange, error }: ExperiencePickerProps) {
+  const { t } = useTranslation()
   return (
     <View className="gap-1">
-      <Text className="text-sm font-medium text-neutral-700">Experiencia relacionada</Text>
+      <Text className="text-sm font-medium text-neutral-700">{t('docs_experiencePicker_label')}</Text>
       {experiences.length === 0 ? (
-        <Text className="text-xs text-neutral-400 italic">No hay experiencias en este viaje</Text>
+        <Text className="text-xs text-neutral-400 italic">{t('docs_experiencePicker_empty')}</Text>
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
           <View className="flex-row gap-2 px-1 py-1">

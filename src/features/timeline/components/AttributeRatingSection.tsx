@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Image, Text, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { RadarChart } from '@components/ui/RadarChart'
 import { useAttributeRatings } from '@features/timeline/hooks/useAttributeRatings'
@@ -88,6 +89,7 @@ export function AttributeRatingSection({
   onEditPress,
 }: AttributeRatingSectionProps) {
   const { isDark } = useTheme()
+  const { t } = useTranslation()
   const attributes = EXPERIENCE_ATTRIBUTES[experienceType]
   const { data } = useAttributeRatings(experienceId)
 
@@ -130,7 +132,7 @@ export function AttributeRatingSection({
                     style={{ fontSize: 14, fontWeight: '500', color: isDark ? colors.neutral[200] : colors.neutral[800], width: 100 }}
                     numberOfLines={1}
                   >
-                    {attr.key}
+                    {t(`expAttr_label_${attr.key}` as any)}
                   </Text>
                   <View style={{ flex: 1 }}>
                     <DotProgress value={score ?? 0} isDark={isDark} />
@@ -154,7 +156,7 @@ export function AttributeRatingSection({
               hitSlop={{ top: 4, bottom: 4 }}
             >
               <Text style={{ fontSize: 15, color: colors.primary[500] }}>
-                Editar valoración
+                {t('rating_editCta')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -192,7 +194,7 @@ export function AttributeRatingSection({
               textAlign: 'center',
             }}
           >
-            Valora esta experiencia
+            {t('rating_rateTitle')}
           </Text>
           <Text
             style={{
@@ -203,7 +205,7 @@ export function AttributeRatingSection({
               lineHeight: 18,
             }}
           >
-            Guarda tu impresión personal{'\n'}de cada aspecto
+            {t('rating_rateSubtitle')}
           </Text>
 
           <TouchableOpacity
@@ -218,7 +220,7 @@ export function AttributeRatingSection({
             }}
           >
             <Text style={{ color: colors.white, fontSize: 15, fontWeight: '600' }}>
-              Empezar →
+              {t('rating_startCta')}
             </Text>
           </TouchableOpacity>
         </View>

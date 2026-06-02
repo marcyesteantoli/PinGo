@@ -1,4 +1,5 @@
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import type { Trip } from '@types/index'
 
 interface TripPickerProps {
@@ -9,11 +10,12 @@ interface TripPickerProps {
 }
 
 export function TripPicker({ trips, value, onChange, error }: TripPickerProps) {
+  const { t } = useTranslation()
   return (
     <View className="gap-1">
-      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Viaje</Text>
+      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('docs_tripPicker_label')}</Text>
       {trips.length === 0 ? (
-        <Text className="text-xs text-neutral-400 italic">No tienes viajes disponibles</Text>
+        <Text className="text-xs text-neutral-400 italic">{t('docs_tripPicker_empty')}</Text>
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
           <View className="flex-row gap-2 px-1 py-1">

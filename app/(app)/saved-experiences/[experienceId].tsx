@@ -12,7 +12,7 @@ import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExpe
 import { Badge } from '@components/ui/Badge'
 import { AttributeRatingSection } from '@features/timeline/components/AttributeRatingSection'
 import { RateExperienceSheet } from '@features/saved/components/RateExperienceSheet'
-import { EXPERIENCE_TYPE_LABELS } from '@features/timeline/types'
+import { useTranslation } from 'react-i18next'
 import { EXPERIENCE_ATTRIBUTES } from '@features/timeline/config/experienceAttributes'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
@@ -33,6 +33,7 @@ export default function SavedExperienceDetailScreen() {
   const router = useRouter()
   const { experienceId } = useLocalSearchParams<{ experienceId: string }>()
   const { isDark } = useTheme()
+  const { t } = useTranslation()
 
   const { data, isLoading } = useSavedExperienceDetail(experienceId)
   const { data: isSaved = true } = useIsSaved(experienceId)
@@ -54,7 +55,7 @@ export default function SavedExperienceDetailScreen() {
     return (
       <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
         <View className="flex-1 items-center justify-center">
-          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Cargando...</Text>
+          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">{t('common_loading')}</Text>
         </View>
       </SafeAreaView>
     )
@@ -71,7 +72,7 @@ export default function SavedExperienceDetailScreen() {
           <Ionicons name="chevron-back" size={22} color={colors.primary[500]} />
         </TouchableOpacity>
         <View className="flex-1 items-center justify-center">
-          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Joya no encontrada</Text>
+          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">{t('saved_detail_notFound')}</Text>
         </View>
       </SafeAreaView>
     )
@@ -92,7 +93,7 @@ export default function SavedExperienceDetailScreen() {
           className="flex-row items-center pl-2 pr-3 min-w-[80px]"
         >
           <Ionicons name="chevron-back" size={22} color={colors.primary[500]} />
-          <Text className="text-[17px] ml-0.5" style={{ color: colors.primary[500] }}>Mis Joyas</Text>
+          <Text className="text-[17px] ml-0.5" style={{ color: colors.primary[500] }}>{t('saved_detail_back')}</Text>
         </TouchableOpacity>
         <View className="flex-1" />
         <TouchableOpacity
@@ -118,7 +119,7 @@ export default function SavedExperienceDetailScreen() {
           <View className="bg-white dark:bg-surface-800 rounded-2xl p-4">
             <View className="flex-row items-start justify-between mb-2.5">
               <Badge
-                label={EXPERIENCE_TYPE_LABELS[experience.type]}
+                label={t(`expType_${experience.type}`)}
                 variant={TYPE_BADGE_VARIANT[experience.type]}
               />
               {experience.trip?.name && (
@@ -186,7 +187,7 @@ export default function SavedExperienceDetailScreen() {
         <View className="rounded-2xl mb-3" style={cardShadow}>
           <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
             <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-              Mi nota
+              {t('saved_detail_noteLabel')}
             </Text>
             <View
               className="px-4 py-3 border-neutral-100 dark:border-surface-700"
@@ -203,7 +204,7 @@ export default function SavedExperienceDetailScreen() {
                   clearTimeout(noteTimer.current)
                   upsertNote.mutate(noteText ?? note ?? '')
                 }}
-                placeholder="Escribe tu recomendación personal..."
+                placeholder={t('saved_detail_notePlaceholder')}
                 placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
                 multiline
                 style={{

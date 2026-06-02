@@ -1,5 +1,6 @@
 import { Tabs, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 import { TripProvider } from '@features/trips/TripProvider'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
@@ -7,6 +8,7 @@ import { colors } from '@lib/colors'
 export default function TripLayout() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const { isDark } = useTheme()
+  const { t } = useTranslation()
 
   return (
     <TripProvider tripId={id}>
@@ -29,7 +31,7 @@ export default function TripLayout() {
         <Tabs.Screen
           name="timeline"
           options={{
-            title: 'Timeline',
+            title: t('tripTab_timeline'),
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={size} color={color} />
             ),
@@ -38,7 +40,7 @@ export default function TripLayout() {
         <Tabs.Screen
           name="memories"
           options={{
-            title: 'Recuerdos',
+            title: t('tripTab_memories'),
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons name={focused ? 'images' : 'images-outline'} size={size} color={color} />
             ),
@@ -47,7 +49,7 @@ export default function TripLayout() {
         <Tabs.Screen
           name="expenses"
           options={{
-            title: 'Gastos',
+            title: t('tripTab_expenses'),
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons name={focused ? 'wallet' : 'wallet-outline'} size={size} color={color} />
             ),
@@ -56,7 +58,7 @@ export default function TripLayout() {
         <Tabs.Screen
           name="documents"
           options={{
-            title: 'Documentos',
+            title: t('tripTab_documents'),
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons name={focused ? 'document-text' : 'document-text-outline'} size={size} color={color} />
             ),

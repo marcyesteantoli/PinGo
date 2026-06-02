@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import {
   Pressable,
   ScrollView,
@@ -54,15 +55,6 @@ const TYPE_ICON_COLOR: Record<Experience['type'], string> = {
   other:         '#94A3B8',
 }
 
-const TYPE_FILTERS: { key: string | null; label: string }[] = [
-  { key: null, label: 'Todas' },
-  { key: 'restaurant', label: 'Gastronomía' },
-  { key: 'activity', label: 'Actividad' },
-  { key: 'accommodation', label: 'Alojamiento' },
-  { key: 'transport', label: 'Transporte' },
-  { key: 'entertainment', label: 'Entretenimiento' },
-  { key: 'other', label: 'Otro' },
-]
 
 function getLocationText(location: unknown): string | null {
   if (
@@ -195,6 +187,17 @@ export default function SavedExperiencesScreen() {
   const router = useRouter()
   const { isDark } = useTheme()
   const { scrollY, scrollHandler } = useAppHeader()
+  const { t } = useTranslation()
+
+  const TYPE_FILTERS: { key: string | null; label: string }[] = [
+    { key: null,            label: t('saved_filter_all') },
+    { key: 'restaurant',   label: t('expType_restaurant') },
+    { key: 'activity',     label: t('expType_activity') },
+    { key: 'accommodation',label: t('expType_accommodation') },
+    { key: 'transport',    label: t('expType_transport') },
+    { key: 'entertainment',label: t('expType_entertainment') },
+    { key: 'other',        label: t('expType_other') },
+  ]
   const sectionProgress = useSharedValue(0)
   useAnimatedReaction(
     () => scrollY.value,
@@ -245,7 +248,7 @@ export default function SavedExperiencesScreen() {
     <View>
       <Animated.View style={expandedSectionStyle}>
         <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
-          Mis joyas
+          {t('saved_title')}
         </Text>
       </Animated.View>
 
@@ -256,7 +259,7 @@ export default function SavedExperiencesScreen() {
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Buscar por lugar o nombre..."
+            placeholder={t('saved_search_placeholder')}
             placeholderTextColor={colors.neutral[400]}
             className="flex-1 text-[15px] text-neutral-900 dark:text-neutral-50"
             style={{ padding: 0 }}
@@ -287,7 +290,7 @@ export default function SavedExperiencesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
-      <AppHeader title="Mis joyas" scrollY={scrollY} expandProgress={sectionProgress} />
+      <AppHeader title={t('saved_title')} scrollY={scrollY} expandProgress={sectionProgress} />
 
       {isLoading ? (
         <View className="px-5 pt-2 gap-3">
@@ -311,8 +314,8 @@ export default function SavedExperiencesScreen() {
                 <Ionicons name="filter-outline" size={44} color={isDark ? colors.neutral[500] : colors.neutral[400]} style={{ marginBottom: 16 }} />
                 <Text className="text-[17px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
                   {activeType
-                    ? `Sin joyas de tipo "${activeTypeLabel}"`
-                    : `Sin resultados para "${search}"`}
+                    ? t('saved_filtered_noType', { type: activeTypeLabel })
+                    : t('saved_filtered_noQuery', { query: search })}
                 </Text>
                 <Pressable
                   onPress={() => { setActiveType(null); setSearch('') }}
@@ -321,7 +324,7 @@ export default function SavedExperiencesScreen() {
                 >
                   <Animated.View style={clearFiltersStyle} className="mt-3 px-5 py-2.5 rounded-full bg-neutral-200 dark:bg-surface-700">
                     <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
-                      Ver todas
+                      {t('saved_filtered_seeAll')}
                     </Text>
                   </Animated.View>
                 </Pressable>
@@ -330,10 +333,10 @@ export default function SavedExperiencesScreen() {
               <View className="flex-1 items-center justify-center px-8 pt-16">
                 <Ionicons name="bookmark-outline" size={52} color={isDark ? colors.neutral[500] : colors.neutral[400]} style={{ marginBottom: 16 }} />
                 <Text className="text-[18px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
-                  Aún no tienes joyas
+                  {t('saved_empty_title')}
                 </Text>
                 <Text className="text-[15px] text-neutral-500 dark:text-neutral-400 text-center leading-[22px]">
-                  Guarda las experiencias que te han enamorado con el marcador en la ficha de cada experiencia.
+                  {t('saved_empty_subtitle')}
                 </Text>
               </View>
             ) : null

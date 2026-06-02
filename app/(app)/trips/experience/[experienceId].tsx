@@ -26,7 +26,8 @@ import { Avatar } from '@components/ui/Avatar'
 import { Badge } from '@components/ui/Badge'
 import { EmojiRating } from '@components/ui/EmojiRating'
 import { UndoToast } from '@components/ui/UndoToast'
-import { EXPERIENCE_TYPE_LABELS, formatTimeRange } from '@features/timeline/types'
+import { formatTimeRange } from '@features/timeline/types'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
@@ -75,6 +76,7 @@ export default function ExperienceDetailScreen() {
   const router = useRouter()
   const { experienceId, tripId } = useLocalSearchParams<{ experienceId: string; tripId: string }>()
   const { isDark } = useTheme()
+  const { t } = useTranslation()
   const [viewerDoc, setViewerDoc] = useState<DocumentWithExperience | null>(null)
   const [saveToast, setSaveToast] = useState(false)
   const [editSheetVisible, setEditSheetVisible] = useState(false)
@@ -129,7 +131,7 @@ export default function ExperienceDetailScreen() {
     return (
       <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
         <View className="flex-1 items-center justify-center">
-          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Experiencia no encontrada</Text>
+          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">{t('experience_notFound')}</Text>
         </View>
       </SafeAreaView>
     )
@@ -177,7 +179,7 @@ export default function ExperienceDetailScreen() {
         <View className="rounded-2xl mb-3" style={cardShadow}>
           <View className="bg-white dark:bg-surface-800 rounded-2xl p-4">
             <Badge
-              label={EXPERIENCE_TYPE_LABELS[experience.type]}
+              label={t(`expType_${experience.type}`)}
               variant={TYPE_BADGE_VARIANT[experience.type]}
             />
             <Text className="text-[24px] font-bold text-neutral-900 dark:text-neutral-50 mt-2.5 leading-[30px]">
@@ -196,7 +198,7 @@ export default function ExperienceDetailScreen() {
           <View className="rounded-2xl mb-3" style={cardShadow}>
             <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
               <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-                Detalles
+                {t('experience_section_details')}
               </Text>
               {experience.date && (
                 <DetailRow
@@ -217,7 +219,7 @@ export default function ExperienceDetailScreen() {
               {experience.confirmation_code && (
                 <DetailRow
                   icon="ticket-outline"
-                  label="Reserva"
+                  label={t('experience_field_booking')}
                   value={experience.confirmation_code}
                   isDark={isDark}
                   isFirst={!experience.date && !timeRange}
@@ -278,7 +280,7 @@ export default function ExperienceDetailScreen() {
           <View className="rounded-2xl mb-3" style={cardShadow}>
             <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
               <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-                Documentos · {experienceDocs.length}
+                {t('experience_section_documents', { count: experienceDocs.length })}
               </Text>
               {experienceDocs.map((doc) => (
                 <TouchableOpacity
@@ -306,7 +308,7 @@ export default function ExperienceDetailScreen() {
                       {doc.name}
                     </Text>
                     <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-[1px]">
-                      {doc.file_type?.includes('image') ? 'Imagen' : 'PDF'}
+                      {doc.file_type?.includes('image') ? t('experience_fileType_image') : t('experience_fileType_pdf')}
                     </Text>
                   </View>
                   <Ionicons
@@ -326,7 +328,7 @@ export default function ExperienceDetailScreen() {
             <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
               <View className="flex-row items-center px-4 pt-3.5 pb-1.5">
                 <Text className="flex-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                  Gastos · {linkedExpenses.length}
+                  {t('experience_section_expenses', { count: linkedExpenses.length })}
                 </Text>
                 <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
                   {formatCurrency(linkedExpensesTotal)}
@@ -351,8 +353,8 @@ export default function ExperienceDetailScreen() {
             <View className="flex-row items-center px-4 pt-3.5 pb-1.5">
               <Text className="flex-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                 {ratingsData && ratingsData.count > 0
-                  ? `Valoraciones · ${ratingsData.count}`
-                  : 'Valoraciones'}
+                  ? t('experience_section_ratings_count', { count: ratingsData.count })
+                  : t('experience_section_ratings')}
               </Text>
               {ratingsData?.avg != null && (
                 <EmojiRating value={ratingsData.avg} size="sm" />
@@ -377,7 +379,7 @@ export default function ExperienceDetailScreen() {
                         style={i > 0 ? { borderTopWidth: 0.5 } : undefined}
                       >
                         <Avatar
-                          name={r.profiles?.name ?? 'Usuario'}
+                          name={r.profiles?.name ?? t('common_someone')}
                           uri={r.profiles?.avatar_url}
                           size="sm"
                         />
@@ -385,7 +387,7 @@ export default function ExperienceDetailScreen() {
                           className="flex-1 text-[15px] text-neutral-800 dark:text-neutral-100"
                           numberOfLines={1}
                         >
-                          {r.profiles?.name ?? 'Usuario'}
+                          {r.profiles?.name ?? t('common_someone')}
                         </Text>
                         <EmojiRating value={r.rating} size="sm" />
                       </View>
@@ -393,7 +395,7 @@ export default function ExperienceDetailScreen() {
                   ) : (
                     <View className="px-4 py-3.5">
                       <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-                        Nadie más ha valorado aún
+                        {t('experience_noOtherRatings')}
                       </Text>
                     </View>
                   )}
@@ -407,7 +409,7 @@ export default function ExperienceDetailScreen() {
               style={{ borderTopWidth: 0.5 }}
             >
               <Text className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
-                Tu valoración
+                {t('experience_myRating')}
               </Text>
               <EmojiRating
                 value={ratingsData?.userRating ?? null}
@@ -433,7 +435,7 @@ export default function ExperienceDetailScreen() {
           <View className="rounded-2xl mb-3" style={cardShadow}>
             <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
               <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-                Mi nota
+                {t('experience_section_note')}
               </Text>
               <View
                 className="px-4 py-3 border-neutral-100 dark:border-surface-700"
@@ -450,7 +452,7 @@ export default function ExperienceDetailScreen() {
                     clearTimeout(noteTimer.current)
                     upsertNote.mutate(noteText ?? savedNote ?? '')
                   }}
-                  placeholder="Escribe algo sobre esta experiencia..."
+                  placeholder={t('experience_note_placeholder')}
                   placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
                   multiline
                   style={{
@@ -502,8 +504,8 @@ export default function ExperienceDetailScreen() {
 
       <UndoToast
         visible={saveToast}
-        message="¡Añadida a Mis Joyas!"
-        actionLabel="Valorar"
+        message={t('experience_saved_toast')}
+        actionLabel={t('experience_rate_action')}
         onAction={() => {
           setSaveToast(false)
           setRatingSheetVisible(true)

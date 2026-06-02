@@ -16,6 +16,7 @@ export function useCreateTrip() {
           title: formData.title,
           start_date: formData.start_date,
           end_date: formData.end_date,
+          currency: formData.currency ?? 'EUR',
           created_by: DEMO_USER_ID,
           join_code: 'DEMO01',
           created_at: new Date().toISOString(),
@@ -29,6 +30,7 @@ export function useCreateTrip() {
           p_title: formData.title,
           p_start_date: formData.start_date,
           p_end_date: formData.end_date,
+          p_currency: formData.currency ?? 'EUR',
         })
 
       if (tripError) throw new Error(tripError.message)

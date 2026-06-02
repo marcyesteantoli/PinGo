@@ -1,5 +1,6 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from '@components/ui/Avatar'
 import type { Collaborator } from '@types/index'
 import { colors } from '@lib/colors'
@@ -12,6 +13,7 @@ interface ParticipantPickerProps {
 }
 
 export function ParticipantPicker({ collaborators, selectedIds, onChange, error }: ParticipantPickerProps) {
+  const { t } = useTranslation()
   const allSelected = collaborators.length > 0 && selectedIds.length === collaborators.length
 
   const toggle = (userId: string) => {
@@ -34,7 +36,7 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
     <View className="gap-2">
       <View className="flex-row items-center justify-between">
         <Text className="text-sm font-medium text-neutral-700">
-          Participantes{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
+          {t('expenses_participants_label')}{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
         </Text>
         <TouchableOpacity onPress={toggleAll} hitSlop={8} className="flex-row items-center gap-1 px-3 py-2 rounded-lg active:bg-neutral-100">
           <Ionicons
@@ -43,7 +45,7 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
             color={allSelected ? colors.primary[500] : colors.neutral[400]}
           />
           <Text className={`text-sm font-medium ${allSelected ? 'text-primary-600' : 'text-neutral-500'}`}>
-            {allSelected ? 'Deseleccionar todo' : 'Seleccionar todo'}
+            {allSelected ? t('expenses_participants_deselectAll') : t('expenses_participants_selectAll')}
           </Text>
         </TouchableOpacity>
       </View>

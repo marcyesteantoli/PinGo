@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useColorScheme } from 'nativewind'
+import { useTranslation } from 'react-i18next'
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
@@ -64,6 +65,7 @@ export function ExpenseCard({ expense, currentUserId, onPress, onEdit, onDelete 
   const category = getExpenseCategory(expense.description, expense.experience?.type as ExpenseCategory | null)
 
   const { colorScheme } = useColorScheme()
+  const { t } = useTranslation()
   const [containerWidth, setContainerWidth] = useState(0)
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
@@ -111,7 +113,7 @@ export function ExpenseCard({ expense, currentUserId, onPress, onEdit, onDelete 
         <View className="flex-row items-center gap-1.5 mt-1">
           <Avatar uri={expense.payer.avatar_url} name={expense.payer.name} size="xs" />
           <Text className="text-xs text-neutral-500 dark:text-neutral-400">
-            {isCurrentUserPayer ? 'Pagaste tú' : `Pagó ${expense.payer.name.split(' ')[0]}`}
+            {isCurrentUserPayer ? t('expenseCard_youPaid') : t('expenseCard_paidBy', { name: expense.payer.name.split(' ')[0] })}
           </Text>
         </View>
       </View>
@@ -159,7 +161,7 @@ export function ExpenseCard({ expense, currentUserId, onPress, onEdit, onDelete 
               activeOpacity={0.8}
             >
               <Ionicons name="pencil-outline" size={20} color={colors.white} />
-              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>Editar</Text>
+              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>{t('common_edit')}</Text>
             </TouchableOpacity>
           )}
 
@@ -171,7 +173,7 @@ export function ExpenseCard({ expense, currentUserId, onPress, onEdit, onDelete 
               activeOpacity={0.8}
             >
               <Ionicons name="trash-outline" size={20} color={colors.white} />
-              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>Eliminar</Text>
+              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>{t('common_delete')}</Text>
             </TouchableOpacity>
           )}
         </Animated.View>

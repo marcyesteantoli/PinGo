@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { Alert, RefreshControl, Text, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import Animated, {
   scrollTo,
   useAnimatedRef,
@@ -70,12 +71,14 @@ function StaggeredExpenseCard({
 }
 
 export default function ExpensesScreen() {
-  const { tripId, collaborators } = useTripContext()
+  const { tripId, collaborators, trip } = useTripContext()
+  const tripCurrency = trip.currency ?? 'EUR'
   const router = useRouter()
+  const { t } = useTranslation()
   const { data: currentUser } = useCurrentUser()
   const { data: expenses, isLoading, isFetching, refetch } = useExpenses(tripId)
   const { data: experiences } = useExperiences(tripId)
-  const createExpense = useCreateExpense(tripId, collaborators)
+  const createExpense = useCreateExpense(tripId, collaborators, tripCurrency)
   const updateExpense = useUpdateExpense(tripId, collaborators)
   const deleteExpense = useDeleteExpense(tripId)
   const settleDebt = useSettleDebt(tripId)
@@ -143,12 +146,12 @@ export default function ExpensesScreen() {
 
   const handleDelete = (expense: ExpenseWithSplits) => {
     Alert.alert(
-      'Eliminar gasto',
-      `¿Eliminar "${expense.description}"?`,
+      t('common_delete'),
+      t('wishlist_delete_body', { name: expense.description }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common_cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('common_delete'),
           style: 'destructive',
           onPress: () => deleteExpense.mutate({ expenseId: expense.id }),
         },
@@ -181,6 +184,7 @@ export default function ExpensesScreen() {
                   expenses={expenses ?? []}
                   currentUserId={currentUser?.id}
                   currentUserBalance={currentUserBalance}
+                  currency={tripCurrency}
                 />
               </View>
             ) : (
@@ -190,9 +194,9 @@ export default function ExpensesScreen() {
             {/* index 1: sticky tab bar */}
             <SegmentedTabBar
               tabs={[
-                { key: 'gastos', label: 'Gastos' },
-                { key: 'ajustes', label: 'Ajustes', badge: debtTransactions.length },
-                { key: 'saldos', label: 'Saldos' },
+                { key: 'gastos', label: t('expenses_tab_expenses') },
+                { key: 'ajustes', label: t('expenses_tab_adjustments'), badge: debtTransactions.length },
+                { key: 'saldos', label: t('expenses_tab_balances') },
               ]}
               active={activeTab}
               onChange={handleTabChange}
@@ -205,9 +209,9 @@ export default function ExpensesScreen() {
                 !expenses?.length ? (
                   <EmptyState
                     icon="wallet-outline"
-                    title="Sin gastos aún"
-                    subtitle="Registra los gastos del viaje y divide con el grupo automáticamente"
-                    actionLabel="Añadir primer gasto"
+                    title={t('expenses_empty_title')}
+                    subtitle={t('expenses_empty_subtitle')}
+                    actionLabel={t('expenses_empty_action')}
                     onAction={() => setSheetVisible(true)}
                   />
                 ) : (
@@ -239,10 +243,10 @@ export default function ExpensesScreen() {
                   <>
                     <View className="flex-row items-center justify-between">
                       <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                        Pendientes
+                        {t('expenses_pending_label')}
                       </Text>
                       <Text className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {debtTransactions.length} pendiente{debtTransactions.length !== 1 ? 's' : ''}
+                        {t(debtTransactions.length === 1 ? 'expenses_pending_count_one' : 'expenses_pending_count_other', { count: debtTransactions.length })}
                       </Text>
                     </View>
                     {debtTransactions.map((tx, i) => {
@@ -254,6 +258,7 @@ export default function ExpensesScreen() {
                           transaction={tx}
                           isCurrentUserFrom={tx.fromUserId === currentUser?.id}
                           isCurrentUserTo={tx.toUserId === currentUser?.id}
+                          currency={tripCurrency}
                           onSettle={
                             isInvolved && currentUser?.id
                               ? () =>
@@ -278,7 +283,7 @@ export default function ExpensesScreen() {
                       <>
                         <View className="flex-row items-center justify-between">
                           <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                            Saldados
+                            {t('expenses_settled_label')}
                           </Text>
                           <Text className="text-xs text-neutral-500 dark:text-neutral-400">
                             {settlements!.length}
@@ -290,6 +295,7 @@ export default function ExpensesScreen() {
                             settlement={s}
                             collaborators={collaborators}
                             currentUserId={currentUser?.id}
+                            currency={tripCurrency}
                           />
                         ))}
                       </>
@@ -299,14 +305,14 @@ export default function ExpensesScreen() {
                   <>
                     <EmptyState
                       icon="checkmark-circle-outline"
-                      title="Todo en orden"
-                      subtitle="No hay deudas pendientes en este viaje"
+                      title={t('expenses_all_settled_title')}
+                      subtitle={t('expenses_all_settled_subtitle')}
                     />
                     {(settlements?.length ?? 0) > 0 && (
                       <>
                         <View className="flex-row items-center justify-between">
                           <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                            Saldados
+                            {t('expenses_settled_label')}
                           </Text>
                           <Text className="text-xs text-neutral-500 dark:text-neutral-400">
                             {settlements!.length}
@@ -318,6 +324,7 @@ export default function ExpensesScreen() {
                             settlement={s}
                             collaborators={collaborators}
                             currentUserId={currentUser?.id}
+                            currency={tripCurrency}
                           />
                         ))}
                       </>
@@ -331,21 +338,22 @@ export default function ExpensesScreen() {
                 balances.length > 0 ? (
                   <>
                     <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                      Balance por persona
+                      {t('expenses_balance_section')}
                     </Text>
                     {balances.map((b) => (
                       <BalanceCard
                         key={b.user_id}
                         balance={b}
                         isCurrentUser={b.user_id === currentUser?.id}
+                        currency={tripCurrency}
                       />
                     ))}
                   </>
                 ) : (
                   <EmptyState
                     icon="people-outline"
-                    title="Sin balances"
-                    subtitle="Los balances aparecerán cuando haya gastos registrados"
+                    title={t('expenses_no_balances_title')}
+                    subtitle={t('expenses_no_balances_subtitle')}
                   />
                 )
               )}
@@ -378,6 +386,7 @@ export default function ExpensesScreen() {
         currentUserId={currentUser?.id}
         collaborators={collaborators}
         experiences={experiences ?? []}
+        tripCurrency={tripCurrency}
         initialData={
           editingExpense
             ? {

@@ -1,5 +1,8 @@
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { formatDateWithWeekday } from '@utils/date'
+
+export const UNDATED_SENTINEL = '__undated__'
 
 interface DaySectionProps {
   date: string
@@ -7,7 +10,8 @@ interface DaySectionProps {
 }
 
 export function DaySection({ date, count }: DaySectionProps) {
-  const isUndated = date === 'Sin fecha'
+  const { t, i18n } = useTranslation()
+  const isUndated = date === UNDATED_SENTINEL
   const isToday = !isUndated && date === new Date().toISOString().slice(0, 10)
 
   return (
@@ -15,15 +19,15 @@ export function DaySection({ date, count }: DaySectionProps) {
       {isToday ? (
         <View className="flex-row items-center gap-2 flex-1">
           <Text className="text-[13px] font-medium text-primary-500 dark:text-primary-400">
-            {formatDateWithWeekday(date)}
+            {formatDateWithWeekday(date, i18n.language)}
           </Text>
           <View className="bg-primary-500 px-2 py-0.5 rounded-full">
-            <Text className="text-[10px] font-bold text-white uppercase tracking-wider">Hoy</Text>
+            <Text className="text-[10px] font-bold text-white uppercase tracking-wider">{t('daySection_today')}</Text>
           </View>
         </View>
       ) : (
         <Text className="text-[13px] font-medium text-neutral-600 dark:text-neutral-400 flex-1">
-          {isUndated ? 'Sin fecha' : formatDateWithWeekday(date)}
+          {isUndated ? t('timeline_undated') : formatDateWithWeekday(date, i18n.language)}
         </Text>
       )}
 

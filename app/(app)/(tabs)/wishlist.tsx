@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import Animated, {
   scrollTo,
   useAnimatedReaction,
@@ -28,14 +29,6 @@ import { useFabScroll } from '@lib/useFabScroll'
 import { EASE_OUT, DURATION } from '@lib/animations'
 import type { WishlistItem, WishlistItemType } from '@types/index'
 
-const TYPE_FILTERS: { key: WishlistItemType | null; label: string }[] = [
-  { key: null,            label: 'Todos' },
-  { key: 'city',          label: 'Ciudad' },
-  { key: 'restaurant',    label: 'Restaurante' },
-  { key: 'activity',      label: 'Actividad' },
-  { key: 'accommodation', label: 'Alojamiento' },
-  { key: 'other',         label: 'Otro' },
-]
 
 type VisitedFilter = 'pending' | 'visited'
 
@@ -96,6 +89,17 @@ export default function WishlistScreen() {
   const { isDark } = useTheme()
   const router = useRouter()
   const { scrollY, scrollHandler } = useAppHeader()
+  const { t } = useTranslation()
+
+  const TYPE_FILTERS: { key: WishlistItemType | null; label: string }[] = [
+    { key: null,            label: t('wishlist_type_all') },
+    { key: 'city',          label: t('wishlist_type_city') },
+    { key: 'restaurant',    label: t('wishlist_type_restaurant') },
+    { key: 'activity',      label: t('wishlist_type_activity') },
+    { key: 'accommodation', label: t('wishlist_type_accommodation') },
+    { key: 'entertainment', label: t('wishlist_type_entertainment') },
+    { key: 'other',         label: t('wishlist_type_other') },
+  ]
   const sectionProgress = useSharedValue(0)
 
   useAnimatedReaction(
@@ -176,12 +180,12 @@ export default function WishlistScreen() {
 
   function handleDelete(item: WishlistItem) {
     Alert.alert(
-      'Eliminar deseo',
-      `¿Eliminar "${item.name}" de tu lista?`,
+      t('wishlist_delete_title'),
+      t('wishlist_delete_body', { name: item.name }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common_cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('common_delete'),
           style: 'destructive',
           onPress: () => deleteItem.mutate(item.id),
         },
@@ -213,7 +217,7 @@ export default function WishlistScreen() {
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       <AppHeader
-        title="Mis deseos"
+        title={t('wishlist_title')}
         scrollY={scrollY}
         expandProgress={sectionProgress}
       />
@@ -222,7 +226,7 @@ export default function WishlistScreen() {
         <ScrollView showsVerticalScrollIndicator={false}>
           <View className="px-5">
             <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
-              Mis deseos
+              {t('wishlist_title')}
             </Text>
           </View>
           <View className="px-5 pt-1 pb-24 gap-3">
@@ -241,7 +245,7 @@ export default function WishlistScreen() {
           {/* index 0: título scrollea hacia arriba */}
           <View className="px-5">
             <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
-              Mis deseos
+              {t('wishlist_title')}
             </Text>
           </View>
 
@@ -249,8 +253,8 @@ export default function WishlistScreen() {
           <View className="bg-neutral-100 dark:bg-surface-900">
             <SegmentedTabBar
               tabs={[
-                { key: 'pending', label: 'Pendientes', icon: 'heart-outline' },
-                { key: 'visited', label: 'Visitados', icon: 'checkmark-circle-outline' },
+                { key: 'pending', label: t('wishlist_segment_pending'), icon: 'heart-outline' },
+                { key: 'visited', label: t('wishlist_segment_visited'), icon: 'checkmark-circle-outline' },
               ]}
               active={visitedFilter}
               onChange={handleFilterChange}
@@ -263,7 +267,7 @@ export default function WishlistScreen() {
                 <TextInput
                   value={search}
                   onChangeText={setSearch}
-                  placeholder="Buscar por nombre o ubicación..."
+                  placeholder={t('wishlist_search_placeholder')}
                   placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
                   className="flex-1 text-[15px] text-neutral-900 dark:text-neutral-50"
                   style={{ padding: 0 }}
@@ -303,17 +307,17 @@ export default function WishlistScreen() {
                     style={{ marginBottom: 16 }}
                   />
                   <Text className="text-[18px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
-                    Aún no tienes deseos
+                    {t('wishlist_empty_title')}
                   </Text>
                   <Text className="text-[15px] text-neutral-500 dark:text-neutral-400 text-center leading-[22px]">
-                    Añade ciudades, restaurantes y lugares que quieres visitar algún día.
+                    {t('wishlist_empty_subtitle')}
                   </Text>
                   <TouchableOpacity
                     onPress={handleOpenAdd}
                     activeOpacity={0.85}
                     className="mt-6 bg-primary-500 rounded-2xl px-6 py-3"
                   >
-                    <Text className="text-white text-[15px] font-semibold">Añadir primer deseo</Text>
+                    <Text className="text-white text-[15px] font-semibold">{t('wishlist_empty_action')}</Text>
                   </TouchableOpacity>
                 </View>
               ) : isFiltered || visitedFilter === 'visited' ? (
@@ -326,17 +330,17 @@ export default function WishlistScreen() {
                   />
                   <Text className="text-[17px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
                     {visitedFilter === 'visited' && !isFiltered
-                      ? 'Sin deseos visitados'
+                      ? t('wishlist_noVisited_title')
                       : activeType
-                      ? `Sin deseos de tipo "${activeTypeLabel}"`
-                      : `Sin resultados para "${search}"`}
+                      ? t('wishlist_noType', { type: activeTypeLabel })
+                      : t('wishlist_noQuery', { query: search })}
                   </Text>
                   <TouchableOpacity
                     onPress={() => { setActiveType(null); setSearch('') }}
                     className="mt-3 px-5 py-2.5 rounded-full bg-neutral-200 dark:bg-surface-700"
                   >
                     <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
-                      Ver todos
+                      {t('wishlist_seeAll')}
                     </Text>
                   </TouchableOpacity>
                 </View>

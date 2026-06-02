@@ -2,14 +2,15 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { useSignUp } from '@features/auth/hooks/useSignUp'
-import { registerSchema, type RegisterFormData } from '@features/auth/types'
+import { buildRegisterSchema, type RegisterFormData } from '@features/auth/types'
 import { cardShadow, ctaShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
 
@@ -19,23 +20,26 @@ export default function RegisterScreen() {
   const emailRef = useRef<TextInput>(null)
   const passwordRef = useRef<TextInput>(null)
   const showError = useErrorToast()
+  const { t } = useTranslation()
+
+  const schema = useMemo(() => buildRegisterSchema(), [t])
 
   useEffect(() => {
     if (signUp.error) showError(signUp.error.message)
   }, [signUp.error])
 
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(schema),
   })
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
       const result = await signUp.mutateAsync(data)
       if (!result.needsEmailConfirmation) {
-        router.replace('/(app)')
+        router.replace('/(app)/(tabs)/trips')
       }
     } catch {
-      // El error se muestra via signUp.error
+      // error shown via signUp.error
     }
   }
 
@@ -53,14 +57,14 @@ export default function RegisterScreen() {
           </LinearGradient>
           <View className="items-center gap-2">
             <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 text-center">
-              Revisa tu email
+              {t('auth_confirm_title')}
             </Text>
             <Text className="text-base text-neutral-500 dark:text-neutral-400 text-center">
-              Hemos enviado un enlace de confirmación a {signUp.variables?.email}. Confirma tu cuenta para continuar.
+              {t('auth_confirm_body', { email: signUp.variables?.email })}
             </Text>
           </View>
           <Button onPress={() => router.back()} variant="ghost" size="lg" className="w-full">
-            Volver al inicio de sesión
+            {t('auth_confirm_back')}
           </Button>
         </View>
       </SafeAreaView>
@@ -87,8 +91,8 @@ export default function RegisterScreen() {
                 style={{ width: 56, height: 56, borderRadius: 14 }}
               />
             </View>
-            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50 mt-2">Crear cuenta</Text>
-            <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">Únete y empieza a planificar</Text>
+            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50 mt-2">{t('auth_register_title')}</Text>
+            <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">{t('auth_register_subtitle')}</Text>
           </View>
 
           <View
@@ -100,15 +104,15 @@ export default function RegisterScreen() {
               name="name"
               render={({ field: { onChange, value } }) => (
                 <Input
-                  label="Nombre"
-                  placeholder="Tu nombre"
+                  label={t('auth_register_nameLabel')}
+                  placeholder={t('auth_register_namePlaceholder')}
                   leftIcon="person-outline"
                   value={value}
                   onChangeText={onChange}
                   autoCapitalize="words"
                   autoComplete="name"
                   error={errors.name?.message}
-                  accessibilityLabel="Campo de nombre"
+                  accessibilityLabel={t('auth_register_nameA11y')}
                   returnKeyType="next"
                   onSubmitEditing={() => emailRef.current?.focus()}
                   blurOnSubmit={false}
@@ -122,8 +126,8 @@ export default function RegisterScreen() {
               render={({ field: { onChange, value } }) => (
                 <Input
                   ref={emailRef}
-                  label="Email"
-                  placeholder="tu@email.com"
+                  label={t('auth_login_emailLabel')}
+                  placeholder={t('auth_login_emailPlaceholder')}
                   leftIcon="mail-outline"
                   value={value}
                   onChangeText={onChange}
@@ -131,7 +135,7 @@ export default function RegisterScreen() {
                   autoCapitalize="none"
                   autoComplete="email"
                   error={errors.email?.message}
-                  accessibilityLabel="Campo de email"
+                  accessibilityLabel={t('auth_login_emailA11y')}
                   returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   blurOnSubmit={false}
@@ -145,21 +149,20 @@ export default function RegisterScreen() {
               render={({ field: { onChange, value } }) => (
                 <Input
                   ref={passwordRef}
-                  label="Contraseña"
-                  placeholder="Mínimo 6 caracteres"
+                  label={t('auth_login_passwordLabel')}
+                  placeholder={t('auth_validation_password')}
                   leftIcon="lock-closed-outline"
                   value={value}
                   onChangeText={onChange}
                   secureTextEntry
                   autoComplete="new-password"
                   error={errors.password?.message}
-                  accessibilityLabel="Campo de contraseña"
+                  accessibilityLabel={t('auth_login_passwordA11y')}
                   returnKeyType="done"
                   onSubmitEditing={handleSubmit(onSubmit)}
                 />
               )}
             />
-
 
             <View style={ctaShadow}>
               <Button
@@ -167,15 +170,15 @@ export default function RegisterScreen() {
                 isLoading={signUp.isPending}
                 size="lg"
               >
-                Crear cuenta
+                {t('auth_register_submit')}
               </Button>
             </View>
           </View>
 
           <View className="flex-row items-center justify-center mt-8 gap-1">
-            <Text className="text-sm text-neutral-500 dark:text-neutral-400">¿Ya tienes cuenta?</Text>
+            <Text className="text-sm text-neutral-500 dark:text-neutral-400">{t('auth_register_hasAccount')}</Text>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text className="text-sm font-semibold text-secondary-600 dark:text-secondary-400">Inicia sesión</Text>
+              <Text className="text-sm font-semibold text-secondary-600 dark:text-secondary-400">{t('auth_register_loginLink')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
