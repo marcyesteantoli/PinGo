@@ -86,6 +86,7 @@ export default function ExpenseDetailScreen() {
   const deleteExpense = useDeleteExpense(tripId)
 
   const cachedTripData = queryClient.getQueryData<TripCacheData>(queryKeys.collaborators.byTrip(tripId))
+  const tripCurrency = cachedTripData?.trip?.currency ?? 'EUR'
   const collaborators: Collaborator[] = (cachedTripData?.collaborators ?? []).map((c) => ({
     user_id: c.user_id,
     name: c.profiles?.name ?? '',
@@ -183,7 +184,7 @@ export default function ExpenseDetailScreen() {
             {expense.description}
           </Text>
           <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">
-            {formatCurrency(expense.amount, expense.currency)}
+            {formatCurrency(expense.amount, tripCurrency)}
           </Text>
         </View>
 
@@ -241,7 +242,7 @@ export default function ExpenseDetailScreen() {
             <Ionicons name="cash-outline" size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
             <Text className="flex-1 text-sm text-neutral-500 dark:text-neutral-400">{t('expenseDetail_field_currency')}</Text>
             <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
-              {expense.currency}
+              {tripCurrency}
             </Text>
           </View>
         </View>
@@ -275,7 +276,7 @@ export default function ExpenseDetailScreen() {
                           {isMe ? t('common_youLabel') : name.split(' ')[0]}
                         </Text>
                         <Text className="text-xs text-neutral-500 dark:text-neutral-400">
-                          {formatCurrency(split.amount, expense.currency)}
+                          {formatCurrency(split.amount, tripCurrency)}
                         </Text>
                       </View>
                       {isPayer && (

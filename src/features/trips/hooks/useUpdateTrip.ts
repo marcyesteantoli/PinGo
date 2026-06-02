@@ -36,8 +36,9 @@ export function useUpdateTrip() {
         .eq('id', tripId)
       if (error) throw new Error(error.message)
     },
-    onSuccess: () => {
+    onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.list() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.collaborators.byTrip(tripId) })
     },
   })
 }

@@ -115,6 +115,7 @@ export const en = {
   trips_empty_past_title: 'No past trips',
   trips_empty_past_subtitle: 'Completed trips will appear here',
   trips_error_title: 'Could not load',
+  trips_notFound: 'Trip not found',
   trips_fab_create: 'Create trip',
   trips_fab_join: 'Join',
   trips_join_sheet_title: 'Join a trip',
@@ -322,6 +323,12 @@ export const en = {
   // ─── EXPENSE CARD ────────────────────────────────────────────────────────
   expenseCard_youPaid: 'You paid',
   expenseCard_paidBy: '{{name}} paid',
+  expense_category_restaurant:    'Food & Drink',
+  expense_category_transport:     'Transport',
+  expense_category_accommodation: 'Accommodation',
+  expense_category_activity:      'Activities',
+  expense_category_entertainment: 'Entertainment',
+  expense_category_other:         'Other',
 
   // ─── WISHLIST CARD ────────────────────────────────────────────────────────
   wishlistCard_action_visited: 'Visited',

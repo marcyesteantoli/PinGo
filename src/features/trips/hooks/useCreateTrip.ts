@@ -32,6 +32,7 @@ export function useCreateTrip() {
           p_end_date: formData.end_date,
           p_currency: formData.currency ?? 'EUR',
         })
+        .single()
 
       if (tripError) throw new Error(tripError.message)
 

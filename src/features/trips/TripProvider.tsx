@@ -79,7 +79,7 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
     return (
       <View className="flex-1 items-center justify-center px-6 gap-4 bg-neutral-100 dark:bg-surface-900">
         <Text className="text-base text-neutral-600 dark:text-neutral-300 text-center">
-          {error ? t('trips_error_title') : t('experience_notFound')}
+          {error ? t('trips_error_title') : t('trips_notFound')}
         </Text>
         <Button onPress={() => router.back()} variant="ghost">
           {t('common_back')}

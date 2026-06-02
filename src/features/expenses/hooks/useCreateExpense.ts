@@ -69,7 +69,7 @@ export function useCreateExpense(tripId: string, collaborators: Collaborator[] =
         experience_id: formData.experience_id ?? null,
         description: formData.description,
         amount: formData.amount,
-        currency: 'EUR',
+        currency,
         payer_id: payerId,
         created_at: new Date().toISOString(),
         payer: { id: payerId, name: payerCollab?.name ?? 'Cargando...', avatar_url: payerCollab?.avatar_url ?? null, updated_at: '' } as any,

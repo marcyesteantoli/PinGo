@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
-import { Alert, RefreshControl, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Platform, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
+import { useColorScheme } from 'nativewind'
 import Animated, {
   scrollTo,
   useAnimatedRef,
@@ -36,36 +37,93 @@ import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
 import { EASE_OUT, DURATION } from '@lib/animations'
+import { formatCurrency } from '@utils/currency'
+import {
+  getExpenseCategory,
+  CATEGORY_ORDER,
+  CATEGORY_ICON,
+  CATEGORY_BG,
+  CATEGORY_ICON_COLORS,
+  CATEGORY_LABEL_KEY,
+  type ExpenseCategory,
+} from '@features/expenses/utils/getExpenseCategory'
 import type { CreateExpenseFormData } from '@features/expenses/types'
 import type { ExpenseWithSplits } from '@/types'
 
 type ActiveTab = 'gastos' | 'ajustes' | 'saldos'
 
-function StaggeredExpenseCard({
-  expense,
+type ExpenseGroup = {
+  category: ExpenseCategory
+  expenses: ExpenseWithSplits[]
+  subtotal: number
+}
+
+function CategoryExpenseCard({
+  group,
   index,
+  currency,
   currentUserId,
-  onPress,
-  onEdit,
-  onDelete,
+  onExpensePress,
+  onExpenseEdit,
+  onExpenseDelete,
 }: {
-  expense: ExpenseWithSplits
+  group: ExpenseGroup
   index: number
+  currency: string
   currentUserId?: string
-  onPress: () => void
-  onEdit?: () => void
-  onDelete?: () => void
+  onExpensePress: (expense: ExpenseWithSplits) => void
+  onExpenseEdit: (expense: ExpenseWithSplits) => void
+  onExpenseDelete: (expense: ExpenseWithSplits) => void
 }) {
-  const staggerStyle = useStaggerEnter(index, { delay: 50, distance: 8 })
+  const staggerStyle = useStaggerEnter(index, { delay: 80, distance: 12 })
+  const { colorScheme } = useColorScheme()
+  const { t } = useTranslation()
+
   return (
     <Animated.View style={staggerStyle}>
-      <ExpenseCard
-        expense={expense}
-        currentUserId={currentUserId}
-        onPress={onPress}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      <View
+        className="rounded-2xl overflow-hidden"
+        style={Platform.select({
+          android: { borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,0,0,0.10)' },
+          default: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8 },
+        })}
+      >
+        <View className="flex-row items-center gap-3 px-4 py-3 bg-white dark:bg-surface-800">
+          <View className={`w-9 h-9 rounded-xl items-center justify-center ${CATEGORY_BG[group.category]}`}>
+            <Ionicons
+              name={CATEGORY_ICON[group.category]}
+              size={20}
+              color={CATEGORY_ICON_COLORS[group.category][colorScheme === 'dark' ? 'dark' : 'light']}
+            />
+          </View>
+          <Text className="flex-1 text-base font-bold text-neutral-900 dark:text-neutral-50">
+            {t(CATEGORY_LABEL_KEY[group.category])}
+          </Text>
+          <Text className="text-base font-bold text-neutral-900 dark:text-neutral-50">
+            {formatCurrency(group.subtotal, currency)}
+          </Text>
+        </View>
+
+        <View className="bg-neutral-100 dark:bg-neutral-700/50" style={{ height: StyleSheet.hairlineWidth }} />
+
+        {group.expenses.map((expense, i) => (
+          <View key={expense.id}>
+            <ExpenseCard
+              expense={expense}
+              currency={currency}
+              currentUserId={currentUserId}
+              showCategoryIcon={false}
+              standalone={false}
+              onPress={() => onExpensePress(expense)}
+              onEdit={expense.payer_id === currentUserId ? () => onExpenseEdit(expense) : undefined}
+              onDelete={expense.payer_id === currentUserId ? () => onExpenseDelete(expense) : undefined}
+            />
+            {i < group.expenses.length - 1 && (
+              <View className="bg-neutral-100 dark:bg-neutral-700/50 mx-4" style={{ height: StyleSheet.hairlineWidth }} />
+            )}
+          </View>
+        ))}
+      </View>
     </Animated.View>
   )
 }
@@ -98,6 +156,30 @@ export default function ExpensesScreen() {
   )
 
   const currentUserBalance = balances.find((b) => b.user_id === currentUser?.id)
+
+  const groupedExpenses = useMemo((): ExpenseGroup[] => {
+    if (!expenses?.length) return []
+    const map = new Map<ExpenseCategory, ExpenseWithSplits[]>()
+    for (const expense of expenses) {
+      const category = getExpenseCategory(expense.description, expense.experience?.type as ExpenseCategory | null)
+      const arr = map.get(category) ?? []
+      arr.push(expense)
+      map.set(category, arr)
+    }
+    for (const arr of map.values()) {
+      arr.sort((a, b) => b.created_at.localeCompare(a.created_at))
+    }
+    return CATEGORY_ORDER
+      .filter((cat) => map.has(cat))
+      .map((category) => {
+        const catExpenses = map.get(category)!
+        return {
+          category,
+          expenses: catExpenses,
+          subtotal: catExpenses.reduce((s, e) => s + e.amount, 0),
+        }
+      })
+  }, [expenses])
 
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
   const scrollY = useSharedValue(0)
@@ -215,25 +297,25 @@ export default function ExpensesScreen() {
                     onAction={() => setSheetVisible(true)}
                   />
                 ) : (
-                  expenses.map((expense, index) => {
-                    const isPayer = expense.payer_id === currentUser?.id
-                    return (
-                      <StaggeredExpenseCard
-                        key={expense.id}
-                        expense={expense}
-                        index={index}
+                  <View className="gap-4">
+                    {groupedExpenses.map((group, i) => (
+                      <CategoryExpenseCard
+                        key={group.category}
+                        group={group}
+                        index={i}
+                        currency={tripCurrency}
                         currentUserId={currentUser?.id}
-                        onPress={() =>
+                        onExpensePress={(expense) =>
                           router.push({
                             pathname: '/(app)/trips/expense/[expenseId]' as never,
                             params: { expenseId: expense.id, tripId },
                           })
                         }
-                        onEdit={isPayer ? () => handleEdit(expense) : undefined}
-                        onDelete={isPayer ? () => handleDelete(expense) : undefined}
+                        onExpenseEdit={handleEdit}
+                        onExpenseDelete={handleDelete}
                       />
-                    )
-                  })
+                    ))}
+                  </View>
                 )
               )}
 
