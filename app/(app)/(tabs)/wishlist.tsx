@@ -194,6 +194,7 @@ export default function WishlistScreen() {
   }
 
   const handleFilterChange = (key: string) => {
+    if (key === visitedFilter) return
     scrollTo(scrollRef, 0, 0, true)
     contentOpacity.value = withTiming(0, { duration: 100, easing: EASE_OUT })
     setTimeout(() => setVisitedFilter(key as VisitedFilter), 110)

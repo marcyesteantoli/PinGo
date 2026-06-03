@@ -4,6 +4,10 @@ import { Alert, Platform, RefreshControl, StyleSheet, Text, TouchableOpacity, Vi
 import { useTranslation } from 'react-i18next'
 import { useColorScheme } from 'nativewind'
 import Animated, {
+  Easing,
+  FadeIn,
+  FadeOut,
+  LinearTransition,
   scrollTo,
   useAnimatedRef,
   useAnimatedScrollHandler,
@@ -78,9 +82,18 @@ function CategoryExpenseCard({
   const staggerStyle = useStaggerEnter(index, { delay: 80, distance: 12 })
   const { colorScheme } = useColorScheme()
   const { t } = useTranslation()
+  const [collapsed, setCollapsed] = useState(false)
+  const rotation = useSharedValue(0)
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }))
+  const toggle = () => {
+    rotation.value = withTiming(collapsed ? 0 : 180, { duration: 220, easing: Easing.out(Easing.cubic) })
+    setCollapsed(prev => !prev)
+  }
 
   return (
-    <Animated.View style={staggerStyle}>
+    <Animated.View style={staggerStyle} layout={LinearTransition.springify().damping(18).stiffness(180).mass(0.8)}>
       <View
         className="rounded-2xl overflow-hidden"
         style={Platform.select({
@@ -88,41 +101,60 @@ function CategoryExpenseCard({
           default: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8 },
         })}
       >
-        <View className="flex-row items-center gap-3 px-4 py-3 bg-white dark:bg-surface-800">
-          <View className={`w-9 h-9 rounded-xl items-center justify-center ${CATEGORY_BG[group.category]}`}>
-            <Ionicons
-              name={CATEGORY_ICON[group.category]}
-              size={20}
-              color={CATEGORY_ICON_COLORS[group.category][colorScheme === 'dark' ? 'dark' : 'light']}
-            />
+        <TouchableOpacity onPress={toggle} activeOpacity={0.85}>
+          <View
+            className="flex-row items-center gap-3 px-4 py-3.5"
+            style={{ backgroundColor: CATEGORY_ICON_COLORS[group.category][colorScheme === 'dark' ? 'dark' : 'light'] }}
+          >
+            <View className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
+              <Ionicons
+                name={CATEGORY_ICON[group.category]}
+                size={20}
+                color="#ffffff"
+              />
+            </View>
+            <Text className="flex-1 text-base font-bold text-white">
+              {t(CATEGORY_LABEL_KEY[group.category])}
+            </Text>
+            <View className="items-end">
+              <Text className="text-base font-bold text-white">
+                {formatCurrency(group.subtotal, currency)}
+              </Text>
+              <Text className="text-xs text-white/70 mt-0.5">
+                {group.expenses.length} {group.expenses.length === 1 ? 'gasto' : 'gastos'}
+              </Text>
+            </View>
+            <View className="w-8 h-8 rounded-full items-center justify-center bg-white/20">
+              <Animated.View style={chevronStyle}>
+                <Ionicons name="chevron-down" size={16} color="rgba(255,255,255,0.9)" />
+              </Animated.View>
+            </View>
           </View>
-          <Text className="flex-1 text-base font-bold text-neutral-900 dark:text-neutral-50">
-            {t(CATEGORY_LABEL_KEY[group.category])}
-          </Text>
-          <Text className="text-base font-bold text-neutral-900 dark:text-neutral-50">
-            {formatCurrency(group.subtotal, currency)}
-          </Text>
-        </View>
+        </TouchableOpacity>
 
-        <View className="bg-neutral-100 dark:bg-neutral-700/50" style={{ height: StyleSheet.hairlineWidth }} />
+        {!collapsed && (
+          <Animated.View entering={FadeIn.duration(250).easing(Easing.out(Easing.quad))} exiting={FadeOut.duration(180).easing(Easing.in(Easing.quad))}>
+            <View className="bg-black/10 dark:bg-black/20" style={{ height: StyleSheet.hairlineWidth }} />
 
-        {group.expenses.map((expense, i) => (
-          <View key={expense.id}>
-            <ExpenseCard
-              expense={expense}
-              currency={currency}
-              currentUserId={currentUserId}
-              showCategoryIcon={false}
-              standalone={false}
-              onPress={() => onExpensePress(expense)}
-              onEdit={expense.payer_id === currentUserId ? () => onExpenseEdit(expense) : undefined}
-              onDelete={expense.payer_id === currentUserId ? () => onExpenseDelete(expense) : undefined}
-            />
-            {i < group.expenses.length - 1 && (
-              <View className="bg-neutral-100 dark:bg-neutral-700/50 mx-4" style={{ height: StyleSheet.hairlineWidth }} />
-            )}
-          </View>
-        ))}
+            {group.expenses.map((expense, i) => (
+              <View key={expense.id}>
+                <ExpenseCard
+                  expense={expense}
+                  currency={currency}
+                  currentUserId={currentUserId}
+                  showCategoryIcon={false}
+                  standalone={false}
+                  onPress={() => onExpensePress(expense)}
+                  onEdit={expense.payer_id === currentUserId ? () => onExpenseEdit(expense) : undefined}
+                  onDelete={expense.payer_id === currentUserId ? () => onExpenseDelete(expense) : undefined}
+                />
+                {i < group.expenses.length - 1 && (
+                  <View className="bg-neutral-100 dark:bg-neutral-700/50 mx-4" style={{ height: StyleSheet.hairlineWidth }} />
+                )}
+              </View>
+            ))}
+          </Animated.View>
+        )}
       </View>
     </Animated.View>
   )
@@ -192,6 +224,7 @@ export default function ExpensesScreen() {
   const { fabVisible, fabAnimStyle } = useFabScroll(scrollY)
 
   const handleTabChange = (key: string) => {
+    if (key === activeTab) return
     scrollTo(scrollRef, 0, 0, true)
     fabVisible.value = 1
     contentOpacity.value = withTiming(0, { duration: 100, easing: EASE_OUT })

@@ -33,6 +33,11 @@ export default function TabsLayout() {
             <Ionicons name={focused ? 'airplane' : 'airplane-outline'} size={24} color={color} />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) e.preventDefault()
+          },
+        })}
       />
       <Tabs.Screen
         name="saved-experiences"
@@ -42,6 +47,11 @@ export default function TabsLayout() {
             <Ionicons name={focused ? 'bookmark' : 'bookmark-outline'} size={24} color={color} />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) e.preventDefault()
+          },
+        })}
       />
       <Tabs.Screen
         name="wishlist"
@@ -51,6 +61,11 @@ export default function TabsLayout() {
             <Ionicons name={focused ? 'heart' : 'heart-outline'} size={24} color={color} />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) e.preventDefault()
+          },
+        })}
       />
     </Tabs>
   )
