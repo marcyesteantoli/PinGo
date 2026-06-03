@@ -42,6 +42,8 @@ export function useUpsertAttributeRating(experienceId: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: qKey })
+      queryClient.invalidateQueries({ queryKey: queryKeys.savedExperiences.byUser() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.savedExperiences.detail(experienceId) })
     },
   })
 }

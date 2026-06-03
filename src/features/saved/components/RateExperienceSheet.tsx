@@ -161,7 +161,16 @@ function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChang
                 gap: 10,
               }}
             >
-              <Text style={{ fontSize: 18, width: 26, textAlign: 'center' }}>{attr.emoji}</Text>
+              <View style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Ionicons name={attr.ionIcon as any} size={15} color={colors.primary[400]} />
+              </View>
               <Text
                 style={{ flex: 1, fontSize: 15, fontWeight: '500', color: isDark ? colors.neutral[200] : colors.neutral[800] }}
               >
@@ -415,7 +424,16 @@ export function RateExperienceSheet({ visible, onClose, experienceId, experience
 
               return (
                 <>
-                  <Text style={{ fontSize: 64, lineHeight: 72 }}>{attr.emoji}</Text>
+                  <View style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 20,
+                    backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Ionicons name={attr.ionIcon as any} size={38} color={colors.primary[400]} />
+                  </View>
                   <Text
                     style={{
                       fontSize: 28,

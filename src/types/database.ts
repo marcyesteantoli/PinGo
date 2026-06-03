@@ -210,6 +210,41 @@ export interface Database {
           caption?: string | null
         }
       }
+      trip_destinations: {
+        Row: {
+          id: string
+          trip_id: string
+          name: string
+          country: string | null
+          lat: number | null
+          lng: number | null
+          start_date: string
+          end_date: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          name: string
+          country?: string | null
+          lat?: number | null
+          lng?: number | null
+          start_date: string
+          end_date: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          name?: string
+          country?: string | null
+          lat?: number | null
+          lng?: number | null
+          start_date?: string
+          end_date?: string
+          sort_order?: number
+        }
+      }
     }
     Views: {
       experience_ratings_avg: {

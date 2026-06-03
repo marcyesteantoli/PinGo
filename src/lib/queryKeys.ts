@@ -45,4 +45,7 @@ export const queryKeys = {
   wishlist: {
     byUser: () => ['wishlist'] as const,
   },
+  destinations: {
+    byTrip: (tripId: string) => ['destinations', tripId] as const,
+  },
 }

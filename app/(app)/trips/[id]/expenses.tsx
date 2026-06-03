@@ -46,7 +46,6 @@ import {
   getExpenseCategory,
   CATEGORY_ORDER,
   CATEGORY_ICON,
-  CATEGORY_BG,
   CATEGORY_ICON_COLORS,
   CATEGORY_LABEL_KEY,
   type ExpenseCategory,
@@ -103,15 +102,17 @@ function CategoryExpenseCard({
           default: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8 },
         })}
       >
-        <TouchableOpacity onPress={toggle} activeOpacity={0.85}>
-          <View className={`flex-row items-center gap-3 px-4 py-3.5 ${CATEGORY_BG[group.category]}`}>
+        <View className="bg-white dark:bg-surface-800">
+          <TouchableOpacity onPress={toggle} activeOpacity={0.85}>
+            <View className="flex-row items-center gap-3 pl-5 pr-4 py-3.5">
+              <View className="absolute top-0 left-0 bottom-0 w-[3px]" style={{ backgroundColor: iconColor, opacity: 0.65 }} pointerEvents="none" />
             <View
-              className="w-9 h-9 rounded-xl items-center justify-center"
+              className="w-11 h-11 rounded-xl items-center justify-center"
               style={{ backgroundColor: iconColor + '26' }}
             >
               <Ionicons
                 name={CATEGORY_ICON[group.category]}
-                size={20}
+                size={22}
                 color={iconColor}
               />
             </View>
@@ -144,7 +145,7 @@ function CategoryExpenseCard({
 
         {!collapsed && (
           <Animated.View entering={FadeInDown.duration(220).easing(Easing.out(Easing.quad))} exiting={FadeOut.duration(150).easing(Easing.in(Easing.quad))}>
-            <View className="bg-black/5 dark:bg-black/20" style={{ height: StyleSheet.hairlineWidth }} />
+            <View className="h-px bg-neutral-200 dark:bg-surface-600" />
 
             {group.expenses.map((expense, i) => (
               <View key={expense.id}>
@@ -159,12 +160,13 @@ function CategoryExpenseCard({
                   onDelete={expense.payer_id === currentUserId ? () => onExpenseDelete(expense) : undefined}
                 />
                 {i < group.expenses.length - 1 && (
-                  <View className="bg-neutral-100 dark:bg-neutral-700/50 mx-4" style={{ height: StyleSheet.hairlineWidth }} />
+                  <View className="h-px bg-neutral-100 dark:bg-surface-700/60 mx-4" />
                 )}
               </View>
             ))}
           </Animated.View>
         )}
+        </View>
       </View>
     </Animated.View>
   )

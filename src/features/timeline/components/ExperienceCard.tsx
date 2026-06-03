@@ -131,7 +131,7 @@ export const ExperienceCard = memo(function ExperienceCard({
         if (w > 0 && w !== containerWidth) setContainerWidth(w)
       }}
     >
-      <View className="overflow-hidden rounded-2xl">
+      <Animated.View className="overflow-hidden rounded-2xl" style={pressStyle}>
         <Animated.View style={[{ flexDirection: 'row', width: rowWidth }, cardStyle]}>
           <GestureDetector gesture={pan}>
             <View style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}>
@@ -141,7 +141,7 @@ export const ExperienceCard = memo(function ExperienceCard({
                 onPressIn={() => { pressScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
                 onPressOut={() => { pressScale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
               >
-              <Animated.View style={pressStyle} className="bg-white dark:bg-surface-800 pl-5 pr-4 pt-3.5 pb-3.5">
+              <Animated.View className="bg-white dark:bg-surface-800 pl-5 pr-4 pt-3.5 pb-3.5">
                 <View
                   className="absolute top-0 left-0 bottom-0 w-[3px]"
                   style={{ backgroundColor: accentColor, opacity: 0.65 }}
@@ -227,7 +227,7 @@ export const ExperienceCard = memo(function ExperienceCard({
             </TouchableOpacity>
           )}
         </Animated.View>
-      </View>
+      </Animated.View>
     </View>
   )
 })

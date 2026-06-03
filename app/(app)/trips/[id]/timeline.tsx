@@ -8,6 +8,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { fabShadow } from '@lib/shadows'
+import { colors } from '@lib/colors'
+import { useTheme } from '@lib/theme'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { UndoToast } from '@components/ui/UndoToast'
@@ -23,10 +25,13 @@ import { useUpdateExperience } from '@features/timeline/hooks/useUpdateExperienc
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useRatingsForTrip } from '@features/timeline/hooks/useRatingsForTrip'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
+import { useDestinations } from '@features/destinations/hooks/useDestinations'
+import { DestinationBanner } from '@features/destinations/components/DestinationBanner'
+import { ManageDestinationsSheet } from '@features/destinations/components/ManageDestinationsSheet'
 import { queryKeys } from '@lib/queryKeys'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
-import type { Experience } from '@types/index'
+import type { Experience, TripDestination } from '@types/index'
 import type { CreateExperienceFormData } from '@features/timeline/types'
 
 const UNDATED_SENTINEL = '__undated__'
@@ -36,6 +41,7 @@ type Section = { title: string; data: Experience[] }
 type TimelineEntry =
   | { type: 'header'; title: string; count: number; isFirst: boolean; isToday: boolean }
   | { type: 'item'; experience: Experience; isUndated: boolean; sectionIndex: number }
+  | { type: 'city_banner'; destination: TripDestination }
 
 function groupByDate(experiences: Experience[]): Section[] {
   const groups: Record<string, Experience[]> = {}
@@ -60,11 +66,27 @@ function groupByDate(experiences: Experience[]): Section[] {
   return undated.length > 0 ? [...dated, { title: UNDATED_SENTINEL, data: undated }] : dated
 }
 
-function toRows(sections: Section[]): TimelineEntry[] {
+function getDestinationForDate(date: string, destinations: TripDestination[]): TripDestination | null {
+  return destinations.find(d => d.start_date <= date && date <= d.end_date) ?? null
+}
+
+function toRows(sections: Section[], destinations: TripDestination[]): TimelineEntry[] {
   const today = new Date().toISOString().slice(0, 10)
   const rows: TimelineEntry[] = []
+  let prevDestId: string | null = null
+
   sections.forEach((s, i) => {
     const isUndated = s.title === UNDATED_SENTINEL
+
+    if (!isUndated && destinations.length > 0) {
+      const dest = getDestinationForDate(s.title, destinations)
+      const destId = dest?.id ?? null
+      if (destId !== prevDestId) {
+        prevDestId = destId
+        if (dest) rows.push({ type: 'city_banner', destination: dest })
+      }
+    }
+
     rows.push({
       type: 'header',
       title: s.title,
@@ -133,7 +155,10 @@ export default function TimelineScreen() {
   const createExperience = useCreateExperience(tripId)
   const deleteExperience = useDeleteExperience(tripId)
   const updateExperience = useUpdateExperience(tripId)
+  const { data: destinations = [] } = useDestinations(tripId)
+  const { isDark } = useTheme()
   const [sheetVisible, setSheetVisible] = useState(false)
+  const [destSheetVisible, setDestSheetVisible] = useState(false)
   const [editExperience, setEditExperience] = useState<Experience | null>(null)
   const [toastVisible, setToastVisible] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
@@ -150,8 +175,8 @@ export default function TimelineScreen() {
   } | null>(null)
 
   const rows = useMemo(
-    () => toRows(groupByDate(experiences ?? [])),
-    [experiences]
+    () => toRows(groupByDate(experiences ?? []), destinations),
+    [experiences, destinations]
   )
 
   const commitDelete = async (experienceId: string, snapshot: Experience[] | undefined) => {
@@ -251,11 +276,19 @@ export default function TimelineScreen() {
   })
 
   const keyExtractor = useCallback(
-    (entry: TimelineEntry) => entry.type === 'header' ? `header-${entry.title}` : entry.experience.id,
+    (entry: TimelineEntry) => {
+      if (entry.type === 'header') return `header-${entry.title}`
+      if (entry.type === 'city_banner') return `city-${entry.destination.id}`
+      return entry.experience.id
+    },
     []
   )
 
   const renderItem = useCallback(({ item: entry }: { item: TimelineEntry }) => {
+    if (entry.type === 'city_banner') {
+      return <DestinationBanner destination={entry.destination} />
+    }
+
     if (entry.type === 'header') {
       return (
         <View className="flex-row">
@@ -332,6 +365,22 @@ export default function TimelineScreen() {
           keyExtractor={keyExtractor}
           contentContainerClassName="pt-2 pb-24"
           renderItem={renderItem}
+          ListHeaderComponent={
+            <TouchableOpacity
+              onPress={() => setDestSheetVisible(true)}
+              className="flex-row items-center gap-2 mx-4 mb-2 mt-1 py-2.5 px-4 bg-neutral-200/70 dark:bg-surface-700/60 rounded-2xl"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="map-outline" size={14} color={isDark ? '#9ca3af' : '#6b7280'} />
+              <Text className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400 flex-1" numberOfLines={1}>
+                {destinations.length > 0
+                  ? destinations.map(d => d.name).join(' · ')
+                  : t('destinations_manageHint')
+                }
+              </Text>
+              <Ionicons name="chevron-forward" size={13} color={isDark ? '#9ca3af' : '#6b7280'} />
+            </TouchableOpacity>
+          }
           ListEmptyComponent={
             <EmptyState
               icon="calendar-outline"
@@ -392,6 +441,16 @@ export default function TimelineScreen() {
         initialValues={editExperience ? experienceToFormData(editExperience) : undefined}
         mode="edit"
       />
+
+      {trip && (
+        <ManageDestinationsSheet
+          visible={destSheetVisible}
+          onClose={() => setDestSheetVisible(false)}
+          tripId={tripId}
+          tripStartDate={trip.start_date}
+          tripEndDate={trip.end_date}
+        />
+      )}
       </View>
     </View>
   )

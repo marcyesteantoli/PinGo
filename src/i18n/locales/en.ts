@@ -460,6 +460,19 @@ export const en = {
   validation_required_experience: 'Select an experience',
   validation_code_length: 'Code must be 6 characters',
 
+  // ─── DESTINATIONS ─────────────────────────────────────────────────────────
+  destinations_title: 'Trip stages',
+  destinations_add: 'Add stage',
+  destinations_edit: 'Edit stage',
+  destinations_city: 'City',
+  destinations_country: 'Country (optional)',
+  destinations_startDate: 'Arrival',
+  destinations_endDate: 'Departure',
+  destinations_empty: 'No stages defined.\nAdd cities to organise your route.',
+  destinations_deleteTitle: 'Delete stage',
+  destinations_deleteBody: 'Delete "{{name}}"?',
+  destinations_manageHint: 'Add stages to organise your route',
+
   // ─── BOTTOMSHEET ─────────────────────────────────────────────────────────
   bottomSheet_close: 'Close',
 } as const

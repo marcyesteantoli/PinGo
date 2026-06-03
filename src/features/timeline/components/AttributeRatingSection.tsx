@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Image, Text, TouchableOpacity, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { RadarChart } from '@components/ui/RadarChart'
@@ -127,7 +128,16 @@ export function AttributeRatingSection({
                   key={attr.key}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 }}
                 >
-                  <Text style={{ fontSize: 18, width: 26, textAlign: 'center' }}>{attr.emoji}</Text>
+                  <View style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 8,
+                    backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Ionicons name={attr.ionIcon as any} size={15} color={colors.primary[400]} />
+                  </View>
                   <Text
                     style={{ fontSize: 14, fontWeight: '500', color: isDark ? colors.neutral[200] : colors.neutral[800], width: 100 }}
                     numberOfLines={1}

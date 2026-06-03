@@ -3,7 +3,7 @@
 export const DEV_MODE = process.env.EXPO_PUBLIC_DEV_MODE !== 'false'
 // ────────────────────────────────────────────────────────────────────────────
 
-import type { Trip, Experience, Collaborator, Memory, Settlement } from '@types/index'
+import type { Trip, Experience, Collaborator, Memory, Settlement, TripDestination } from '@types/index'
 import type { ExpenseWithSplits } from '@types/index'
 
 // IDs fijos para el usuario y los viajes de demo
@@ -382,6 +382,62 @@ export const mockDocuments: Record<string, Array<{
       experience_title: 'Vuelo BCN → LIS',
     },
   ],
+}
+
+// ─── DESTINOS ────────────────────────────────────────────────────────────────
+
+export const mockDestinations: Record<string, TripDestination[]> = {
+  [DEMO_TRIP_ID]: [
+    {
+      id: 'dest-001',
+      trip_id: DEMO_TRIP_ID,
+      name: 'Tokyo',
+      country: 'Japón',
+      lat: 35.6762,
+      lng: 139.6503,
+      start_date: '2026-05-06',
+      end_date: '2026-05-09',
+      sort_order: 0,
+      created_at: '2026-01-15T10:00:00Z',
+    },
+    {
+      id: 'dest-002',
+      trip_id: DEMO_TRIP_ID,
+      name: 'Hakone',
+      country: 'Japón',
+      lat: 35.2323,
+      lng: 139.1069,
+      start_date: '2026-05-10',
+      end_date: '2026-05-13',
+      sort_order: 1,
+      created_at: '2026-01-15T10:00:00Z',
+    },
+    {
+      id: 'dest-003',
+      trip_id: DEMO_TRIP_ID,
+      name: 'Kyoto',
+      country: 'Japón',
+      lat: 35.0116,
+      lng: 135.7681,
+      start_date: '2026-05-14',
+      end_date: '2026-05-20',
+      sort_order: 2,
+      created_at: '2026-01-15T10:00:00Z',
+    },
+    {
+      id: 'dest-004',
+      trip_id: DEMO_TRIP_ID,
+      name: 'Osaka',
+      country: 'Japón',
+      lat: 34.6937,
+      lng: 135.5023,
+      start_date: '2026-05-21',
+      end_date: '2026-05-24',
+      sort_order: 3,
+      created_at: '2026-01-15T10:00:00Z',
+    },
+  ],
+  [DEMO_TRIP_ID_2]: [],
 }
 
 // ─── LIQUIDACIONES ──────────────────────────────────────────────────────────

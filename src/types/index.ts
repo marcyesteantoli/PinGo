@@ -9,6 +9,7 @@ export type Expense = Database['public']['Tables']['expenses']['Row']
 export type ExpenseSplit = Database['public']['Tables']['expense_splits']['Row']
 export type ExperienceRating = Database['public']['Tables']['experience_ratings']['Row']
 export type Memory = Database['public']['Tables']['memories']['Row']
+export type TripDestination = Database['public']['Tables']['trip_destinations']['Row']
 
 export type ExperienceRatingAvg = Database['public']['Views']['experience_ratings_avg']['Row']
 

@@ -460,6 +460,19 @@ export const es = {
   validation_required_experience: 'Selecciona una experiencia',
   validation_code_length: 'El código debe tener 6 caracteres',
 
+  // ─── DESTINATIONS ─────────────────────────────────────────────────────────
+  destinations_title: 'Etapas del viaje',
+  destinations_add: 'Añadir etapa',
+  destinations_edit: 'Editar etapa',
+  destinations_city: 'Ciudad',
+  destinations_country: 'País (opcional)',
+  destinations_startDate: 'Llegada',
+  destinations_endDate: 'Salida',
+  destinations_empty: 'Sin etapas definidas.\nAñade ciudades para organizar tu ruta.',
+  destinations_deleteTitle: 'Eliminar etapa',
+  destinations_deleteBody: '¿Eliminar "{{name}}"?',
+  destinations_manageHint: 'Añade etapas para organizar tu ruta',
+
   // ─── BOTTOMSHEET ─────────────────────────────────────────────────────────
   bottomSheet_close: 'Cerrar',
 } as const
