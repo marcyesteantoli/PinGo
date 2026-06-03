@@ -19,65 +19,26 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
 import { Skeleton } from '@components/ui/Skeleton'
+import { SavedExperienceCard } from '@features/saved/components/SavedExperienceCard'
 import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
-import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { EASE_OUT, DURATION } from '@lib/animations'
-import type { SavedExperienceItem } from '@types/index'
 import type { Experience } from '@types/index'
-
-const TYPE_ICON: Record<Experience['type'], React.ComponentProps<typeof Ionicons>['name']> = {
-  transport:     'airplane-outline',
-  accommodation: 'bed-outline',
-  activity:      'compass-outline',
-  restaurant:    'restaurant-outline',
-  entertainment: 'film-outline',
-  other:         'ellipse-outline',
-}
-
-const TYPE_BG: Record<Experience['type'], string> = {
-  transport:     'bg-activity-blue-bg dark:bg-[#061E4E]',
-  accommodation: 'bg-activity-purple-bg dark:bg-[#24064E]',
-  activity:      'bg-activity-green-bg dark:bg-[#064E3B]',
-  restaurant:    'bg-activity-orange-bg dark:bg-[#4E1E06]',
-  entertainment: 'bg-activity-pink-bg dark:bg-[#4E062A]',
-  other:         'bg-activity-gray-bg dark:bg-[#334155]',
-}
-
-const TYPE_ICON_COLOR: Record<Experience['type'], string> = {
-  transport:     '#3B82F6',
-  accommodation: '#8B5CF6',
-  activity:      '#22C55E',
-  restaurant:    '#F97316',
-  entertainment: '#EC4899',
-  other:         '#94A3B8',
-}
-
-
-function getLocationText(location: unknown): string | null {
-  if (
-    typeof location === 'object' &&
-    location !== null &&
-    'name' in location &&
-    typeof (location as { name: unknown }).name === 'string'
-  ) {
-    return (location as { name: string }).name
-  }
-  return null
-}
 
 function SavedExperienceCardSkeleton() {
   return (
     <View style={cardShadow} className="rounded-2xl bg-white dark:bg-surface-800 overflow-hidden">
-      <View className="px-4 pt-3.5 pb-3.5">
+      <View className="absolute top-0 left-0 bottom-0 w-[3px] bg-neutral-200 dark:bg-surface-600" />
+      <View className="pl-5 pr-4 pt-3.5 pb-3.5">
         <View className="flex-row items-start gap-3">
           <Skeleton width={44} height={44} className="rounded-xl" />
           <View className="flex-1 gap-2 pt-0.5">
             <Skeleton height={16} className="w-3/4" />
             <Skeleton height={12} className="w-1/2" />
           </View>
+          <Skeleton width={44} height={44} className="rounded-full" />
         </View>
       </View>
     </View>
@@ -86,11 +47,12 @@ function SavedExperienceCardSkeleton() {
 
 interface FilterChipProps {
   label: string
+  count?: number
   isActive: boolean
   onPress: () => void
 }
 
-function FilterChip({ label, isActive, onPress }: FilterChipProps) {
+function FilterChip({ label, count, isActive, onPress }: FilterChipProps) {
   const scale = useSharedValue(1)
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
 
@@ -102,84 +64,20 @@ function FilterChip({ label, isActive, onPress }: FilterChipProps) {
     >
       <Animated.View
         style={animStyle}
-        className={`px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
+        className={`flex-row items-center gap-1.5 px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
       >
         <Text className={`text-[13px] ${isActive ? 'font-semibold text-white' : 'font-normal text-neutral-600 dark:text-neutral-300'}`}>
           {label}
         </Text>
+        {!isActive && count !== undefined && count > 0 && (
+          <View className="bg-neutral-100 dark:bg-surface-700 rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
+            <Text className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-300">
+              {count}
+            </Text>
+          </View>
+        )}
       </Animated.View>
     </Pressable>
-  )
-}
-
-interface SavedExperienceCardProps {
-  item: SavedExperienceItem
-  onPress: () => void
-  index: number
-}
-
-function SavedExperienceCard({ item, onPress, index }: SavedExperienceCardProps) {
-  const { experience, note } = item
-  const locationText = getLocationText(experience.location)
-  const type = experience.type as Experience['type']
-  const hasFooter = !!(note || experience.trip?.name)
-
-  const staggerStyle = useStaggerEnter(index, { delay: 50 })
-  const pressScale = useSharedValue(1)
-  const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }))
-
-  return (
-    <Animated.View style={[staggerStyle, cardShadow]} className="rounded-2xl">
-      <Pressable
-        onPress={onPress}
-        onPressIn={() => { pressScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
-        onPressOut={() => { pressScale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
-      >
-        <Animated.View style={pressStyle} className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
-        <View className="px-4 pt-3.5 pb-3.5">
-          <View className="flex-row items-start gap-3">
-            <View className={`w-11 h-11 rounded-xl items-center justify-center flex-shrink-0 ${TYPE_BG[type]}`}>
-              <Ionicons name={TYPE_ICON[type]} size={22} color={TYPE_ICON_COLOR[type]} />
-            </View>
-
-            <View className="flex-1">
-              <Text numberOfLines={2} className="text-[17px] font-semibold text-neutral-900 dark:text-neutral-50 leading-snug">
-                {experience.title}
-              </Text>
-
-              {locationText && (
-                <View className="flex-row items-center gap-1 mt-0.5">
-                  <Ionicons name="location-outline" size={13} color={colors.neutral[400]} />
-                  <Text numberOfLines={1} className="text-sm text-neutral-500 dark:text-neutral-400 flex-1">
-                    {locationText}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {hasFooter && (
-            <View className="flex-row items-center justify-between mt-2.5 pt-2.5 border-t border-neutral-200 dark:border-surface-700">
-              {note ? (
-                <View className="flex-row items-center gap-1.5 flex-1 mr-2">
-                  <Ionicons name="chatbubble-outline" size={13} color={colors.neutral[400]} />
-                  <Text numberOfLines={1} className="text-sm text-neutral-500 dark:text-neutral-400 flex-1 italic">
-                    {note}
-                  </Text>
-                </View>
-              ) : <View className="flex-1" />}
-
-              {experience.trip?.name && (
-                <Text numberOfLines={1} className="text-sm text-neutral-500 dark:text-neutral-400 shrink">
-                  {experience.trip.name}
-                </Text>
-              )}
-            </View>
-          )}
-        </View>
-        </Animated.View>
-      </Pressable>
-    </Animated.View>
   )
 }
 
@@ -190,14 +88,15 @@ export default function SavedExperiencesScreen() {
   const { t } = useTranslation()
 
   const TYPE_FILTERS: { key: string | null; label: string }[] = [
-    { key: null,            label: t('saved_filter_all') },
-    { key: 'restaurant',   label: t('expType_restaurant') },
-    { key: 'activity',     label: t('expType_activity') },
-    { key: 'accommodation',label: t('expType_accommodation') },
-    { key: 'transport',    label: t('expType_transport') },
-    { key: 'entertainment',label: t('expType_entertainment') },
-    { key: 'other',        label: t('expType_other') },
+    { key: null,             label: t('saved_filter_all') },
+    { key: 'restaurant',    label: t('expType_restaurant') },
+    { key: 'activity',      label: t('expType_activity') },
+    { key: 'accommodation', label: t('expType_accommodation') },
+    { key: 'transport',     label: t('expType_transport') },
+    { key: 'entertainment', label: t('expType_entertainment') },
+    { key: 'other',         label: t('expType_other') },
   ]
+
   const sectionProgress = useSharedValue(0)
   useAnimatedReaction(
     () => scrollY.value,
@@ -219,6 +118,15 @@ export default function SavedExperiencesScreen() {
 
   const { data: saved = [], isLoading } = useSavedExperiences()
 
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const item of saved) {
+      const t = item.experience.type as Experience['type']
+      counts[t] = (counts[t] ?? 0) + 1
+    }
+    return counts
+  }, [saved])
+
   const filtered = useMemo(() => {
     let items = saved
 
@@ -229,9 +137,10 @@ export default function SavedExperiencesScreen() {
     if (search.trim()) {
       const q = search.toLowerCase()
       items = items.filter((i) => {
-        const loc = getLocationText(i.experience.location)?.toLowerCase() ?? ''
-        const title = i.experience.title.toLowerCase()
-        return loc.includes(q) || title.includes(q)
+        const loc = typeof i.experience.location === 'object' && i.experience.location !== null && 'name' in i.experience.location
+          ? String((i.experience.location as { name: string }).name).toLowerCase()
+          : ''
+        return loc.includes(q) || i.experience.title.toLowerCase().includes(q)
       })
     }
 
@@ -269,7 +178,7 @@ export default function SavedExperiencesScreen() {
         </View>
       </View>
 
-      {/* Filter chips */}
+      {/* Filter chips with counts */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -280,6 +189,7 @@ export default function SavedExperiencesScreen() {
           <FilterChip
             key={String(filter.key)}
             label={filter.label}
+            count={filter.key ? typeCounts[filter.key] : undefined}
             isActive={activeType === filter.key}
             onPress={() => setActiveType(filter.key)}
           />

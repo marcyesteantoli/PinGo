@@ -270,6 +270,7 @@ export const en = {
   saved_detail_back: 'Gems',
   saved_detail_noteLabel: 'My note',
   saved_detail_notePlaceholder: 'Write your personal recommendation...',
+  saved_rate_cta: 'Rate',
 
   // ─── WISHLIST ─────────────────────────────────────────────────────────────
   wishlist_title: 'Wishlist',
@@ -436,6 +437,11 @@ export const en = {
   memories_pick_denied_title: 'Photos access denied',
   memories_pick_denied_body: 'Go to Settings › Privacy › Photos and allow access to PinGo.',
   memories_upload_error: 'Some photos could not be uploaded. Please try again.',
+  memories_uploaded_by: 'Uploaded by',
+  memories_delete_confirm_title: 'Delete photo',
+  memories_delete_confirm_body: 'This will permanently delete the photo.',
+  memories_delete_confirm_action: 'Delete',
+  memories_delete_confirm_cancel: 'Cancel',
 
   // ─── VALIDATION ───────────────────────────────────────────────────────────
   validation_required_name: 'Name is required',

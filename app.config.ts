@@ -39,6 +39,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         photosPermission: 'PinGo necesita acceso a tu galería para guardar fotos.',
         savePhotosPermission: 'PinGo necesita permiso para guardar fotos en tu galería.',
         isAccessMediaLocationEnabled: true,
+        audioPermission: false,
       },
     ],
     '@react-native-community/datetimepicker',

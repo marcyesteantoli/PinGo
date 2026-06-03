@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useColorScheme } from 'nativewind'
 import Animated, {
   Easing,
-  FadeIn,
+  FadeInDown,
   FadeOut,
   LinearTransition,
   scrollTo,
@@ -92,8 +92,10 @@ function CategoryExpenseCard({
     setCollapsed(prev => !prev)
   }
 
+  const iconColor = CATEGORY_ICON_COLORS[group.category][colorScheme === 'dark' ? 'dark' : 'light']
+
   return (
-    <Animated.View style={staggerStyle} layout={LinearTransition.springify().damping(18).stiffness(180).mass(0.8)}>
+    <Animated.View style={staggerStyle} layout={LinearTransition.duration(280)}>
       <View
         className="rounded-2xl overflow-hidden"
         style={Platform.select({
@@ -102,39 +104,47 @@ function CategoryExpenseCard({
         })}
       >
         <TouchableOpacity onPress={toggle} activeOpacity={0.85}>
-          <View
-            className="flex-row items-center gap-3 px-4 py-3.5"
-            style={{ backgroundColor: CATEGORY_ICON_COLORS[group.category][colorScheme === 'dark' ? 'dark' : 'light'] }}
-          >
-            <View className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
+          <View className={`flex-row items-center gap-3 px-4 py-3.5 ${CATEGORY_BG[group.category]}`}>
+            <View
+              className="w-9 h-9 rounded-xl items-center justify-center"
+              style={{ backgroundColor: iconColor + '26' }}
+            >
               <Ionicons
                 name={CATEGORY_ICON[group.category]}
                 size={20}
-                color="#ffffff"
+                color={iconColor}
               />
             </View>
-            <Text className="flex-1 text-base font-bold text-white">
-              {t(CATEGORY_LABEL_KEY[group.category])}
-            </Text>
-            <View className="items-end">
-              <Text className="text-base font-bold text-white">
-                {formatCurrency(group.subtotal, currency)}
+            <View className="flex-1 flex-row items-center gap-2">
+              <Text className="text-base font-semibold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
+                {t(CATEGORY_LABEL_KEY[group.category])}
               </Text>
-              <Text className="text-xs text-white/70 mt-0.5">
-                {group.expenses.length} {group.expenses.length === 1 ? 'gasto' : 'gastos'}
-              </Text>
+              <View
+                className="rounded-full px-1.5 py-0.5"
+                style={{ backgroundColor: iconColor + '26' }}
+              >
+                <Text className="text-xs font-semibold" style={{ color: iconColor }}>
+                  {group.expenses.length}
+                </Text>
+              </View>
             </View>
-            <View className="w-8 h-8 rounded-full items-center justify-center bg-white/20">
+            <Text className="text-base font-semibold text-neutral-900 dark:text-neutral-50">
+              {formatCurrency(group.subtotal, currency)}
+            </Text>
+            <View
+              className="w-8 h-8 rounded-full items-center justify-center"
+              style={{ backgroundColor: iconColor + '1A' }}
+            >
               <Animated.View style={chevronStyle}>
-                <Ionicons name="chevron-down" size={16} color="rgba(255,255,255,0.9)" />
+                <Ionicons name="chevron-down" size={16} color={iconColor} />
               </Animated.View>
             </View>
           </View>
         </TouchableOpacity>
 
         {!collapsed && (
-          <Animated.View entering={FadeIn.duration(250).easing(Easing.out(Easing.quad))} exiting={FadeOut.duration(180).easing(Easing.in(Easing.quad))}>
-            <View className="bg-black/10 dark:bg-black/20" style={{ height: StyleSheet.hairlineWidth }} />
+          <Animated.View entering={FadeInDown.duration(220).easing(Easing.out(Easing.quad))} exiting={FadeOut.duration(150).easing(Easing.in(Easing.quad))}>
+            <View className="bg-black/5 dark:bg-black/20" style={{ height: StyleSheet.hairlineWidth }} />
 
             {group.expenses.map((expense, i) => (
               <View key={expense.id}>
@@ -455,12 +465,13 @@ export default function ExpensesScreen() {
                     <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                       {t('expenses_balance_section')}
                     </Text>
-                    {balances.map((b) => (
+                    {balances.map((b, i) => (
                       <BalanceCard
                         key={b.user_id}
                         balance={b}
                         isCurrentUser={b.user_id === currentUser?.id}
                         currency={tripCurrency}
+                        index={i}
                       />
                     ))}
                   </>

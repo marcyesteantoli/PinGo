@@ -50,7 +50,7 @@ export function AddMemoryCaption({
         {imageUri && (
           <Image
             source={{ uri: imageUri }}
-            style={{ width: '100%', height: 200, borderRadius: 12 }}
+            style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 12 }}
             resizeMode="cover"
           />
         )}

@@ -270,6 +270,7 @@ export const es = {
   saved_detail_back: 'Joyas',
   saved_detail_noteLabel: 'Mi nota',
   saved_detail_notePlaceholder: 'Escribe tu recomendación personal...',
+  saved_rate_cta: 'Valorar',
 
   // ─── WISHLIST ─────────────────────────────────────────────────────────────
   wishlist_title: 'Deseos',
@@ -436,6 +437,11 @@ export const es = {
   memories_pick_denied_title: 'Acceso a fotos denegado',
   memories_pick_denied_body: 'Ve a Ajustes › Privacidad › Fotos y permite el acceso a PinGo.',
   memories_upload_error: 'Algunas fotos no se pudieron subir. Inténtalo de nuevo.',
+  memories_uploaded_by: 'Subido por',
+  memories_delete_confirm_title: 'Eliminar foto',
+  memories_delete_confirm_body: 'Se eliminará la foto de forma permanente.',
+  memories_delete_confirm_action: 'Eliminar',
+  memories_delete_confirm_cancel: 'Cancelar',
 
   // ─── VALIDATION ───────────────────────────────────────────────────────────
   validation_required_name: 'El nombre es obligatorio',

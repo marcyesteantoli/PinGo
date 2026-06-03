@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, interpolate } from 'react-native-reanimated'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 // TODO: import PROVIDER_GOOGLE and set provider={PROVIDER_GOOGLE} on MapView when Google Maps API key is configured
@@ -81,7 +82,48 @@ export default function ExperienceDetailScreen() {
   const [saveToast, setSaveToast] = useState(false)
   const [editSheetVisible, setEditSheetVisible] = useState(false)
   const [ratingSheetVisible, setRatingSheetVisible] = useState(false)
+  const [docsExpanded, setDocsExpanded] = useState(true)
+  const [expensesExpanded, setExpensesExpanded] = useState(true)
   const saveToastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  const docsProgress = useSharedValue(1)
+  const docsNaturalH = useSharedValue(0)
+  const expensesProgress = useSharedValue(1)
+  const expensesNaturalH = useSharedValue(0)
+
+  const docsChevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(docsProgress.value, [0, 1], [0, 180])}deg` }],
+  }))
+  const expensesChevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(expensesProgress.value, [0, 1], [0, 180])}deg` }],
+  }))
+  const docsContentStyle = useAnimatedStyle(() => {
+    if (docsNaturalH.value === 0) return { overflow: 'hidden' as const }
+    return {
+      height: docsProgress.value * docsNaturalH.value,
+      overflow: 'hidden' as const,
+    }
+  })
+  const expensesContentStyle = useAnimatedStyle(() => {
+    if (expensesNaturalH.value === 0) return { overflow: 'hidden' as const }
+    return {
+      height: expensesProgress.value * expensesNaturalH.value,
+      overflow: 'hidden' as const,
+    }
+  })
+
+  function toggleDocs() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    const next = !docsExpanded
+    setDocsExpanded(next)
+    docsProgress.value = withTiming(next ? 1 : 0, { duration: 240 })
+  }
+  function toggleExpenses() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    const next = !expensesExpanded
+    setExpensesExpanded(next)
+    expensesProgress.value = withTiming(next ? 1 : 0, { duration: 240 })
+  }
 
   const { data: experiences } = useExperiences(tripId)
   const { data: allDocuments } = useDocuments(tripId)
@@ -279,45 +321,67 @@ export default function ExperienceDetailScreen() {
         {experienceDocs.length > 0 && (
           <View className="rounded-2xl mb-3" style={cardShadow}>
             <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
-              <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-                {t('experience_section_documents', { count: experienceDocs.length })}
-              </Text>
-              {experienceDocs.map((doc) => (
-                <TouchableOpacity
-                  key={doc.id}
-                  onPress={() => setViewerDoc(doc)}
-                  activeOpacity={0.7}
-                  className="flex-row items-center px-4 py-3 border-neutral-100 dark:border-surface-700 gap-3"
-                  style={{ borderTopWidth: 0.5 }}
-                >
-                  <View
-                    className="rounded-lg bg-neutral-100 dark:bg-surface-700 items-center justify-center"
-                    style={{ width: 38, height: 38 }}
-                  >
-                    <Ionicons
-                      name={doc.file_type?.includes('image') ? 'image-outline' : 'document-text-outline'}
-                      size={19}
-                      color={colors.primary[500]}
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text
-                      numberOfLines={1}
-                      className="text-[15px] font-medium text-neutral-900 dark:text-neutral-50"
-                    >
-                      {doc.name}
-                    </Text>
-                    <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-[1px]">
-                      {doc.file_type?.includes('image') ? t('experience_fileType_image') : t('experience_fileType_pdf')}
-                    </Text>
-                  </View>
+              <TouchableOpacity
+                onPress={toggleDocs}
+                activeOpacity={0.7}
+                className={`flex-row items-center px-4 pt-3.5 ${docsExpanded ? 'pb-1.5' : 'pb-3'}`}
+              >
+                <Text className="flex-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+                  {t('experience_section_documents', { count: experienceDocs.length })}
+                </Text>
+                <Animated.View style={docsChevronStyle}>
                   <Ionicons
-                    name="chevron-forward"
+                    name="chevron-down"
                     size={16}
-                    color={isDark ? colors.neutral[600] : colors.neutral[400]}
+                    color={isDark ? colors.neutral[400] : colors.neutral[500]}
                   />
-                </TouchableOpacity>
-              ))}
+                </Animated.View>
+              </TouchableOpacity>
+              <Animated.View style={docsContentStyle}>
+                <View
+                  onLayout={(e) => {
+                    const h = e.nativeEvent.layout.height
+                    if (docsNaturalH.value === 0 && h > 0) docsNaturalH.value = h
+                  }}
+                >
+                  {experienceDocs.map((doc) => (
+                    <TouchableOpacity
+                      key={doc.id}
+                      onPress={() => setViewerDoc(doc)}
+                      activeOpacity={0.7}
+                      className="flex-row items-center px-4 py-3 border-neutral-100 dark:border-surface-700 gap-3"
+                      style={{ borderTopWidth: 0.5 }}
+                    >
+                      <View
+                        className="rounded-lg bg-neutral-100 dark:bg-surface-700 items-center justify-center"
+                        style={{ width: 38, height: 38 }}
+                      >
+                        <Ionicons
+                          name={doc.file_type?.includes('image') ? 'image-outline' : 'document-text-outline'}
+                          size={19}
+                          color={colors.primary[500]}
+                        />
+                      </View>
+                      <View className="flex-1">
+                        <Text
+                          numberOfLines={1}
+                          className="text-[15px] font-medium text-neutral-900 dark:text-neutral-50"
+                        >
+                          {doc.name}
+                        </Text>
+                        <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-[1px]">
+                          {doc.file_type?.includes('image') ? t('experience_fileType_image') : t('experience_fileType_pdf')}
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={16}
+                        color={isDark ? colors.neutral[600] : colors.neutral[400]}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </Animated.View>
             </View>
           </View>
         )}
@@ -326,23 +390,43 @@ export default function ExperienceDetailScreen() {
         {linkedExpenses.length > 0 && (
           <View className="rounded-2xl mb-3" style={cardShadow}>
             <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
-              <View className="flex-row items-center px-4 pt-3.5 pb-1.5">
+              <TouchableOpacity
+                onPress={toggleExpenses}
+                activeOpacity={0.7}
+                className={`flex-row items-center px-4 pt-3.5 ${expensesExpanded ? 'pb-1.5' : 'pb-3'}`}
+              >
                 <Text className="flex-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                   {t('experience_section_expenses', { count: linkedExpenses.length })}
                 </Text>
-                <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+                <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200 mr-1.5">
                   {formatCurrency(linkedExpensesTotal)}
                 </Text>
-              </View>
-              {linkedExpenses.map((expense) => (
+                <Animated.View style={expensesChevronStyle}>
+                  <Ionicons
+                    name="chevron-down"
+                    size={16}
+                    color={isDark ? colors.neutral[400] : colors.neutral[500]}
+                  />
+                </Animated.View>
+              </TouchableOpacity>
+              <Animated.View style={expensesContentStyle}>
                 <View
-                  key={expense.id}
-                  className="border-neutral-100 dark:border-surface-700"
-                  style={{ borderTopWidth: 0.5 }}
+                  onLayout={(e) => {
+                    const h = e.nativeEvent.layout.height
+                    if (expensesNaturalH.value === 0 && h > 0) expensesNaturalH.value = h
+                  }}
                 >
-                  <ExpenseCard expense={expense} currentUserId={currentUser?.id} />
+                  {linkedExpenses.map((expense) => (
+                    <View
+                      key={expense.id}
+                      className="border-neutral-100 dark:border-surface-700"
+                      style={{ borderTopWidth: 0.5 }}
+                    >
+                      <ExpenseCard expense={expense} showCategoryIcon={false} currentUserId={currentUser?.id} />
+                    </View>
+                  ))}
                 </View>
-              ))}
+              </Animated.View>
             </View>
           </View>
         )}

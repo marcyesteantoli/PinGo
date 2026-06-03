@@ -117,6 +117,7 @@ export const ExperienceCard = memo(function ExperienceCard({
   }
 
   const hasBottomRow = !!(timeRange || experience.confirmation_code || ratingAvg)
+  const accentColor = TYPE_ICON_COLOR[experience.type]
 
   const rowWidth = containerWidth > 0 ? containerWidth + (hasActions ? actionsWidth : 0) : undefined
   const cardWidth = containerWidth > 0 ? containerWidth : undefined
@@ -140,7 +141,11 @@ export const ExperienceCard = memo(function ExperienceCard({
                 onPressIn={() => { pressScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
                 onPressOut={() => { pressScale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
               >
-              <Animated.View style={pressStyle} className="bg-white dark:bg-surface-800 px-4 pt-3.5 pb-3.5">
+              <Animated.View style={pressStyle} className="bg-white dark:bg-surface-800 pl-5 pr-4 pt-3.5 pb-3.5">
+                <View
+                  className="absolute top-0 left-0 bottom-0 w-[3px]"
+                  style={{ backgroundColor: accentColor, opacity: 0.65 }}
+                />
                 {/* Top section: icon + title/location */}
                 <View className="flex-row items-start gap-3">
                   <View className={`w-11 h-11 rounded-xl items-center justify-center flex-shrink-0 ${TYPE_BG[experience.type]}`}>
