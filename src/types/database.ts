@@ -112,7 +112,7 @@ export interface Database {
           experience_id: string
           trip_id: string
           name: string
-          file_url: string
+          file_path: string
           file_type: string | null
           uploaded_by: string
           created_at: string
@@ -122,7 +122,7 @@ export interface Database {
           experience_id: string
           trip_id: string
           name: string
-          file_url: string
+          file_path: string
           file_type?: string | null
           uploaded_by: string
           created_at?: string

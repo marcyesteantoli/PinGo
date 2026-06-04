@@ -60,15 +60,11 @@ async function uploadMemory(
     } satisfies AddMemoryError
   }
 
-  // 4. Obtener URL pública
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from('memories').getPublicUrl(storagePath)
-
-  // 5. Insertar en BD — si falla, limpiar el archivo subido
+  // 4. Insertar en BD con storage path — si falla, limpiar el archivo subido
+  // Guardamos el path (no la URL pública) para generar signed URLs al leer
   const { data, error: dbError } = await supabase
     .from('memories')
-    .insert({ trip_id: tripId, user_id: userId, image_url: publicUrl, caption })
+    .insert({ trip_id: tripId, user_id: userId, image_url: storagePath, caption })
     .select()
     .single()
 

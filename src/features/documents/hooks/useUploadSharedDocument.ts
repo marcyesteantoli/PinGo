@@ -32,17 +32,11 @@ export function useUploadSharedDocument() {
 
       if (uploadError) throw new Error('Error al subir el archivo. Inténtalo de nuevo.')
 
-      const { data: signedData, error: urlError } = await supabase.storage
-        .from('documents')
-        .createSignedUrl(storagePath, 365 * 24 * 60 * 60)
-
-      if (urlError || !signedData) throw new Error('Error al obtener la URL del documento.')
-
       const { error: dbError } = await supabase.from('documents').insert({
         trip_id: tripId,
         experience_id: experienceId,
         name,
-        file_url: signedData.signedUrl,
+        file_path: storagePath,
         file_type: mimeType,
         uploaded_by: user.id,
       })

@@ -16,7 +16,20 @@ export function useMemories(tripId: string) {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return data
+      if (!data.length) return data
+
+      // Generate signed URLs (1h TTL) — bucket is private, public URLs are blocked
+      const paths = data.map((m) => m.image_url)
+      const { data: signed, error: signError } = await supabase.storage
+        .from('memories')
+        .createSignedUrls(paths, 3600)
+
+      if (signError) throw signError
+
+      return data.map((memory, i) => ({
+        ...memory,
+        image_url: signed[i]?.signedUrl ?? memory.image_url,
+      }))
     },
     staleTime: 1000 * 60 * 5,
   })

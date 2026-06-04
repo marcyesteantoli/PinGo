@@ -20,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { colors } from '@lib/colors'
 import type { Document } from '@types/index'
 
-type DocumentWithExperience = Document & { experience_title: string | null }
+type DocumentWithExperience = Document & { experience_title: string | null; file_url: string }
 
 interface DocumentViewerProps {
   document: DocumentWithExperience | null

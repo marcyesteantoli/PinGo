@@ -9,7 +9,7 @@ import * as FileSystem from 'expo-file-system/legacy'
 import type { Document } from '@types/index'
 import { colors } from '@lib/colors'
 
-type DocumentWithExperience = Document & { experience_title: string | null }
+type DocumentWithExperience = Document & { experience_title: string | null; file_url: string }
 
 interface DocumentCardProps {
   document: DocumentWithExperience
