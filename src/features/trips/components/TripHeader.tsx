@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { Share, Text, TouchableOpacity, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
@@ -26,9 +26,10 @@ const COLLAPSE_THRESHOLD = 60
 
 interface TripHeaderProps {
   scrollY?: SharedValue<number>
+  trailingAction?: ReactNode
 }
 
-export function TripHeader({ scrollY }: TripHeaderProps) {
+export function TripHeader({ scrollY, trailingAction }: TripHeaderProps) {
   const router = useRouter()
   const { trip, collaborators } = useTripContext()
   const { data: user } = useCurrentUser()
@@ -101,6 +102,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
             </Animated.Text>
           </View>
           <View className="flex-row items-center gap-2">
+            {trailingAction}
             <TouchableOpacity
               onPress={() => router.push('/(app)/profile')}
               className="w-8 h-8 items-center justify-center"

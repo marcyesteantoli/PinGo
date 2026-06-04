@@ -475,4 +475,32 @@ export const en = {
 
   // ─── BOTTOMSHEET ─────────────────────────────────────────────────────────
   bottomSheet_close: 'Close',
+
+  // ─── PREMIUM ─────────────────────────────────────────────────────────────
+  premium_paywall_badge: 'Pro',
+  premium_paywall_headline: 'Your journey, unlimited',
+  premium_paywall_title: 'Get the most out of your trip',
+  premium_paywall_body: 'Export itineraries, invite your whole crew, and track every expense—no limits.',
+  premium_paywall_cta: 'Upgrade to Pro',
+  premium_paywall_restore: 'Restore purchases',
+  premium_paywall_dismiss: 'Maybe later',
+  premium_paywall_soon_title: 'Coming soon',
+  premium_paywall_soon_body: 'Purchases will be available shortly. Thanks for your patience!',
+  premium_plan_monthly_label: 'Monthly',
+  premium_plan_annual_label: 'Annual',
+  premium_plan_monthly_sublabel: 'per month',
+  premium_plan_annual_sublabel: 'per year',
+  premium_paywall_or_subscribe: 'or go unlimited',
+  premium_paywall_trip_unlock_label: 'Unlock just this trip',
+  premium_paywall_trip_unlock_sublabel: 'One-time · No subscription needed',
+  premium_paywall_cta_trip_unlock: 'Unlock this Trip · €2.49',
+  premium_paywall_cta_monthly: 'Subscribe Monthly · €4.99/mo',
+  premium_paywall_cta_annual: 'Subscribe Annually · €34.99/yr',
+  premium_feature_pdf: 'Export itinerary & expenses as PDF',
+  premium_feature_collaborators: 'Invite unlimited trip collaborators',
+  premium_feature_currency: 'Multi-currency expense tracking',
+  premium_feature_storage: 'Unlimited photos & documents',
+  timeline_export_tooltip: 'Export PDF',
+  timeline_export_generating: 'Generating PDF…',
+  timeline_export_error: 'Could not generate PDF',
 } as const

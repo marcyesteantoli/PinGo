@@ -48,4 +48,9 @@ export const queryKeys = {
   destinations: {
     byTrip: (tripId: string) => ['destinations', tripId] as const,
   },
+  premium: {
+    status: (userId: string) => ['premium', 'status', userId] as const,
+    tripUnlock: (tripId: string) => ['premium', 'tripUnlock', tripId] as const,
+    tripSharedUnlock: (tripId: string) => ['premium', 'tripSharedUnlock', tripId] as const,
+  },
 }

@@ -79,8 +79,8 @@ function MemoryCell({
   const overlayStyle = useAnimatedStyle(() => ({ opacity: selectionOpacity.value }))
   const checkStyle = useAnimatedStyle(() => ({ transform: [{ scale: checkScale.value }] }))
 
-  // Per-cell stagger entrance
-  const staggerStyle = useStaggerEnter(index, { delay: 45, duration: 260 })
+  // Per-cell stagger entrance — cap at 18 to avoid multi-second delays for large collections
+  const staggerStyle = useStaggerEnter(Math.min(index, 17), { delay: 45, duration: 260 })
 
   const handlePress = () => {
     if (selectionMode) {

@@ -18,6 +18,7 @@ export type AddMemoryParams = {
 export type AddMemoriesParams = {
   tripId: string
   assets: ImagePicker.ImagePickerAsset[]
+  isPremium: boolean
 }
 
 type AddMemoryError =
@@ -84,7 +85,7 @@ async function uploadMemory(
   return data
 }
 
-export function useAddMemories() {
+export function useAddMemories(isPremium: boolean) {
   const queryClient = useQueryClient()
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
 
@@ -120,6 +121,24 @@ export function useAddMemories() {
       if (!user)
         throw { code: 'DB_FAILED', message: 'No hay sesión activa.' } satisfies AddMemoryError
 
+      const { count: currentCount, error: countError } = await supabase
+        .from('memories')
+        .select('*', { count: 'exact', head: true })
+        .eq('trip_id', tripId)
+
+      if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' } satisfies AddMemoryError
+
+      const hardCap = LIMITS.PREMIUM_MAX_PHOTOS_PER_TRIP
+      const softCap = LIMITS.MAX_PHOTOS_PER_TRIP
+      const current = currentCount ?? 0
+
+      if (current >= hardCap) {
+        throw { code: 'LIMIT_REACHED', message: `Este viaje ha alcanzado el límite máximo de ${hardCap} fotos.` } satisfies AddMemoryError
+      }
+      if (current >= softCap && !isPremium) {
+        throw { code: 'LIMIT_REACHED', message: `Este viaje tiene ${softCap} fotos. Desbloquea Premium para seguir añadiendo recuerdos.` } satisfies AddMemoryError
+      }
+
       setProgress({ done: 0, total: assets.length })
       let uploaded = 0
 
@@ -145,7 +164,7 @@ export function useAddMemories() {
   return { ...mutation, progress }
 }
 
-export function useAddMemory() {
+export function useAddMemory(isPremium: boolean) {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -173,13 +192,14 @@ export function useAddMemory() {
         .select('*', { count: 'exact', head: true })
         .eq('trip_id', tripId)
 
-      if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' }
+      if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' } satisfies AddMemoryError
 
-      if ((count ?? 0) >= LIMITS.MAX_PHOTOS_PER_TRIP) {
-        throw {
-          code: 'LIMIT_REACHED',
-          message: `Este viaje ha alcanzado el límite de ${LIMITS.MAX_PHOTOS_PER_TRIP} fotos.`,
-        } satisfies AddMemoryError
+      const current = count ?? 0
+      if (current >= LIMITS.PREMIUM_MAX_PHOTOS_PER_TRIP) {
+        throw { code: 'LIMIT_REACHED', message: `Este viaje ha alcanzado el límite máximo de ${LIMITS.PREMIUM_MAX_PHOTOS_PER_TRIP} fotos.` } satisfies AddMemoryError
+      }
+      if (current >= LIMITS.MAX_PHOTOS_PER_TRIP && !isPremium) {
+        throw { code: 'LIMIT_REACHED', message: `Este viaje tiene ${LIMITS.MAX_PHOTOS_PER_TRIP} fotos. Desbloquea Premium para seguir añadiendo recuerdos.` } satisfies AddMemoryError
       }
 
       const { data: { user } } = await supabase.auth.getUser()

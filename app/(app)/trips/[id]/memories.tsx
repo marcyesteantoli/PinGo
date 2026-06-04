@@ -21,6 +21,10 @@ import { useAddMemory, useAddMemories } from '@features/memories/hooks/useAddMem
 import { useDeleteMemory } from '@features/memories/hooks/useDeleteMemory'
 import { useMemories } from '@features/memories/hooks/useMemories'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { useTripPremium } from '@features/premium/hooks/useTripPremium'
+import { useTripSharedPremium } from '@features/premium/hooks/useTripSharedPremium'
+import { usePremiumActions } from '@features/premium/hooks/usePremiumActions'
+import { PremiumPaywall } from '@features/premium/components/PremiumPaywall'
 import { LIMITS } from '@/config/limits'
 import { DEV_MODE } from '@/dev/mockData'
 import { colors } from '@lib/colors'
@@ -33,14 +37,19 @@ export default function MemoriesScreen() {
   const { tripId, isOwner, collaborators } = useTripContext()
   const { data: memories, isLoading } = useMemories(tripId)
   const { t } = useTranslation()
-  const addMemory = useAddMemory()
-  const addMemories = useAddMemories()
+  const { isPremium: isUserPremium } = useTripPremium(tripId)
+  const { isTripPremium } = useTripSharedPremium(tripId)
+  const canExceedSoftCap = isUserPremium || isTripPremium
+  const { purchase, restore, isPurchasing } = usePremiumActions()
+  const addMemory = useAddMemory(canExceedSoftCap)
+  const addMemories = useAddMemories(canExceedSoftCap)
   const deleteMemory = useDeleteMemory()
   const { data: currentUser } = useCurrentUser()
 
   const [captionSheetVisible, setCaptionSheetVisible] = useState(false)
   const [pendingAsset, setPendingAsset] = useState<ImagePicker.ImagePickerAsset | null>(null)
   const [viewerIndex, setViewerIndex] = useState(-1)
+  const [paywallVisible, setPaywallVisible] = useState(false)
 
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -136,9 +145,16 @@ export default function MemoriesScreen() {
 
   // ─── Add photo flow ──────────────────────────────────────────────────────────
 
+  const photoLimit = canExceedSoftCap ? LIMITS.PREMIUM_MAX_PHOTOS_PER_TRIP : LIMITS.MAX_PHOTOS_PER_TRIP
+
   const handlePickImage = async () => {
-    const remaining = LIMITS.MAX_PHOTOS_PER_TRIP - count
-    if (remaining <= 0) return
+    if (count >= LIMITS.MAX_PHOTOS_PER_TRIP && !canExceedSoftCap) {
+      setPaywallVisible(true)
+      return
+    }
+    if (count >= LIMITS.PREMIUM_MAX_PHOTOS_PER_TRIP) return
+
+    const remaining = photoLimit - count
 
     if (DEV_MODE) {
       const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara']
@@ -173,7 +189,7 @@ export default function MemoriesScreen() {
       setCaptionSheetVisible(true)
     } else {
       addMemories.mutate(
-        { tripId, assets: result.assets },
+        { tripId, assets: result.assets, isPremium: canExceedSoftCap },
         {
           onError: () => Alert.alert(t('common_error'), t('memories_upload_error')),
         }
@@ -204,7 +220,7 @@ export default function MemoriesScreen() {
     return err.message ?? t('common_error')
   })()
 
-  const fillPct = Math.min(count / LIMITS.MAX_PHOTOS_PER_TRIP, 1) * 100
+  const fillPct = Math.min(count / photoLimit, 1) * 100
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
@@ -214,7 +230,7 @@ export default function MemoriesScreen() {
         {/* Counter bar */}
         <View className="flex-row items-center px-5 py-2">
           <Text className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-            {count} / {LIMITS.MAX_PHOTOS_PER_TRIP}
+            {count} / {photoLimit}
           </Text>
           <View className="flex-1 mx-3 h-[3px] rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
             <View
@@ -266,13 +282,13 @@ export default function MemoriesScreen() {
                 </Text>
               </View>
             ) : (
-              count < LIMITS.MAX_PHOTOS_PER_TRIP && (
+              count < LIMITS.PREMIUM_MAX_PHOTOS_PER_TRIP && (
                 <TouchableOpacity
                   onPress={handlePickImage}
                   className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
                   style={fabShadow}
                 >
-                  <Ionicons name="add" size={28} color="#ffffff" />
+                  <Ionicons name={count >= LIMITS.MAX_PHOTOS_PER_TRIP && !canExceedSoftCap ? 'lock-closed' : 'add'} size={count >= LIMITS.MAX_PHOTOS_PER_TRIP && !canExceedSoftCap ? 20 : 28} color="#ffffff" />
                 </TouchableOpacity>
               )
             )
@@ -312,6 +328,15 @@ export default function MemoriesScreen() {
           }}
           getUploaderName={(userId) => getUploader(userId)?.name ?? t('common_someone')}
           getUploaderAvatar={(userId) => getUploader(userId)?.avatar_url}
+        />
+
+        <PremiumPaywall
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          onPurchase={purchase}
+          onRestore={restore}
+          isPurchasing={isPurchasing}
+          tripId={tripId}
         />
       </View>
     </View>

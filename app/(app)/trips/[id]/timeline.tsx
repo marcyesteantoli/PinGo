@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -31,6 +31,9 @@ import { ManageDestinationsSheet } from '@features/destinations/components/Manag
 import { queryKeys } from '@lib/queryKeys'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
+import { usePremium, usePremiumActions, PremiumPaywall } from '@features/premium'
+import type { PlanId } from '@features/premium'
+import { useExportTimelinePdf } from '@features/timeline/hooks/useExportTimelinePdf'
 import type { Experience, TripDestination } from '@types/index'
 import type { CreateExperienceFormData } from '@features/timeline/types'
 
@@ -157,6 +160,18 @@ export default function TimelineScreen() {
   const updateExperience = useUpdateExperience(tripId)
   const { data: destinations = [] } = useDestinations(tripId)
   const { isDark } = useTheme()
+  const { isPremium } = usePremium()
+  const { purchase, purchaseTripUnlock, restore, isPurchasing } = usePremiumActions()
+
+  const handlePurchase = async (planId: PlanId) => {
+    if (planId === 'trip_unlock') {
+      await purchaseTripUnlock(tripId)
+    } else {
+      await purchase(planId)
+    }
+  }
+  const { exportPdf, isExporting } = useExportTimelinePdf()
+  const [paywallVisible, setPaywallVisible] = useState(false)
   const [sheetVisible, setSheetVisible] = useState(false)
   const [destSheetVisible, setDestSheetVisible] = useState(false)
   const [editExperience, setEditExperience] = useState<Experience | null>(null)
@@ -341,7 +356,28 @@ export default function TimelineScreen() {
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
-      <TripHeader scrollY={scrollY} />
+      <TripHeader
+        scrollY={scrollY}
+        trailingAction={
+          <TouchableOpacity
+            onPress={() => {
+              if (isPremium) {
+                exportPdf({ trip: trip!, experiences: experiences ?? [], destinations })
+              } else {
+                setPaywallVisible(true)
+              }
+            }}
+            className="w-8 h-8 items-center justify-center"
+            accessibilityLabel={t('timeline_export_tooltip')}
+            activeOpacity={0.7}
+          >
+            {isExporting
+              ? <ActivityIndicator size="small" color={colors.primary[500]} />
+              : <Ionicons name="share-outline" size={22} color={colors.primary[500]} />
+            }
+          </TouchableOpacity>
+        }
+      />
       <View style={{ flex: 1 }}>
       {isLoading ? (
         <View className="px-5 pt-4 gap-3">
@@ -451,6 +487,15 @@ export default function TimelineScreen() {
           tripEndDate={trip.end_date}
         />
       )}
+
+      <PremiumPaywall
+        visible={paywallVisible}
+        onClose={() => setPaywallVisible(false)}
+        onPurchase={handlePurchase}
+        onRestore={restore}
+        isPurchasing={isPurchasing}
+        tripId={tripId}
+      />
       </View>
     </View>
   )

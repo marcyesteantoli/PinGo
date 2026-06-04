@@ -475,6 +475,34 @@ export const es = {
 
   // ─── BOTTOMSHEET ─────────────────────────────────────────────────────────
   bottomSheet_close: 'Cerrar',
+
+  // ─── PREMIUM ─────────────────────────────────────────────────────────────
+  premium_paywall_badge: 'Pro',
+  premium_paywall_headline: 'Tu viaje, sin límites',
+  premium_paywall_title: 'Sácale todo el partido',
+  premium_paywall_body: 'Exporta itinerarios, invita a todo el grupo y controla cada gasto—sin límites.',
+  premium_paywall_cta: 'Hazte Pro',
+  premium_paywall_restore: 'Restaurar compras',
+  premium_paywall_dismiss: 'Ahora no',
+  premium_paywall_soon_title: 'Próximamente',
+  premium_paywall_soon_body: 'Las compras estarán disponibles en breve. ¡Gracias por tu paciencia!',
+  premium_plan_monthly_label: 'Mensual',
+  premium_plan_annual_label: 'Anual',
+  premium_plan_monthly_sublabel: 'al mes',
+  premium_plan_annual_sublabel: 'al año',
+  premium_paywall_or_subscribe: 'o suscríbete sin límites',
+  premium_paywall_trip_unlock_label: 'Desbloquear solo este viaje',
+  premium_paywall_trip_unlock_sublabel: 'Pago único · Sin suscripción',
+  premium_paywall_cta_trip_unlock: 'Desbloquear este viaje · €2.49',
+  premium_paywall_cta_monthly: 'Suscripción mensual · €4.99/mes',
+  premium_paywall_cta_annual: 'Suscripción anual · €34.99/año',
+  premium_feature_pdf: 'Exporta el itinerario y gastos en PDF',
+  premium_feature_collaborators: 'Añade colaboradores sin límite',
+  premium_feature_currency: 'Gastos en múltiples divisas',
+  premium_feature_storage: 'Fotos y documentos sin límite',
+  timeline_export_tooltip: 'Exportar PDF',
+  timeline_export_generating: 'Generando PDF…',
+  timeline_export_error: 'No se pudo generar el PDF',
 } as const
 
 export type TranslationKeys = keyof typeof es
