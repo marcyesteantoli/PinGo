@@ -472,6 +472,9 @@ export const es = {
   destinations_deleteTitle: 'Eliminar etapa',
   destinations_deleteBody: '¿Eliminar "{{name}}"?',
   destinations_manageHint: 'Añade etapas para organizar tu ruta',
+  destinations_see_route: 'Ver ruta',
+  destinations_cities_one: 'etapa',
+  destinations_cities_other: 'etapas',
 
   // ─── BOTTOMSHEET ─────────────────────────────────────────────────────────
   bottomSheet_close: 'Cerrar',

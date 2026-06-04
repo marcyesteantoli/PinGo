@@ -472,6 +472,9 @@ export const en = {
   destinations_deleteTitle: 'Delete stage',
   destinations_deleteBody: 'Delete "{{name}}"?',
   destinations_manageHint: 'Add stages to organise your route',
+  destinations_see_route: 'See route',
+  destinations_cities_one: 'stage',
+  destinations_cities_other: 'stages',
 
   // ─── BOTTOMSHEET ─────────────────────────────────────────────────────────
   bottomSheet_close: 'Close',

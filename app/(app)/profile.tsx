@@ -247,22 +247,27 @@ export default function ProfileScreen() {
         {/* Sección: Idioma */}
         <Text className={sectionLabel}>{t('profile_section_language')}</Text>
         <View className={sectionCard} style={cardShadow}>
-          {LANGUAGES.map((lang, i) => (
-            <View key={lang.key}>
-              {i > 0 && <View className={divider} />}
-              <TouchableOpacity
-                onPress={() => changeLanguage(lang.key)}
-                className={rowBase}
-                activeOpacity={0.7}
-              >
-                <Text style={{ fontSize: 20, marginRight: 12 }}>{lang.flag}</Text>
-                <Text className={`${labelBase} flex-1`}>{lang.label}</Text>
-                {language === lang.key && (
-                  <Ionicons name="checkmark-circle" size={22} color={colors.primary[500]} />
-                )}
-              </TouchableOpacity>
-            </View>
-          ))}
+          {LANGUAGES.map((lang, i) => {
+            const isActive = language === lang.key
+            return (
+              <View key={lang.key}>
+                {i > 0 && <View className={divider} />}
+                <TouchableOpacity
+                  onPress={() => changeLanguage(lang.key)}
+                  className={rowBase}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 20, marginRight: 12 }}>{lang.flag}</Text>
+                  <Text className={`${labelBase} flex-1 ${isActive ? 'text-primary-500 dark:text-primary-400' : ''}`}>
+                    {lang.label}
+                  </Text>
+                  {isActive && (
+                    <Ionicons name="checkmark" size={18} color={colors.primary[500]} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            )
+          })}
         </View>
 
         {/* Sección: App */}
