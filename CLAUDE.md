@@ -1,7 +1,7 @@
 # TFM — App de Gestión de Viajes Colaborativa
 
 ## Proyecto
-MVP de app móvil colaborativa para gestión de viajes. Permite organizar itinerarios, centralizar documentación, gestionar gastos compartidos, construir un diario colectivo y guardar una lista de deseos personal.
+App móvil colaborativa para gestión de viajes. Permite organizar itinerarios, centralizar documentación, gestionar gastos compartidos, construir un diario colectivo y guardar una lista de deseos personal.
 
 **Stack:** Expo + React Native · Supabase · TanStack Query · NativeWind
 
