@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -9,7 +9,6 @@ import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { fabShadow } from '@lib/shadows'
 import { colors } from '@lib/colors'
-import { useTheme } from '@lib/theme'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { UndoToast } from '@components/ui/UndoToast'
@@ -27,6 +26,7 @@ import { useRatingsForTrip } from '@features/timeline/hooks/useRatingsForTrip'
 import { useDocuments } from '@features/documents/hooks/useDocuments'
 import { useDestinations } from '@features/destinations/hooks/useDestinations'
 import { DestinationBanner } from '@features/destinations/components/DestinationBanner'
+import { DestinationChipsStrip } from '@features/destinations/components/DestinationChipsStrip'
 import { ManageDestinationsSheet } from '@features/destinations/components/ManageDestinationsSheet'
 import { queryKeys } from '@lib/queryKeys'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
@@ -39,7 +39,7 @@ const UNDATED_SENTINEL = '__undated__'
 type Section = { title: string; data: Experience[] }
 
 type TimelineEntry =
-  | { type: 'header'; title: string; count: number; isFirst: boolean; isToday: boolean }
+  | { type: 'header'; title: string; count: number; isFirst: boolean; followsBanner: boolean; isToday: boolean }
   | { type: 'item'; experience: Experience; isUndated: boolean; sectionIndex: number }
   | { type: 'city_banner'; destination: TripDestination }
 
@@ -74,6 +74,8 @@ function toRows(sections: Section[], destinations: TripDestination[]): TimelineE
   const today = new Date().toISOString().slice(0, 10)
   const rows: TimelineEntry[] = []
   let prevDestId: string | null = null
+  let isFirstInGroup = true
+  let lastWasBanner = false
 
   sections.forEach((s, i) => {
     const isUndated = s.title === UNDATED_SENTINEL
@@ -83,7 +85,11 @@ function toRows(sections: Section[], destinations: TripDestination[]): TimelineE
       const destId = dest?.id ?? null
       if (destId !== prevDestId) {
         prevDestId = destId
-        if (dest) rows.push({ type: 'city_banner', destination: dest })
+        isFirstInGroup = true
+        if (dest) {
+          rows.push({ type: 'city_banner', destination: dest })
+          lastWasBanner = true
+        }
       }
     }
 
@@ -91,9 +97,12 @@ function toRows(sections: Section[], destinations: TripDestination[]): TimelineE
       type: 'header',
       title: s.title,
       count: s.data.length,
-      isFirst: i === 0,
+      isFirst: lastWasBanner ? false : (i === 0 || isFirstInGroup),
+      followsBanner: lastWasBanner,
       isToday: !isUndated && s.title === today,
     })
+    isFirstInGroup = false
+    lastWasBanner = false
     s.data.forEach((exp, j) =>
       rows.push({ type: 'item', experience: exp, isUndated, sectionIndex: j })
     )
@@ -156,7 +165,6 @@ export default function TimelineScreen() {
   const deleteExperience = useDeleteExperience(tripId)
   const updateExperience = useUpdateExperience(tripId)
   const { data: destinations = [] } = useDestinations(tripId)
-  const { isDark } = useTheme()
   const [sheetVisible, setSheetVisible] = useState(false)
   const [destSheetVisible, setDestSheetVisible] = useState(false)
   const [editExperience, setEditExperience] = useState<Experience | null>(null)
@@ -168,6 +176,8 @@ export default function TimelineScreen() {
     documentCount: 0,
   })
 
+  const flatListRef = useRef<FlatList<TimelineEntry>>(null)
+
   const toastTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const pendingDeleteRef = useRef<{
     experienceId: string
@@ -178,6 +188,17 @@ export default function TimelineScreen() {
     () => toRows(groupByDate(experiences ?? []), destinations),
     [experiences, destinations]
   )
+
+  const scrollToDestination = useCallback((dest: TripDestination) => {
+    let idx = rows.findIndex(r => r.type === 'city_banner' && r.destination.id === dest.id)
+    if (idx < 0) {
+      idx = rows.findIndex(
+        r => r.type === 'header' && r.title !== UNDATED_SENTINEL && r.title >= dest.start_date
+      )
+    }
+    if (idx < 0) return
+    flatListRef.current?.scrollToIndex({ index: idx, animated: true, viewPosition: 0 })
+  }, [rows])
 
   const commitDelete = async (experienceId: string, snapshot: Experience[] | undefined) => {
     try {
@@ -286,7 +307,15 @@ export default function TimelineScreen() {
 
   const renderItem = useCallback(({ item: entry }: { item: TimelineEntry }) => {
     if (entry.type === 'city_banner') {
-      return <DestinationBanner destination={entry.destination} />
+      return (
+        <View className="flex-row mt-5">
+          <View className="w-10 items-center pt-3">
+              <Ionicons name="location" size={24} color={colors.primary[500]} />
+            <View className="flex-1 w-[3px] bg-primary-500" />
+          </View>
+          <DestinationBanner destination={entry.destination} />
+        </View>
+      )
     }
 
     if (entry.type === 'header') {
@@ -297,7 +326,10 @@ export default function TimelineScreen() {
               <View className="flex-1" />
             ) : (
               <>
-                <View className="flex-1" />
+                {entry.isFirst
+                  ? <View className="flex-1" />
+                  : <View className={`flex-1 w-[3px] ${entry.followsBanner ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-neutral-600'}`} />
+                }
                 <View className={
                   entry.isToday
                     ? 'mt-2 w-4 h-4 rounded-full bg-primary-500 border-2 border-white dark:border-neutral-900'
@@ -361,25 +393,18 @@ export default function TimelineScreen() {
         </View>
       ) : (
         <Animated.FlatList
+          ref={flatListRef}
           data={rows}
           keyExtractor={keyExtractor}
           contentContainerClassName="pt-2 pb-24"
           renderItem={renderItem}
+          onScrollToIndexFailed={() => {}}
           ListHeaderComponent={
-            <TouchableOpacity
-              onPress={() => setDestSheetVisible(true)}
-              className="flex-row items-center gap-2 mx-4 mb-2 mt-1 py-2.5 px-4 bg-neutral-200/70 dark:bg-surface-700/60 rounded-2xl"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="map-outline" size={14} color={isDark ? '#9ca3af' : '#6b7280'} />
-              <Text className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400 flex-1" numberOfLines={1}>
-                {destinations.length > 0
-                  ? destinations.map(d => d.name).join(' · ')
-                  : t('destinations_manageHint')
-                }
-              </Text>
-              <Ionicons name="chevron-forward" size={13} color={isDark ? '#9ca3af' : '#6b7280'} />
-            </TouchableOpacity>
+            <DestinationChipsStrip
+              destinations={destinations}
+              onManage={() => setDestSheetVisible(true)}
+              onDestinationPress={scrollToDestination}
+            />
           }
           ListEmptyComponent={
             <EmptyState

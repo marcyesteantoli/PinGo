@@ -1,29 +1,36 @@
 import { View, Text } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { colors } from '@lib/colors'
+import { useTranslation } from 'react-i18next'
+import { formatDateRange } from '@utils/date'
 import type { TripDestination } from '@types/index'
 
-interface DestinationBannerProps {
+interface Props {
   destination: TripDestination
 }
 
-export function DestinationBanner({ destination }: DestinationBannerProps) {
+export function DestinationBanner({ destination }: Props) {
+  const { i18n } = useTranslation()
+  const dateRange = formatDateRange(destination.start_date, destination.end_date, i18n.language)
+
   return (
-    <View className="px-4 pt-4 pb-1">
-      <View className="bg-primary-50 dark:bg-primary-950/40 rounded-2xl px-4 py-3 flex-row items-center gap-3">
-        <View className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/50 items-center justify-center">
-          <Ionicons name="location" size={16} color={colors.primary[500]} />
-        </View>
-        <View className="flex-1">
-          <Text className="text-[15px] font-semibold text-primary-700 dark:text-primary-300">
-            {destination.name}
-          </Text>
-          {destination.country ? (
-            <Text className="text-[12px] text-primary-500 dark:text-primary-400 mt-0.5">
+    <View className="flex-1 pt-2.5 pb-2 pr-4">
+      <Text
+        className="text-[20px] font-bold text-neutral-900 dark:text-neutral-50 leading-tight"
+        numberOfLines={1}
+      >
+        {destination.name}
+      </Text>
+      <View className="flex-row items-center gap-1.5 mt-1">
+        {destination.country ? (
+          <>
+            <Text className="text-[11px] font-semibold text-primary-500 dark:text-primary-400 tracking-[0.2px]">
               {destination.country}
             </Text>
-          ) : null}
-        </View>
+            <Text className="text-[11px] text-neutral-400 dark:text-neutral-500">·</Text>
+          </>
+        ) : null}
+        <Text className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 tracking-[0.2px]">
+          {dateRange}
+        </Text>
       </View>
     </View>
   )
