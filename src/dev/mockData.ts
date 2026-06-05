@@ -337,8 +337,11 @@ export const mockDocuments: Record<string, Array<{
   experience_id: string
   trip_id: string
   name: string
-  file_url: string
+  file_path: string | null
+  file_url: string | null
   file_type: string | null
+  document_type: 'file' | 'link' | 'pass'
+  url: string | null
   uploaded_by: string
   created_at: string
   experience_title: string | null
@@ -349,8 +352,11 @@ export const mockDocuments: Record<string, Array<{
       experience_id: EXP_001,
       trip_id: DEMO_TRIP_ID,
       name: 'Reserva vuelo IB7841',
+      file_path: 'mock/doc-001.pdf',
       file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
       file_type: 'application/pdf',
+      document_type: 'file',
+      url: null,
       uploaded_by: DEMO_USER_ID,
       created_at: '2026-01-20T11:00:00Z',
       experience_title: 'Vuelo BCN → NRT',
@@ -360,8 +366,11 @@ export const mockDocuments: Record<string, Array<{
       experience_id: EXP_002,
       trip_id: DEMO_TRIP_ID,
       name: 'Confirmación hotel Shinjuku',
+      file_path: 'mock/doc-002.pdf',
       file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
       file_type: 'application/pdf',
+      document_type: 'file',
+      url: null,
       uploaded_by: DEMO_USER_ID,
       created_at: '2026-01-20T11:05:00Z',
       experience_title: 'Hotel Shinjuku Granbell',
@@ -371,11 +380,28 @@ export const mockDocuments: Record<string, Array<{
       experience_id: EXP_001,
       trip_id: DEMO_TRIP_ID,
       name: 'Seguro de viaje 2026',
+      file_path: 'mock/doc-003.pdf',
       file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
       file_type: 'application/pdf',
+      document_type: 'file',
+      url: null,
       uploaded_by: COLLAB_002_ID,
       created_at: '2026-01-21T09:00:00Z',
       experience_title: 'Vuelo BCN → NRT',
+    },
+    {
+      id: 'doc-004',
+      experience_id: EXP_002,
+      trip_id: DEMO_TRIP_ID,
+      name: 'Hotel Shinjuku Granbell',
+      file_path: null,
+      file_url: null,
+      file_type: null,
+      document_type: 'link',
+      url: 'https://www.granbell.jp/en/shinjuku',
+      uploaded_by: DEMO_USER_ID,
+      created_at: '2026-01-20T12:00:00Z',
+      experience_title: 'Hotel Shinjuku Granbell',
     },
   ],
   [DEMO_TRIP_ID_2]: [
@@ -384,8 +410,11 @@ export const mockDocuments: Record<string, Array<{
       experience_id: EXP_101,
       trip_id: DEMO_TRIP_ID_2,
       name: 'Billetes VY1234',
+      file_path: 'mock/doc-101.pdf',
       file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
       file_type: 'application/pdf',
+      document_type: 'file',
+      url: null,
       uploaded_by: DEMO_USER_ID,
       created_at: '2026-01-12T11:00:00Z',
       experience_title: 'Vuelo BCN → LIS',

@@ -115,8 +115,10 @@ export interface Database {
           experience_id: string
           trip_id: string
           name: string
-          file_path: string
+          file_path: string | null
           file_type: string | null
+          document_type: 'file' | 'link' | 'pass'
+          url: string | null
           uploaded_by: string
           created_at: string
         }
@@ -125,8 +127,10 @@ export interface Database {
           experience_id: string
           trip_id: string
           name: string
-          file_path: string
+          file_path?: string | null
           file_type?: string | null
+          document_type?: 'file' | 'link' | 'pass'
+          url?: string | null
           uploaded_by: string
           created_at?: string
         }

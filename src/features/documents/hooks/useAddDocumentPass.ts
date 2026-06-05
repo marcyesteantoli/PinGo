@@ -1,46 +1,54 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { DocumentPickerAsset } from 'expo-document-picker'
+import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, DEMO_USER_ID, mockDocuments, mockExperiences } from '@/dev/mockData'
-import type { UploadDocumentFormData } from '../types'
 
-type UploadDocumentParams = UploadDocumentFormData & { tripId: string; asset?: DocumentPickerAsset }
+type AddPassParams = {
+  name: string
+  experience_id: string
+  tripId: string
+}
 
-export function useUploadDocument() {
+export function useAddDocumentPass() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ name, experience_id, tripId, asset }: UploadDocumentParams) => {
+    mutationFn: async ({ name, experience_id, tripId }: AddPassParams) => {
       if (DEV_MODE) {
         const expTitle = mockExperiences[tripId]?.find((e) => e.id === experience_id)?.title ?? null
         const newDoc = {
-          id: `demo-doc-${Date.now()}`,
+          id: `demo-pass-${Date.now()}`,
           experience_id,
           trip_id: tripId,
           name,
-          file_path: 'mock/demo.pdf',
-          file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
-          file_type: 'application/pdf',
-          document_type: 'file' as const,
+          file_path: 'mock/path/pass.pkpass',
+          file_type: 'application/vnd.apple.pkpass',
+          document_type: 'pass' as const,
           url: null,
+          file_url: null,
           uploaded_by: DEMO_USER_ID,
           created_at: new Date().toISOString(),
           experience_title: expTitle,
         }
         if (!mockDocuments[tripId]) mockDocuments[tripId] = []
-        mockDocuments[tripId].unshift(newDoc)
+        mockDocuments[tripId].unshift(newDoc as any)
         return newDoc
       }
-
-      if (!asset) return null
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No hay sesión activa')
 
-      const ext = asset.name.split('.').pop() ?? 'pdf'
-      const filename = `${user.id}_${Date.now()}.${ext}`
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/vnd.apple.pkpass', 'application/octet-stream'],
+        copyToCacheDirectory: true,
+      })
+
+      if (result.canceled || !result.assets[0]) return null
+
+      const asset = result.assets[0]
+      const filename = `${user.id}_${Date.now()}.pkpass`
       const storagePath = `documents/${tripId}/${experience_id}/${filename}`
 
       const base64 = await FileSystem.readAsStringAsync(asset.uri, {
@@ -54,34 +62,28 @@ export function useUploadDocument() {
         .from('documents')
         .upload(storagePath, bytes, {
           upsert: false,
-          contentType: asset.mimeType ?? 'application/pdf',
+          contentType: 'application/vnd.apple.pkpass',
         })
 
-      if (uploadError) throw new Error('Error al subir el archivo. Inténtalo de nuevo.')
+      if (uploadError) throw new Error('Error al subir el boarding pass. Inténtalo de nuevo.')
 
       const { error: dbError } = await supabase.from('documents').insert({
         trip_id: tripId,
         experience_id,
         name,
         file_path: storagePath,
-        file_type: asset.mimeType ?? 'application/pdf',
+        file_type: 'application/vnd.apple.pkpass',
+        document_type: 'pass',
         uploaded_by: user.id,
       })
 
       if (dbError) {
         await supabase.storage.from('documents').remove([storagePath])
-        throw new Error('Error al guardar el documento. Inténtalo de nuevo.')
+        throw new Error('Error al guardar el boarding pass. Inténtalo de nuevo.')
       }
     },
-    onSuccess: (newDoc, variables) => {
-      if (DEV_MODE && newDoc) {
-        queryClient.setQueryData(
-          queryKeys.documents.all(variables.tripId),
-          (old: any[] = []) => [newDoc, ...old]
-        )
-        return
-      }
-      queryClient.invalidateQueries({ queryKey: queryKeys.documents.all(variables.tripId) })
+    onSuccess: (_data, { tripId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents.all(tripId) })
     },
   })
 }

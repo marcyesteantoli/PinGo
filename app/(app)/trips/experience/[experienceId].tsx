@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
-import { useDocuments } from '@features/documents/hooks/useDocuments'
+import { useDocuments, type DocumentWithExperience } from '@features/documents/hooks/useDocuments'
 import { useExpenses } from '@features/expenses/hooks/useExpenses'
 import { ExpenseCard } from '@features/expenses/components/ExpenseCard'
 import { useRatings } from '@features/timeline/hooks/useRatings'
@@ -37,7 +37,6 @@ import { formatCurrency } from '@utils/currency'
 import type { Document } from '@types/index'
 import type { BadgeVariant } from '@components/ui/Badge'
 
-type DocumentWithExperience = Document & { experience_title: string | null }
 
 const TYPE_BADGE_VARIANT: Record<string, BadgeVariant> = {
   transport:     'transport',

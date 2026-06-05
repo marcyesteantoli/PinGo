@@ -9,7 +9,7 @@ import * as FileSystem from 'expo-file-system/legacy'
 import type { Document } from '@types/index'
 import { colors } from '@lib/colors'
 
-type DocumentWithExperience = Document & { experience_title: string | null; file_url: string }
+type DocumentWithExperience = Document & { experience_title: string | null; file_url: string | null }
 
 interface DocumentCardProps {
   document: DocumentWithExperience
@@ -21,18 +21,39 @@ const DELETE_WIDTH = 76
 const PREVIEW_H = 112
 const SCALE = 0.25
 
-function getAccentColor(fileType: string | null): string {
-  if (!fileType) return colors.neutral[300]
-  if (fileType.includes('pdf')) return colors.error
-  if (fileType.includes('image')) return colors.primary[500]
+function getAccentColor(doc: DocumentWithExperience): string {
+  if (doc.document_type === 'link') return colors.primary[400]
+  if (doc.document_type === 'pass') return '#1a1a2e'
+  if (!doc.file_type) return colors.neutral[300]
+  if (doc.file_type.includes('pdf')) return colors.error
+  if (doc.file_type.includes('image')) return colors.primary[500]
   return colors.neutral[300]
 }
 
-function getFileLabel(fileType: string | null): string {
-  if (!fileType) return 'DOC'
-  if (fileType.includes('pdf')) return 'PDF'
-  if (fileType.includes('image')) return 'IMG'
+function getChipLabel(doc: DocumentWithExperience): string {
+  if (doc.document_type === 'link') return 'WEB'
+  if (doc.document_type === 'pass') return 'PASS'
+  if (!doc.file_type) return 'DOC'
+  if (doc.file_type.includes('pdf')) return 'PDF'
+  if (doc.file_type.includes('image')) return 'IMG'
   return 'DOC'
+}
+
+function getChipColor(doc: DocumentWithExperience): string {
+  if (doc.document_type === 'link') return colors.primary[500]
+  if (doc.document_type === 'pass') return '#6c63ff'
+  if (!doc.file_type) return colors.neutral[400]
+  if (doc.file_type.includes('pdf')) return colors.error
+  if (doc.file_type.includes('image')) return colors.primary[500]
+  return colors.neutral[400]
+}
+
+function extractHostname(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
 }
 
 interface PDFThumbnailProps {
@@ -44,15 +65,16 @@ interface PDFThumbnailProps {
 
 function PDFThumbnail({ fileUrl, fileId, cardWidth, isDark }: PDFThumbnailProps) {
   const [localUri, setLocalUri] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(Platform.OS !== 'android')
 
   useEffect(() => {
-    if (!cardWidth) return
+    if (!cardWidth || Platform.OS === 'android') return
     const localPath = `${FileSystem.cacheDirectory}tripsync_doc_${fileId}.pdf`
     ;(async () => {
       try {
         const info = await FileSystem.getInfoAsync(localPath)
-        if (!info.exists) {
+        if (!info.exists || info.isDirectory) {
+          if (info.exists) await FileSystem.deleteAsync(localPath, { idempotent: true })
           await FileSystem.downloadAsync(fileUrl, localPath)
         }
         setLocalUri(localPath)
@@ -64,10 +86,8 @@ function PDFThumbnail({ fileUrl, fileId, cardWidth, isDark }: PDFThumbnailProps)
     })()
   }, [fileId, fileUrl, cardWidth])
 
-  // Render WebView at 4× card size, then scale down to fit the preview area
   const renderW = cardWidth / SCALE
   const renderH = PREVIEW_H / SCALE
-  // Compensate for RN scaling from center: shift layout so visual top-left aligns to (0,0)
   const marginLeft = renderW * (SCALE - 1) / 2
   const marginTop = renderH * (SCALE - 1) / 2
 
@@ -85,7 +105,6 @@ function PDFThumbnail({ fileUrl, fileId, cardWidth, isDark }: PDFThumbnailProps)
   }
 
   if (!localUri) {
-    // Fallback skeleton
     return (
       <View style={{
         flex: 1,
@@ -128,21 +147,66 @@ function PDFThumbnail({ fileUrl, fileId, cardWidth, isDark }: PDFThumbnailProps)
           allowUniversalAccessFromFileURLs
         />
       </View>
-      {/* Touch blocker so gestures pass through to the card */}
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} pointerEvents="box-only" />
     </View>
+  )
+}
+
+function LinkPreview({ url, isDark }: { url: string; isDark: boolean }) {
+  const hostname = extractHostname(url)
+  return (
+    <View style={{
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? colors.surface[700] : '#f0f4ff',
+      gap: 6,
+    }}>
+      <Ionicons name="link" size={28} color={colors.primary[400]} />
+      <Text
+        numberOfLines={1}
+        style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)', paddingHorizontal: 12 }}
+      >
+        {hostname}
+      </Text>
+    </View>
+  )
+}
+
+function PassPreview({ name, isDark }: { name: string; isDark: boolean }) {
+  return (
+    <LinearGradient
+      colors={['#1a1a2e', '#16213e', '#0f3460']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16 }}
+    >
+      <Ionicons name="airplane" size={24} color="rgba(255,255,255,0.7)" />
+      <Text
+        numberOfLines={1}
+        style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', letterSpacing: 1.5, textTransform: 'uppercase' }}
+      >
+        Boarding Pass
+      </Text>
+    </LinearGradient>
   )
 }
 
 export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps) {
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
+  const cardOpacity = useSharedValue(0)
+  const cardTranslateY = useSharedValue(8)
+  const deleteIconScale = useSharedValue(0.7)
   const [containerWidth, setContainerWidth] = useState(0)
   const scheme = useColorScheme()
   const isDark = scheme === 'dark'
 
-  const accentColor = getAccentColor(document.file_type)
-  const isImage = document.file_type?.includes('image')
+  const accentColor = getAccentColor(document)
+  const chipLabel = getChipLabel(document)
+  const chipColor = getChipColor(document)
+  const isImage = document.document_type === 'file' && document.file_type?.includes('image')
+  const isPDF = document.document_type === 'file' && document.file_type?.includes('pdf')
   const canDelete = !!onDelete
 
   const pan = Gesture.Pan()
@@ -151,24 +215,40 @@ export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps)
     .onBegin(() => { savedX.value = translateX.value })
     .onUpdate((e) => {
       if (!canDelete) return
-      translateX.value = Math.min(0, Math.max(-DELETE_WIDTH, savedX.value + e.translationX))
+      const newX = Math.min(0, Math.max(-DELETE_WIDTH, savedX.value + e.translationX))
+      translateX.value = newX
+      deleteIconScale.value = 0.7 + (0.3 * (Math.abs(newX) / DELETE_WIDTH))
     })
     .onEnd(() => {
       if (!canDelete) {
         translateX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
         return
       }
-      translateX.value = translateX.value < -DELETE_WIDTH / 2
-        ? withTiming(-DELETE_WIDTH, { duration: 240, easing: Easing.out(Easing.cubic) })
-        : withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
+      if (translateX.value < -DELETE_WIDTH / 2) {
+        translateX.value = withTiming(-DELETE_WIDTH, { duration: 240, easing: Easing.out(Easing.cubic) })
+        deleteIconScale.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) })
+      } else {
+        translateX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
+        deleteIconScale.value = withTiming(0.7, { duration: 200, easing: Easing.out(Easing.cubic) })
+      }
     })
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }))
 
+  const cardEnterStyle = useAnimatedStyle(() => ({
+    opacity: cardOpacity.value,
+    transform: [{ translateY: cardTranslateY.value }],
+  }))
+
+  const deleteIconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: deleteIconScale.value }],
+  }))
+
   const handleDeletePress = () => {
     translateX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
+    deleteIconScale.value = withTiming(0.7, { duration: 200, easing: Easing.out(Easing.cubic) })
     onDelete?.()
   }
 
@@ -181,18 +261,22 @@ export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps)
   const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
 
   return (
-    <View
+    <Animated.View
       className="rounded-2xl"
-      style={{
-        ...Platform.select({
+      style={[
+        Platform.select({
           android: { borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,0,0,0.10)' },
           default: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 },
         }),
-        opacity: containerWidth > 0 ? 1 : 0,
-      }}
+        cardEnterStyle,
+      ]}
       onLayout={(e) => {
         const w = e.nativeEvent.layout.width
-        if (w > 0 && w !== containerWidth) setContainerWidth(w)
+        if (w > 0 && w !== containerWidth) {
+          setContainerWidth(w)
+          cardOpacity.value = withTiming(1, { duration: 260, easing: Easing.out(Easing.cubic) })
+          cardTranslateY.value = withTiming(0, { duration: 260, easing: Easing.out(Easing.cubic) })
+        }
       }}
     >
       <View className="overflow-hidden rounded-2xl">
@@ -229,23 +313,25 @@ export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps)
                         style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 44 }}
                       />
                     </>
-                  ) : (
-                    containerWidth > 0 && (
-                      <PDFThumbnail
-                        fileUrl={document.file_url}
-                        fileId={document.id}
-                        cardWidth={containerWidth}
-                        isDark={isDark}
-                      />
-                    )
-                  )}
+                  ) : isPDF && document.file_url && containerWidth > 0 ? (
+                    <PDFThumbnail
+                      fileUrl={document.file_url}
+                      fileId={document.id}
+                      cardWidth={containerWidth}
+                      isDark={isDark}
+                    />
+                  ) : document.document_type === 'link' ? (
+                    <LinkPreview url={document.url ?? ''} isDark={isDark} />
+                  ) : document.document_type === 'pass' ? (
+                    <PassPreview name={document.name} isDark={isDark} />
+                  ) : null}
 
-                  {/* File type badge */}
+                  {/* Type chip */}
                   <View
                     style={{
                       position: 'absolute',
                       top: 8, right: 8,
-                      backgroundColor: accentColor,
+                      backgroundColor: chipColor,
                       borderRadius: 6,
                       paddingHorizontal: 7,
                       paddingVertical: 3,
@@ -253,7 +339,7 @@ export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps)
                     }}
                   >
                     <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 }}>
-                      {getFileLabel(document.file_type)}
+                      {chipLabel}
                     </Text>
                   </View>
                 </View>
@@ -277,16 +363,27 @@ export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps)
                     >
                       {document.name}
                     </Text>
-                    {document.experience_title && (
+                    {document.document_type === 'link' && document.url ? (
+                      <Text
+                        numberOfLines={1}
+                        style={{ fontSize: 13, color: subtitleColor, marginTop: 1 }}
+                      >
+                        {extractHostname(document.url)}
+                      </Text>
+                    ) : document.experience_title ? (
                       <Text
                         numberOfLines={1}
                         style={{ fontSize: 13, color: subtitleColor, marginTop: 1 }}
                       >
                         {document.experience_title}
                       </Text>
-                    )}
+                    ) : null}
                   </View>
-                  <Ionicons name="chevron-forward" size={16} color={colors.neutral[300]} />
+                  <Ionicons
+                    name={document.document_type === 'link' ? 'open-outline' : 'chevron-forward'}
+                    size={16}
+                    color={colors.neutral[300]}
+                  />
                 </View>
               </TouchableOpacity>
             </View>
@@ -299,11 +396,13 @@ export function DocumentCard({ document, onPress, onDelete }: DocumentCardProps)
               style={{ width: DELETE_WIDTH }}
               activeOpacity={0.8}
             >
-              <Ionicons name="trash-outline" size={20} color={colors.white} />
+              <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, deleteIconStyle]}>
+                <Ionicons name="trash-outline" size={20} color={colors.white} />
+              </Animated.View>
             </TouchableOpacity>
           )}
         </Animated.View>
       </View>
-    </View>
+    </Animated.View>
   )
 }
