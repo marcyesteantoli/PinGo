@@ -21,6 +21,7 @@ export function useCreateExperience(tripId: string) {
           end_time: formData.end_time || null,
           confirmation_code: formData.confirmation_code ?? null,
           location: formData.location ?? null,
+          destination_id: formData.destination_id ?? null,
           created_by: DEMO_USER_ID,
           updated_at: new Date().toISOString(),
         }
@@ -43,6 +44,7 @@ export function useCreateExperience(tripId: string) {
           end_time: formData.end_time || null,
           confirmation_code: formData.confirmation_code ?? null,
           location: formData.location ?? null,
+          destination_id: formData.destination_id ?? null,
           created_by: user.id,
         })
         .select()
@@ -65,6 +67,7 @@ export function useCreateExperience(tripId: string) {
         end_time: formData.end_time || null,
         confirmation_code: formData.confirmation_code ?? null,
         location: formData.location ?? null,
+        destination_id: formData.destination_id ?? null,
         created_by: '',
         updated_at: new Date().toISOString(),
       } as Experience

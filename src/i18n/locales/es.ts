@@ -149,6 +149,8 @@ export const es = {
   timeline_field_date: 'Fecha',
   timeline_field_confirmCode: 'Código de confirmación (opcional)',
   timeline_field_confirmCode_placeholder: 'ej. ABC123',
+  timeline_field_destination: 'Destino (opcional)',
+  timeline_destination_none: 'Sin destino',
   timeline_timePicker_label: 'Franja horaria (opcional)',
   timeline_timePicker_start: '09:00',
   timeline_timePicker_end: '18:00',

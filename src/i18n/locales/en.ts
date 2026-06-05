@@ -149,6 +149,8 @@ export const en = {
   timeline_field_date: 'Date',
   timeline_field_confirmCode: 'Confirmation code (optional)',
   timeline_field_confirmCode_placeholder: 'e.g. ABC123',
+  timeline_field_destination: 'Destination (optional)',
+  timeline_destination_none: 'No destination',
   timeline_timePicker_label: 'Time slot (optional)',
   timeline_timePicker_start: '09:00',
   timeline_timePicker_end: '18:00',

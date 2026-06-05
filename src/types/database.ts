@@ -79,6 +79,7 @@ export interface Database {
           start_time: string | null
           end_time: string | null
           date: string | null
+          destination_id: string | null
           created_by: string
           updated_at: string
         }
@@ -92,6 +93,7 @@ export interface Database {
           start_time?: string | null
           end_time?: string | null
           date?: string | null
+          destination_id?: string | null
           created_by: string
           updated_at?: string
         }
@@ -103,6 +105,7 @@ export interface Database {
           start_time?: string | null
           end_time?: string | null
           date?: string | null
+          destination_id?: string | null
           updated_at?: string
         }
       }

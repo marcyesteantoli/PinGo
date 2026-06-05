@@ -23,6 +23,7 @@ import { useMemories } from '@features/memories/hooks/useMemories'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { LIMITS } from '@/config/limits'
 import { DEV_MODE } from '@/dev/mockData'
+import { useErrorToast } from '@lib/errorToast'
 import { colors } from '@lib/colors'
 import type { Memory } from '@types/index'
 
@@ -36,6 +37,7 @@ export default function MemoriesScreen() {
   const addMemory = useAddMemory()
   const addMemories = useAddMemories()
   const deleteMemory = useDeleteMemory()
+  const showError = useErrorToast()
   const { data: currentUser } = useCurrentUser()
 
   const [captionSheetVisible, setCaptionSheetVisible] = useState(false)
@@ -90,7 +92,12 @@ export default function MemoriesScreen() {
           text: t('common_delete'),
           style: 'destructive',
           onPress: () => {
-            selectedIds.forEach((id) => deleteMemory.mutate({ memoryId: id, tripId }))
+            selectedIds.forEach((id) =>
+              deleteMemory.mutate(
+                { memoryId: id, tripId },
+                { onError: (err) => showError(err.message) }
+              )
+            )
             exitSelectionMode()
           },
         },
@@ -307,7 +314,10 @@ export default function MemoriesScreen() {
           onClose={() => setViewerIndex(-1)}
           canDelete={(memory) => isOwner || memory.user_id === currentUser?.id}
           onDelete={(id) => {
-            deleteMemory.mutate({ memoryId: id, tripId })
+            deleteMemory.mutate(
+              { memoryId: id, tripId },
+              { onError: (err) => showError(err.message) }
+            )
             setViewerIndex(-1)
           }}
           getUploaderName={(userId) => getUploader(userId)?.name ?? t('common_someone')}

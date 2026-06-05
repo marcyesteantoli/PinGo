@@ -23,7 +23,7 @@ export function DestinationChipsStrip({ destinations, onManage }: Props) {
       <TouchableOpacity
         onPress={onManage}
         activeOpacity={0.7}
-        className="self-start flex-row items-center gap-1.5 bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-full px-3.5 py-1.5"
+        className="self-start flex-row items-center gap-1.5 bg-neutral-200/80 dark:bg-neutral-700 rounded-full px-3.5 py-1.5"
       >
         <Ionicons
           name={destinations.length > 0 ? 'map-outline' : 'add'}

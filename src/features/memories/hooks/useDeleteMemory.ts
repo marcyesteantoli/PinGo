@@ -17,8 +17,12 @@ export function useDeleteMemory() {
         }
         return
       }
-      const { error } = await supabase.from('memories').delete().eq('id', memoryId)
+      const { error, count } = await supabase
+        .from('memories')
+        .delete({ count: 'exact' })
+        .eq('id', memoryId)
       if (error) throw new Error(error.message)
+      if (count === 0) throw new Error('not_authorized')
     },
     onMutate: async ({ memoryId, tripId }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.memories.all(tripId) })

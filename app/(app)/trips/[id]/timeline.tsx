@@ -41,7 +41,7 @@ type Section = { title: string; data: Experience[] }
 type TimelineEntry =
   | { type: 'header'; title: string; count: number; isFirst: boolean; followsBanner: boolean; isToday: boolean }
   | { type: 'item'; experience: Experience; isUndated: boolean; sectionIndex: number }
-  | { type: 'city_banner'; destination: TripDestination }
+  | { type: 'city_banner'; destination: TripDestination; lineAbove?: boolean }
 
 function groupByDate(experiences: Experience[]): Section[] {
   const groups: Record<string, Experience[]> = {}
@@ -70,25 +70,41 @@ function getDestinationForDate(date: string, destinations: TripDestination[]): T
   return destinations.find(d => d.start_date <= date && date <= d.end_date) ?? null
 }
 
+function groupByDestId(experiences: Experience[]): { destId: string | null; items: Experience[] }[] {
+  const seen = new Map<string | null, Experience[]>()
+  const order: (string | null)[] = []
+  for (const exp of experiences) {
+    const key = exp.destination_id ?? null
+    if (!seen.has(key)) {
+      seen.set(key, [])
+      order.push(key)
+    }
+    seen.get(key)!.push(exp)
+  }
+  return order.map(k => ({ destId: k, items: seen.get(k)! }))
+}
+
 function toRows(sections: Section[], destinations: TripDestination[]): TimelineEntry[] {
   const today = new Date().toISOString().slice(0, 10)
   const rows: TimelineEntry[] = []
-  let prevDestId: string | null = null
-  let isFirstInGroup = true
+  let lastBannerId: string | null = null
+  let isFirstGroup = true
   let lastWasBanner = false
 
-  sections.forEach((s, i) => {
+  sections.forEach((s) => {
     const isUndated = s.title === UNDATED_SENTINEL
 
     if (!isUndated && destinations.length > 0) {
-      const dest = getDestinationForDate(s.title, destinations)
-      const destId = dest?.id ?? null
-      if (destId !== prevDestId) {
-        prevDestId = destId
-        isFirstInGroup = true
-        if (dest) {
-          rows.push({ type: 'city_banner', destination: dest })
+      const dayDest = getDestinationForDate(s.title, destinations)
+      const dayDestId = dayDest?.id ?? null
+      if (dayDestId !== lastBannerId) {
+        if (dayDest) {
+          rows.push({ type: 'city_banner', destination: dayDest })
+          lastBannerId = dayDestId
           lastWasBanner = true
+        } else {
+          lastBannerId = null
+          isFirstGroup = true
         }
       }
     }
@@ -97,15 +113,28 @@ function toRows(sections: Section[], destinations: TripDestination[]): TimelineE
       type: 'header',
       title: s.title,
       count: s.data.length,
-      isFirst: lastWasBanner ? false : (i === 0 || isFirstInGroup),
+      isFirst: lastWasBanner ? false : isFirstGroup,
       followsBanner: lastWasBanner,
       isToday: !isUndated && s.title === today,
     })
-    isFirstInGroup = false
+    isFirstGroup = false
     lastWasBanner = false
-    s.data.forEach((exp, j) =>
-      rows.push({ type: 'item', experience: exp, isUndated, sectionIndex: j })
-    )
+
+    const destGroups = groupByDestId(s.data)
+    let sectionIdx = 0
+
+    for (const { destId, items } of destGroups) {
+      if (!isUndated && destId !== null && destId !== lastBannerId) {
+        const dest = destinations.find(d => d.id === destId) ?? null
+        if (dest) {
+          rows.push({ type: 'city_banner', destination: dest, lineAbove: true })
+          lastBannerId = destId
+        }
+      }
+      for (const exp of items) {
+        rows.push({ type: 'item', experience: exp, isUndated, sectionIndex: sectionIdx++ })
+      }
+    }
   })
   return rows
 }
@@ -287,6 +316,7 @@ export default function TimelineScreen() {
     start_time: exp.start_time ?? undefined,
     end_time: exp.end_time ?? undefined,
     confirmation_code: exp.confirmation_code ?? undefined,
+    destination_id: exp.destination_id ?? undefined,
     location: (
       typeof exp.location === 'object' &&
       exp.location !== null &&
@@ -297,9 +327,9 @@ export default function TimelineScreen() {
   })
 
   const keyExtractor = useCallback(
-    (entry: TimelineEntry) => {
+    (entry: TimelineEntry, index: number) => {
       if (entry.type === 'header') return `header-${entry.title}`
-      if (entry.type === 'city_banner') return `city-${entry.destination.id}`
+      if (entry.type === 'city_banner') return `city-${entry.destination.id}-${index}`
       return entry.experience.id
     },
     []
@@ -309,8 +339,9 @@ export default function TimelineScreen() {
     if (entry.type === 'city_banner') {
       return (
         <View className="flex-row mt-5">
-          <View className="w-10 items-center pt-3">
-              <Ionicons name="location" size={24} color={colors.primary[500]} />
+          <View className="w-10 items-center">
+            <View className={`w-[3px] h-3 ${entry.lineAbove ? 'bg-neutral-300 dark:bg-neutral-600' : 'bg-transparent'}`} />
+            <Ionicons name="location" size={24} color={colors.primary[500]} />
             <View className="flex-1 w-[3px] bg-primary-500" />
           </View>
           <DestinationBanner destination={entry.destination} />
@@ -448,6 +479,7 @@ export default function TimelineScreen() {
         error={createExperience.error?.message}
         minDate={trip?.start_date ? (() => { const [y, m, d] = trip.start_date.split('-').map(Number); return new Date(y, m - 1, d) })() : undefined}
         maxDate={trip?.end_date ? (() => { const [y, m, d] = trip.end_date.split('-').map(Number); return new Date(y, m - 1, d) })() : undefined}
+        destinations={destinations}
       />
 
       <DeleteExperienceSheet
@@ -465,6 +497,7 @@ export default function TimelineScreen() {
         error={updateExperience.error?.message}
         initialValues={editExperience ? experienceToFormData(editExperience) : undefined}
         mode="edit"
+        destinations={destinations}
       />
 
       {trip && (

@@ -22,6 +22,7 @@ export function buildCreateExperienceSchema() {
       location: z
         .object({ name: z.string(), lat: z.number(), lng: z.number(), city: z.string().optional() })
         .optional(),
+      destination_id: z.string().uuid().nullable().optional(),
     })
     .superRefine((data, ctx) => {
       if (data.start_time && data.end_time && data.end_time <= data.start_time) {

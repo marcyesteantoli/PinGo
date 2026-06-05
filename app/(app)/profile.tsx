@@ -246,26 +246,55 @@ export default function ProfileScreen() {
 
         {/* Sección: Idioma */}
         <Text className={sectionLabel}>{t('profile_section_language')}</Text>
-        <View className={sectionCard} style={cardShadow}>
-          {LANGUAGES.map((lang, i) => {
+        <View
+          className="mx-4 rounded-2xl bg-white dark:bg-surface-800 px-2 py-2"
+          style={cardShadow}
+        >
+          {LANGUAGES.map((lang) => {
             const isActive = language === lang.key
             return (
-              <View key={lang.key}>
-                {i > 0 && <View className={divider} />}
-                <TouchableOpacity
-                  onPress={() => changeLanguage(lang.key)}
-                  className={rowBase}
-                  activeOpacity={0.7}
+              <TouchableOpacity
+                key={lang.key}
+                onPress={() => changeLanguage(lang.key)}
+                activeOpacity={0.7}
+                className="rounded-xl px-3 py-3 flex-row items-center"
+                style={isActive ? { backgroundColor: `${colors.primary[500]}1a` } : undefined}
+              >
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 16,
+                    fontWeight: isActive ? '600' : '400',
+                    color: isActive
+                      ? colors.primary[500]
+                      : isDark ? colors.neutral[300] : colors.neutral[700],
+                  }}
                 >
-                  <Text style={{ fontSize: 20, marginRight: 12 }}>{lang.flag}</Text>
-                  <Text className={`${labelBase} flex-1 ${isActive ? 'text-primary-500 dark:text-primary-400' : ''}`}>
-                    {lang.label}
+                  {lang.label}
+                </Text>
+                <View
+                  className="rounded-md px-2 py-0.5"
+                  style={{
+                    backgroundColor: isActive
+                      ? colors.primary[500]
+                      : isDark ? colors.surface[700] : colors.neutral[100],
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '700',
+                      letterSpacing: 0.5,
+                      textTransform: 'uppercase',
+                      color: isActive
+                        ? colors.white
+                        : isDark ? colors.neutral[500] : colors.neutral[400],
+                    }}
+                  >
+                    {lang.key}
                   </Text>
-                  {isActive && (
-                    <Ionicons name="checkmark" size={18} color={colors.primary[500]} />
-                  )}
-                </TouchableOpacity>
-              </View>
+                </View>
+              </TouchableOpacity>
             )
           })}
         </View>

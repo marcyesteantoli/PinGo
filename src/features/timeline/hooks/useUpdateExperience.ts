@@ -23,6 +23,7 @@ export function useUpdateExperience(tripId: string) {
               end_time: formData.end_time || null,
               confirmation_code: formData.confirmation_code ?? null,
               location: formData.location ?? null,
+              destination_id: formData.destination_id ?? null,
               updated_at: new Date().toISOString(),
             }
             return mockExperiences[tripId][idx]
@@ -41,6 +42,7 @@ export function useUpdateExperience(tripId: string) {
           end_time: formData.end_time || null,
           confirmation_code: formData.confirmation_code ?? null,
           location: formData.location ?? null,
+          destination_id: formData.destination_id ?? null,
         })
         .eq('id', experienceId)
         .select()
@@ -67,6 +69,7 @@ export function useUpdateExperience(tripId: string) {
                   end_time: formData.end_time || null,
                   confirmation_code: formData.confirmation_code ?? null,
                   location: formData.location ?? null,
+                  destination_id: formData.destination_id ?? null,
                 }
               : e
           )
