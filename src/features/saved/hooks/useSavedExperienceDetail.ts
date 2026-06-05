@@ -7,6 +7,10 @@ import type { Experience } from '@types/index'
 
 export type SavedExperienceDetail = {
   note: string | null
+  tags: string[]
+  would_return: boolean | null
+  price_paid: number | null
+  coverPhotoUrl: string | null
   experience: {
     id: string
     title: string
@@ -36,7 +40,7 @@ export function useSavedExperienceDetail(experienceId: string) {
       ] = await Promise.all([
         (supabase as any)
           .from('user_saved_experiences')
-          .select('note')
+          .select('note, tags, would_return, price_paid, cover_photo_url')
           .eq('user_id', userId)
           .eq('experience_id', experienceId)
           .maybeSingle(),
@@ -83,8 +87,21 @@ export function useSavedExperienceDetail(experienceId: string) {
         attributeRatings[r.attribute] = r.value
       }
 
+      const storagePath: string | null = savedRow?.cover_photo_url ?? null
+      let coverPhotoUrl: string | null = null
+      if (storagePath) {
+        const { data: signed } = await supabase.storage
+          .from('saved-photos')
+          .createSignedUrl(storagePath, 3600)
+        coverPhotoUrl = signed?.signedUrl ?? null
+      }
+
       return {
         note: savedRow?.note ?? null,
+        tags: savedRow?.tags ?? [],
+        would_return: savedRow?.would_return ?? null,
+        price_paid: savedRow?.price_paid ?? null,
+        coverPhotoUrl,
         experience: {
           id: exp.id,
           title: exp.title,

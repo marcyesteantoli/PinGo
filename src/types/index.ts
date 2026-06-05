@@ -55,11 +55,19 @@ export type UserSavedExperience = {
   user_id: string
   experience_id: string
   saved_at: string
+  tags: string[]
+  would_return: boolean | null
+  price_paid: number | null
+  cover_photo_url: string | null
 }
 
 export type SavedExperienceItem = {
   saved_at: string
   note: string | null
+  coverPhotoUrl: string | null
+  tags: string[]
+  would_return: boolean | null
+  price_paid: number | null
   experience: Experience & {
     trip: { name: string } | null
     attribute_ratings: Array<{ attribute: string; value: number }>

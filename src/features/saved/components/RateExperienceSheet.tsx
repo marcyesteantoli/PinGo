@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Image, ImageSourcePropType, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Image, ImageSourcePropType, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
+import * as ImagePicker from 'expo-image-picker'
 import Animated, {
   Easing,
   runOnJS,
@@ -16,6 +17,7 @@ import { RadarChart } from '@components/ui/RadarChart'
 import { useAttributeRatings } from '@features/timeline/hooks/useAttributeRatings'
 import { useUpsertAttributeRating } from '@features/timeline/hooks/useUpsertAttributeRating'
 import { useUpsertSavedNote } from '@features/saved/hooks/useUpsertSavedNote'
+import { useUploadSavedCoverPhoto } from '@features/saved/hooks/useUploadSavedCoverPhoto'
 import { EXPERIENCE_ATTRIBUTES } from '@features/timeline/config/experienceAttributes'
 import type { AttributeConfig } from '@features/timeline/config/experienceAttributes'
 import { useTheme } from '@lib/theme'
@@ -95,9 +97,12 @@ interface SummaryScreenProps {
   onNoteChange: (text: string) => void
   onNoteBlur: () => void
   onClose: () => void
+  coverPhotoUrl: string | null
+  onUploadPhoto: () => void
+  isUploadingPhoto: boolean
 }
 
-function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChange, onNoteBlur, onClose }: SummaryScreenProps) {
+function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChange, onNoteBlur, onClose, coverPhotoUrl, onUploadPhoto, isUploadingPhoto }: SummaryScreenProps) {
   const { t } = useTranslation()
   const radarOpacity = useSharedValue(0)
   const radarStyle = useAnimatedStyle(() => ({ opacity: radarOpacity.value }))
@@ -193,6 +198,48 @@ function SummaryScreen({ attributes, mergedValues, isDark, noteText, onNoteChang
         })}
       </View>
 
+      {/* Cover photo picker */}
+      <TouchableOpacity
+        onPress={onUploadPhoto}
+        activeOpacity={0.75}
+        disabled={isUploadingPhoto}
+        style={{
+          marginTop: 16,
+          borderRadius: 12,
+          borderWidth: coverPhotoUrl ? 0 : 1.5,
+          borderStyle: 'dashed',
+          borderColor: isDark ? colors.surface[500] : colors.neutral[300],
+          overflow: 'hidden',
+          height: coverPhotoUrl ? 120 : 56,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+        }}
+      >
+        {isUploadingPhoto ? (
+          <ActivityIndicator color={colors.primary[500]} />
+        ) : coverPhotoUrl ? (
+          <>
+            <Image
+              source={{ uri: coverPhotoUrl }}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              resizeMode="cover"
+            />
+            <View style={{ backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <Ionicons name="camera-outline" size={14} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>{t('rating_changePhoto', 'Cambiar foto')}</Text>
+            </View>
+          </>
+        ) : (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+            <Ionicons name="camera-outline" size={18} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
+            <Text style={{ fontSize: 14, fontWeight: '500', color: isDark ? colors.neutral[400] : colors.neutral[500] }}>
+              {t('rating_addPhoto', 'Añadir foto de portada')}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
       <View
         style={{
           marginTop: 16,
@@ -257,9 +304,10 @@ interface RateExperienceSheetProps {
   experienceId: string
   experienceType: Experience['type']
   initialNote?: string
+  initialCoverPhotoUrl?: string | null
 }
 
-export function RateExperienceSheet({ visible, onClose, experienceId, experienceType, initialNote }: RateExperienceSheetProps) {
+export function RateExperienceSheet({ visible, onClose, experienceId, experienceType, initialNote, initialCoverPhotoUrl }: RateExperienceSheetProps) {
   const { isDark } = useTheme()
   const { t } = useTranslation()
   const attributes = EXPERIENCE_ATTRIBUTES[experienceType]
@@ -274,10 +322,12 @@ export function RateExperienceSheet({ visible, onClose, experienceId, experience
   const { data } = useAttributeRatings(experienceId)
   const upsert = useUpsertAttributeRating(experienceId)
   const upsertNote = useUpsertSavedNote(experienceId)
+  const uploadPhoto = useUploadSavedCoverPhoto(experienceId)
 
   const [currentStep, setCurrentStep] = useState(0)
   const [localValues, setLocalValues] = useState<Record<string, number>>({})
   const [noteText, setNoteText] = useState(initialNote ?? '')
+  const [localPhotoUri, setLocalPhotoUri] = useState<string | null>(initialCoverPhotoUrl ?? null)
 
   const currentAttrKey = attributes[currentStep]?.key
   const selectedInStep = currentAttrKey !== undefined ? localValues[currentAttrKey] : undefined
@@ -293,6 +343,7 @@ export function RateExperienceSheet({ visible, onClose, experienceId, experience
       setCurrentStep(0)
       setLocalValues(data?.userValues ?? {})
       setNoteText(initialNote ?? '')
+      setLocalPhotoUri(initialCoverPhotoUrl ?? null)
     }
   }, [visible])
 
@@ -342,6 +393,23 @@ export function RateExperienceSheet({ visible, onClose, experienceId, experience
     })
   }
 
+  async function handleUploadPhoto() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.9,
+      allowsEditing: true,
+      aspect: [16, 9],
+    })
+    if (result.canceled) return
+    const asset = result.assets[0]
+    try {
+      await uploadPhoto.mutateAsync(asset)
+      setLocalPhotoUri(asset.uri)
+    } catch {
+      // silent — user stays on summary
+    }
+  }
+
   function handleSkip() {
     if (isAdvancing.current) return
     isAdvancing.current = true
@@ -377,6 +445,9 @@ export function RateExperienceSheet({ visible, onClose, experienceId, experience
             upsertNote.mutate(noteText)
           }}
           onClose={onClose}
+          coverPhotoUrl={localPhotoUri}
+          onUploadPhoto={handleUploadPhoto}
+          isUploadingPhoto={uploadPhoto.isPending}
         />
       ) : (
         <View style={{ minHeight: 460, paddingHorizontal: 20, paddingBottom: 28 }}>
