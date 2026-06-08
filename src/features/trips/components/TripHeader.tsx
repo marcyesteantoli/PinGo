@@ -71,49 +71,54 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
     if (!isMeasured.value) return {}
     return {
       height: interpolate(headerProgress.value, [0, 1], [detailHeightSV.value, 0]),
-      opacity: interpolate(headerProgress.value, [0, 0.6], [1, 0]),
+      opacity: interpolate(headerProgress.value, [0, 0.5], [1, 0]),
     }
   })
 
-  const compactTitleAnimStyle = useAnimatedStyle(() => ({
-    opacity: headerProgress.value,
-    transform: [{ translateX: interpolate(headerProgress.value, [0, 1], [6, 0]) }],
+  // Title animates from prominent (expanded) to compact nav size (collapsed)
+  const titleSizeAnimStyle = useAnimatedStyle(() => ({
+    fontSize: interpolate(headerProgress.value, [0, 1], [22, 17]),
+  }))
+
+  // Hairline separator appears when collapsed — iOS nav bar style
+  const separatorAnimStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(headerProgress.value, [0.6, 1], [0, 1]),
   }))
 
   return (
     <SafeAreaView className="bg-white dark:bg-surface-800" edges={['top']}>
       <View className="px-5 pt-1">
-        <View className="flex-row items-center justify-between mb-2">
-          <View className="flex-row items-center gap-2 flex-1 overflow-hidden mr-2">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="w-8 h-8 items-center justify-center -ml-1"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="chevron-back" size={24} color={colors.primary[500]} />
-            </TouchableOpacity>
-            <Animated.Text
-              className="text-lg font-semibold text-neutral-500 dark:text-neutral-400 flex-shrink"
-              numberOfLines={1}
-              style={compactTitleAnimStyle}
-            >
-              {trip.title}
-            </Animated.Text>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <TouchableOpacity
-              onPress={() => router.push('/(app)/profile')}
-              className="w-8 h-8 items-center justify-center"
-            >
-              <Avatar
-                uri={profile?.avatar_url}
-                name={profile?.name ?? user?.user_metadata?.name ?? 'U'}
-                size="sm"
-              />
-            </TouchableOpacity>
-          </View>
+        {/* Nav row: back · title (flex-1) · avatar — no wasted space */}
+        <View className="flex-row items-center gap-2 min-h-[44px]">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-8 h-8 items-center justify-center -ml-1 shrink-0"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.primary[500]} />
+          </TouchableOpacity>
+
+          <Animated.Text
+            className="flex-1 font-bold text-neutral-900 dark:text-neutral-50"
+            numberOfLines={1}
+            style={titleSizeAnimStyle}
+          >
+            {trip.title}
+          </Animated.Text>
+
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/profile')}
+            className="w-8 h-8 items-center justify-center shrink-0"
+          >
+            <Avatar
+              uri={profile?.avatar_url}
+              name={profile?.name ?? user?.user_metadata?.name ?? 'U'}
+              size="sm"
+            />
+          </TouchableOpacity>
         </View>
 
+        {/* Collapsible detail row: date + travelers */}
         <Animated.View
           style={[{ overflow: 'hidden' }, detailAnimStyle]}
           onLayout={(e) => {
@@ -123,14 +128,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
             }
           }}
         >
-          <Text
-            className="text-[26px] font-bold text-neutral-900 dark:text-neutral-50 leading-tight mb-1"
-            numberOfLines={2}
-          >
-            {trip.title}
-          </Text>
-
-          <View className="flex-row items-center justify-between pb-3">
+          <View className="flex-row items-center justify-between pb-3 pt-0.5">
             <Text className="text-[15px] font-medium text-primary-500">{dateRange}</Text>
 
             <TouchableOpacity
@@ -182,6 +180,12 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
           </View>
         </Animated.View>
       </View>
+
+      {/* Hairline separator — iOS nav bar style, appears on collapse */}
+      <Animated.View
+        className="h-px bg-neutral-200 dark:bg-surface-700"
+        style={separatorAnimStyle}
+      />
 
       <BottomSheet
         visible={membersVisible}
@@ -247,7 +251,6 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
           </View>
         </View>
       </BottomSheet>
-
     </SafeAreaView>
   )
 }
