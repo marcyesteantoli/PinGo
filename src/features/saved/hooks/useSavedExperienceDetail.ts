@@ -7,8 +7,6 @@ import type { Experience } from '@types/index'
 
 export type SavedExperienceDetail = {
   note: string | null
-  tags: string[]
-  would_return: boolean | null
   price_paid: number | null
   coverPhotoUrl: string | null
   experience: {
@@ -40,7 +38,7 @@ export function useSavedExperienceDetail(experienceId: string) {
       ] = await Promise.all([
         (supabase as any)
           .from('user_saved_experiences')
-          .select('note, tags, would_return, price_paid, cover_photo_url')
+          .select('note, price_paid, cover_photo_url')
           .eq('user_id', userId)
           .eq('experience_id', experienceId)
           .maybeSingle(),
@@ -98,8 +96,6 @@ export function useSavedExperienceDetail(experienceId: string) {
 
       return {
         note: savedRow?.note ?? null,
-        tags: savedRow?.tags ?? [],
-        would_return: savedRow?.would_return ?? null,
         price_paid: savedRow?.price_paid ?? null,
         coverPhotoUrl,
         experience: {

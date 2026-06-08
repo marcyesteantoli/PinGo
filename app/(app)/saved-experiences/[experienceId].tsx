@@ -1,7 +1,9 @@
 import { useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { ActivityIndicator, Image, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, Image, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
+import * as FileSystem from 'expo-file-system/legacy'
+import * as MediaLibrary from 'expo-media-library'
 import MapView, { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -10,6 +12,7 @@ import { useSavedExperienceDetail } from '@features/saved/hooks/useSavedExperien
 import { useUpsertSavedNote } from '@features/saved/hooks/useUpsertSavedNote'
 import { useUpsertSavedMeta } from '@features/saved/hooks/useUpsertSavedMeta'
 import { useUploadSavedCoverPhoto } from '@features/saved/hooks/useUploadSavedCoverPhoto'
+import { useRemoveSavedCoverPhoto } from '@features/saved/hooks/useRemoveSavedCoverPhoto'
 import { useIsSaved } from '@features/saved/hooks/useIsSaved'
 import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExperience'
 import { Badge } from '@components/ui/Badge'
@@ -29,6 +32,7 @@ const TYPE_BADGE_VARIANT: Record<string, BadgeVariant> = {
   accommodation: 'accommodation',
   activity: 'activity',
   restaurant: 'restaurant',
+  entertainment: 'entertainment',
   other: 'other',
 }
 
@@ -44,10 +48,15 @@ export default function SavedExperienceDetailScreen() {
   const upsertNote = useUpsertSavedNote(experienceId)
   const upsertMeta = useUpsertSavedMeta(experienceId)
   const uploadPhoto = useUploadSavedCoverPhoto(experienceId)
+  const removePhoto = useRemoveSavedCoverPhoto(experienceId)
 
   const [noteText, setNoteText] = useState<string | undefined>(undefined)
   const noteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [priceText, setPriceText] = useState<string | undefined>(undefined)
+  const priceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [ratingSheetVisible, setRatingSheetVisible] = useState(false)
+  const [downloadingPhoto, setDownloadingPhoto] = useState(false)
+  const [photoDownloaded, setPhotoDownloaded] = useState(false)
 
   function handleUnsave() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -65,6 +74,41 @@ export default function SavedExperienceDetailScreen() {
     })
     if (result.canceled) return
     uploadPhoto.mutate(result.assets[0])
+  }
+
+  function handleRemovePhoto() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+    Alert.alert(
+      t('saved_detail_removePhotoConfirmTitle'),
+      t('saved_detail_removePhotoConfirmBody'),
+      [
+        { text: t('common_cancel'), style: 'cancel' },
+        { text: t('common_delete'), style: 'destructive', onPress: () => removePhoto.mutate() },
+      ]
+    )
+  }
+
+  async function handleDownloadPhoto(url: string) {
+    if (downloadingPhoto) return
+    const { status } = await MediaLibrary.requestPermissionsAsync(true)
+    if (status !== 'granted') {
+      Alert.alert(t('saved_detail_photoPermissionTitle'), t('saved_detail_photoPermissionBody'))
+      return
+    }
+    setDownloadingPhoto(true)
+    try {
+      const localUri = `${FileSystem.cacheDirectory}saved_${experienceId}_${Date.now()}.jpg`
+      await FileSystem.downloadAsync(url, localUri)
+      await MediaLibrary.saveToLibraryAsync(localUri)
+      await FileSystem.deleteAsync(localUri, { idempotent: true })
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      setPhotoDownloaded(true)
+      setTimeout(() => setPhotoDownloaded(false), 2000)
+    } catch {
+      Alert.alert(t('common_error'), t('saved_detail_photoDownloadError'))
+    } finally {
+      setDownloadingPhoto(false)
+    }
   }
 
   if (isLoading) {
@@ -94,7 +138,8 @@ export default function SavedExperienceDetailScreen() {
     )
   }
 
-  const { experience, note, tags = [], would_return, price_paid, coverPhotoUrl } = data
+  const { experience, note, price_paid, coverPhotoUrl } = data
+  const priceValue = priceText ?? (price_paid != null ? String(price_paid) : '')
   const attributes = EXPERIENCE_ATTRIBUTES[experience.type as Experience['type']] ?? []
   const hasAttributes = attributes.length > 0
   const location = experience.location
@@ -176,6 +221,58 @@ export default function SavedExperienceDetailScreen() {
                 <View
                   style={{
                     position: 'absolute',
+                    top: 10,
+                    right: 10,
+                    flexDirection: 'row',
+                    gap: 8,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => handleDownloadPhoto(coverPhotoUrl)}
+                    hitSlop={8}
+                    disabled={downloadingPhoto}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'rgba(0,0,0,0.50)',
+                    }}
+                  >
+                    {downloadingPhoto ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Ionicons
+                        name={photoDownloaded ? 'checkmark' : 'download-outline'}
+                        size={16}
+                        color="#fff"
+                      />
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleRemovePhoto}
+                    hitSlop={8}
+                    disabled={removePhoto.isPending}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'rgba(0,0,0,0.50)',
+                    }}
+                  >
+                    {removePhoto.isPending ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Ionicons name="trash-outline" size={16} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={{
+                    position: 'absolute',
                     bottom: 10,
                     right: 10,
                     backgroundColor: 'rgba(0,0,0,0.50)',
@@ -254,6 +351,70 @@ export default function SavedExperienceDetailScreen() {
           </View>
         )}
 
+        {/* Price card — prominent stat layout */}
+        <View className="rounded-2xl mb-3" style={cardShadow}>
+          <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
+            <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
+              {t('saved_detail_priceLabel')}
+            </Text>
+            <View
+              className="px-4 pb-4 pt-1.5 items-center border-neutral-100 dark:border-surface-700"
+              style={{ borderTopWidth: 0.5 }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 8,
+                  backgroundColor: isDark ? colors.surface[700] : `${colors.primary[500]}14`,
+                }}
+              >
+                <Ionicons name="pricetag" size={20} color={colors.primary[500]} />
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 5 }}>
+                <TextInput
+                  value={priceValue}
+                  onChangeText={(v) => {
+                    const clean = v.replace(/[^0-9]/g, '')
+                    setPriceText(clean)
+                    clearTimeout(priceTimer.current)
+                    priceTimer.current = setTimeout(() => {
+                      const parsed = clean === '' ? null : parseInt(clean, 10)
+                      upsertMeta.mutate({ price_paid: isNaN(parsed as number) ? null : parsed })
+                    }, 800)
+                  }}
+                  onBlur={() => {
+                    clearTimeout(priceTimer.current)
+                    const parsed = priceValue === '' ? null : parseInt(priceValue, 10)
+                    upsertMeta.mutate({ price_paid: parsed !== null && !isNaN(parsed) ? parsed : null })
+                  }}
+                  placeholder={t('saved_detail_pricePlaceholder')}
+                  placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
+                  keyboardType="numeric"
+                  returnKeyType="done"
+                  textAlign="center"
+                  style={{
+                    fontSize: 30,
+                    fontWeight: '800',
+                    letterSpacing: -0.5,
+                    color: isDark ? colors.neutral[50] : colors.neutral[900],
+                    padding: 0,
+                    minWidth: 36,
+                  }}
+                />
+                {priceValue !== '' && (
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: isDark ? colors.neutral[500] : colors.neutral[400] }}>
+                    €
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Personal note card */}
         <View className="rounded-2xl mb-3" style={cardShadow}>
           <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
@@ -289,90 +450,6 @@ export default function SavedExperienceDetailScreen() {
             </View>
           </View>
         </View>
-
-        {/* Would Return? card */}
-        <View className="rounded-2xl mb-3" style={cardShadow}>
-          <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
-            <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-              {t('saved_detail_wouldReturn', 'Would you return?')}
-            </Text>
-            <View
-              className="px-4 py-3 flex-row gap-3 border-neutral-100 dark:border-surface-700"
-              style={{ borderTopWidth: 0.5 }}
-            >
-              {([
-                { value: true,  label: t('saved_detail_wouldReturn_yes', 'Yes'), icon: 'refresh-circle-outline', color: '#22C55E' },
-                { value: false, label: t('saved_detail_wouldReturn_no',  'No'),  icon: 'ban-outline',            color: colors.error },
-                { value: null,  label: t('saved_detail_wouldReturn_skip', 'Not sure'), icon: 'remove-circle-outline', color: colors.neutral[400] },
-              ] as const).map((opt) => {
-                const isActive = would_return === opt.value
-                return (
-                  <TouchableOpacity
-                    key={String(opt.value)}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                      upsertMeta.mutate({ would_return: opt.value })
-                    }}
-                    style={{
-                      flex: 1,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 5,
-                      paddingVertical: 8,
-                      borderRadius: 12,
-                      backgroundColor: isActive
-                        ? `${opt.color}18`
-                        : isDark ? colors.surface[700] : colors.neutral[100],
-                      borderWidth: isActive ? 1.5 : 0,
-                      borderColor: `${opt.color}60`,
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name={opt.icon as any}
-                      size={16}
-                      color={isActive ? opt.color : isDark ? colors.neutral[500] : colors.neutral[400]}
-                    />
-                    <Text style={{
-                      fontSize: 12,
-                      fontWeight: isActive ? '700' : '500',
-                      color: isActive ? opt.color : isDark ? colors.neutral[500] : colors.neutral[400],
-                    }}>
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
-          </View>
-        </View>
-
-        {/* Tags card (display only for now) */}
-        {tags.length > 0 && (
-          <View className="rounded-2xl mb-3" style={cardShadow}>
-            <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
-              <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-                {t('saved_detail_tags', 'Tags')}
-              </Text>
-              <View
-                className="px-4 py-3 flex-row flex-wrap gap-2 border-neutral-100 dark:border-surface-700"
-                style={{ borderTopWidth: 0.5 }}
-              >
-                {tags.map((tag) => (
-                  <View
-                    key={tag}
-                    className="bg-neutral-100 dark:bg-surface-700 rounded-full px-3 py-1"
-                  >
-                    <Text className="text-[13px] font-medium text-neutral-600 dark:text-neutral-300">
-                      #{tag}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          </View>
-        )}
 
         {hasAttributes && (
           <AttributeRatingSection

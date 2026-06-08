@@ -1,10 +1,8 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { Text, View } from 'react-native'
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Animated, {
-  interpolate,
-  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -14,13 +12,21 @@ import { Ionicons } from '@expo/vector-icons'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
 import { Skeleton } from '@components/ui/Skeleton'
 import { SavedExperienceCard } from '@features/saved/components/SavedExperienceCard'
-import { TypeIconFilter } from '@features/saved/components/TypeIconFilter'
-import { SavedExperiencesMap } from '@features/saved/components/SavedExperiencesMap'
+import { TypeIconFilter, type FilterTypeKey } from '@features/saved/components/TypeIconFilter'
 import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import type { Experience } from '@types/index'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getLocName(location: unknown): string {
+  if (typeof location === 'object' && location !== null && 'name' in location) {
+    return String((location as { name?: unknown }).name ?? '')
+  }
+  return ''
+}
 
 // ─── Loading skeleton ─────────────────────────────────────────────────────────
 
@@ -34,9 +40,69 @@ function SavedExperienceCardSkeleton({ index }: { index: number }) {
   )
 }
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+// ─── Search bar ───────────────────────────────────────────────────────────────
 
-type ViewMode = 'list' | 'map'
+function SearchBar({
+  value,
+  onChangeText,
+  placeholder,
+  isDark,
+}: {
+  value: string
+  onChangeText: (text: string) => void
+  placeholder: string
+  isDark: boolean
+}) {
+  const hasText = value.length > 0
+  const clearOpacity = useSharedValue(hasText ? 1 : 0)
+
+  useEffect(() => {
+    clearOpacity.value = withTiming(hasText ? 1 : 0, { duration: 150 })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasText])
+
+  const clearStyle = useAnimatedStyle(() => ({ opacity: clearOpacity.value }))
+
+  return (
+    <View
+      style={[
+        styles.searchContainer,
+        { backgroundColor: isDark ? colors.neutral[700] : '#FFFFFF' },
+      ]}
+    >
+      <Ionicons
+        name="search-outline"
+        size={16}
+        color={isDark ? colors.neutral[400] : colors.neutral[500]}
+      />
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={isDark ? colors.neutral[500] : colors.neutral[400]}
+        style={[
+          styles.searchInput,
+          { color: isDark ? colors.neutral[50] : colors.neutral[900] },
+        ]}
+        returnKeyType="search"
+        autoCorrect={false}
+        autoCapitalize="none"
+        clearButtonMode="never"
+      />
+      <Animated.View pointerEvents={hasText ? 'auto' : 'none'} style={clearStyle}>
+        <TouchableOpacity onPress={() => onChangeText('')} hitSlop={8}>
+          <Ionicons
+            name="close-circle"
+            size={16}
+            color={isDark ? colors.neutral[500] : colors.neutral[400]}
+          />
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  )
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function SavedExperiencesScreen() {
   const router = useRouter()
@@ -44,30 +110,21 @@ export default function SavedExperiencesScreen() {
   const { scrollY, scrollHandler } = useAppHeader()
   const { t } = useTranslation()
 
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [activeType, setActiveType] = useState<Experience['type'] | null>(null)
+  const [query, setQuery] = useState('')
 
   const { data: saved = [], isLoading } = useSavedExperiences()
 
-  // Collapsing large-title section
-  const sectionProgress = useSharedValue(0)
-  useAnimatedReaction(
-    () => scrollY.value,
-    (y) => {
-      if (y > 44 && sectionProgress.value < 0.5) {
-        sectionProgress.value = withTiming(1, { duration: 180 })
-      } else if (y < 18 && sectionProgress.value > 0.5) {
-        sectionProgress.value = withTiming(0, { duration: 180 })
-      }
-    }
-  )
-  const expandedSectionStyle = useAnimatedStyle(() => ({
-    height: interpolate(sectionProgress.value, [0, 1], [54, 0]),
-    overflow: 'hidden',
-  }))
+  const headerSubtitle = saved.length === 0
+    ? t('saved_header_empty')
+    : t('saved_header_count', { count: saved.length })
 
-  const handleFilterChange = useCallback((key: Experience['type'] | null) => {
-    setActiveType(key)
+  const handleFilterChange = useCallback((key: FilterTypeKey | null) => {
+    setActiveType(key as Experience['type'] | null)
+  }, [])
+
+  const handleQueryChange = useCallback((text: string) => {
+    setQuery(text)
   }, [])
 
   // Type counts
@@ -92,116 +149,131 @@ export default function SavedExperiencesScreen() {
   ] as Array<{ key: Experience['type'] | null; label: string; count?: number }>
   ).filter((tab) => tab.key === null || (tab.count ?? 0) > 0), [saved.length, typeCounts, t])
 
-  // Filtered items
+  // Filtered items — type filter + text query applied in series
   const filtered = useMemo(() => {
-    if (!activeType) return saved
-    return saved.filter((i) => i.experience.type === activeType)
-  }, [saved, activeType])
+    let result = activeType ? saved.filter(i => i.experience.type === activeType) : saved
+    const q = query.trim().toLowerCase()
+    if (q) {
+      result = result.filter(i =>
+        i.experience.title.toLowerCase().includes(q) ||
+        getLocName(i.experience.location).toLowerCase().includes(q)
+      )
+    }
+    return result
+  }, [saved, activeType, query])
 
-  // Header map/list toggle action
-  const rightActions = [
-    {
-      icon: (viewMode === 'list' ? 'map-outline' : 'list-outline') as React.ComponentProps<typeof Ionicons>['name'],
-      onPress: () => setViewMode((v) => (v === 'list' ? 'map' : 'list')),
-    },
-  ]
-
+  // Stable header — no query dep so FlatList never remounts it (TextInput keeps focus)
   const listHeader = useMemo(() => (
-    <View>
-      <Animated.View style={expandedSectionStyle}>
-        <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-1 pb-3">
-          {t('saved_title')}
-        </Text>
-      </Animated.View>
-      <View className="mb-2">
-        <TypeIconFilter
-          tabs={TYPE_TABS}
-          active={activeType}
-          onChange={handleFilterChange}
-          isDark={isDark}
-        />
-      </View>
+    <View className="mb-2 gap-2 pt-2">
+      <SearchBar
+        value={query}
+        onChangeText={handleQueryChange}
+        placeholder={t('saved_search_placeholder')}
+        isDark={isDark}
+      />
+      <TypeIconFilter
+        tabs={TYPE_TABS}
+        active={activeType}
+        onChange={handleFilterChange}
+        isDark={isDark}
+      />
     </View>
-  ), [expandedSectionStyle, TYPE_TABS, activeType, handleFilterChange, isDark, t])
+  ), [TYPE_TABS, activeType, handleFilterChange, isDark, t, query, handleQueryChange])
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       <AppHeader
         title={t('saved_title')}
+        subtitle={headerSubtitle}
         scrollY={scrollY}
-        expandProgress={sectionProgress}
-        rightActions={rightActions}
+        rightActions={[{ icon: 'map-outline', onPress: () => router.push('/saved-experiences/map'), variant: 'primary' }]}
       />
 
       {isLoading ? (
         <View className="px-5 pt-2 gap-3">
           {[0, 1, 2].map((i) => <SavedExperienceCardSkeleton key={i} index={i} />)}
         </View>
-      ) : viewMode === 'map' ? (
-        /* ── Map view ── */
-        <View style={{ flex: 1 }}>
-          <View className="px-5 pb-2 pt-1">
-            <TypeIconFilter
-              tabs={TYPE_TABS}
-              active={activeType}
-              onChange={handleFilterChange}
-              isDark={isDark}
-            />
-          </View>
-          <SavedExperiencesMap
-            items={filtered}
-            onItemPress={(id) => router.push(`/saved-experiences/${id}`)}
-          />
-        </View>
       ) : (
-        /* ── List view ── */
-        <Animated.FlatList
-          data={filtered}
-          keyExtractor={(item) => item.experience.id}
-          renderItem={({ item, index }) => (
-            <SavedExperienceCard
-              item={item}
-              index={index}
-              onPress={() => router.push(`/saved-experiences/${item.experience.id}`)}
-            />
-          )}
-          ListHeaderComponent={listHeader}
-          ListEmptyComponent={
-            saved.length === 0 ? (
-              <View className="flex-1 items-center justify-center px-8 pt-16">
-                <Ionicons
-                  name="bookmark-outline"
-                  size={52}
-                  color={isDark ? colors.neutral[500] : colors.neutral[400]}
-                  style={{ marginBottom: 16 }}
-                />
-                <Text className="text-[18px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
-                  {t('saved_empty_title')}
-                </Text>
-                <Text className="text-[15px] text-neutral-500 dark:text-neutral-400 text-center leading-[22px]">
-                  {t('saved_empty_subtitle')}
-                </Text>
-              </View>
-            ) : (
-              <View className="items-center justify-center px-8 pt-10">
-                <Ionicons
-                  name="filter-outline"
-                  size={36}
-                  color={isDark ? colors.neutral[500] : colors.neutral[400]}
-                  style={{ marginBottom: 12 }}
-                />
-                <Text className="text-[16px] font-semibold text-neutral-600 dark:text-neutral-300 text-center">
-                  {t('saved_filtered_noType', { type: activeType })}
-                </Text>
-              </View>
-            )
-          }
-          contentContainerClassName="px-5 pb-10 gap-3"
-          showsVerticalScrollIndicator={false}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-        />
+        <>
+          <Animated.FlatList
+            data={filtered}
+            keyExtractor={(item) => item.experience.id}
+            renderItem={({ item, index }) => (
+              <SavedExperienceCard
+                item={item}
+                index={index}
+                onPress={() => router.push(`/saved-experiences/${item.experience.id}`)}
+              />
+            )}
+            ListHeaderComponent={listHeader}
+            ListEmptyComponent={
+              saved.length === 0 ? (
+                <View className="flex-1 items-center justify-center px-8 pt-16">
+                  <Ionicons
+                    name="bookmark-outline"
+                    size={52}
+                    color={isDark ? colors.neutral[500] : colors.neutral[400]}
+                    style={{ marginBottom: 16 }}
+                  />
+                  <Text className="text-[18px] font-semibold text-neutral-700 dark:text-neutral-200 text-center mb-2">
+                    {t('saved_empty_title')}
+                  </Text>
+                  <Text className="text-[15px] text-neutral-500 dark:text-neutral-400 text-center leading-[22px]">
+                    {t('saved_empty_subtitle')}
+                  </Text>
+                </View>
+              ) : query.trim() ? (
+                <View className="items-center justify-center px-8 pt-10">
+                  <Ionicons
+                    name="search-outline"
+                    size={36}
+                    color={isDark ? colors.neutral[500] : colors.neutral[400]}
+                    style={{ marginBottom: 12 }}
+                  />
+                  <Text className="text-[16px] font-semibold text-neutral-600 dark:text-neutral-300 text-center">
+                    {t('saved_filtered_noQuery', { query: query.trim() })}
+                  </Text>
+                </View>
+              ) : (
+                <View className="items-center justify-center px-8 pt-10">
+                  <Ionicons
+                    name="filter-outline"
+                    size={36}
+                    color={isDark ? colors.neutral[500] : colors.neutral[400]}
+                    style={{ marginBottom: 12 }}
+                  />
+                  <Text className="text-[16px] font-semibold text-neutral-600 dark:text-neutral-300 text-center">
+                    {t('saved_filtered_noType', { type: activeType })}
+                  </Text>
+                </View>
+              )
+            }
+            contentContainerClassName="px-5 pb-10 gap-3"
+            showsVerticalScrollIndicator={false}
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
+          />
+        </>
       )}
     </SafeAreaView>
   )
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    height: 36,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    letterSpacing: -0.2,
+    paddingVertical: 0,
+  },
+})

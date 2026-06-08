@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import Animated, {
   scrollTo,
-  useAnimatedReaction,
   useAnimatedRef,
   useAnimatedStyle,
   useSharedValue,
@@ -16,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
 import { Skeleton } from '@components/ui/Skeleton'
 import { SegmentedTabBar } from '@components/ui/SegmentedTabBar'
+import { TypeIconFilter } from '@features/saved/components/TypeIconFilter'
 import { useWishlistItems } from '@features/wishlist/hooks/useWishlistItems'
 import { useDeleteWishlistItem } from '@features/wishlist/hooks/useDeleteWishlistItem'
 import { useToggleWishlistVisited } from '@features/wishlist/hooks/useToggleWishlistVisited'
@@ -56,62 +56,11 @@ function StaggeredWishlistCard(props: React.ComponentProps<typeof WishlistCard> 
   )
 }
 
-function FilterPill({ isActive, label, count, onPress }: { isActive: boolean; label: string; count?: number; onPress: () => void }) {
-  const scale = useSharedValue(1)
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
-  const isEmpty = count !== undefined && count === 0
-  return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={() => { scale.value = withTiming(0.95, { duration: DURATION.press, easing: EASE_OUT }) }}
-      onPressOut={() => { scale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
-    >
-      <Animated.View
-        style={[animStyle, isEmpty ? { opacity: 0.45 } : undefined]}
-        className={`flex-row items-center gap-1.5 px-3.5 py-1.5 rounded-full ${isActive ? 'bg-primary-500 dark:bg-primary-400' : 'bg-white dark:bg-surface-800'}`}
-      >
-        <Text className={`text-[13px] ${isActive ? 'font-semibold text-white' : 'font-normal text-neutral-600 dark:text-neutral-300'}`}>
-          {label}
-        </Text>
-        {count !== undefined && count > 0 && (
-          <View className={`px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20' : 'bg-primary-100 dark:bg-primary-600/40'}`}>
-            <Text className={`text-[10px] font-semibold ${isActive ? 'text-white' : 'text-primary-600 dark:text-primary-300'}`}>
-              {count}
-            </Text>
-          </View>
-        )}
-      </Animated.View>
-    </Pressable>
-  )
-}
-
 export default function WishlistScreen() {
   const { isDark } = useTheme()
   const router = useRouter()
   const { scrollY, scrollHandler } = useAppHeader()
   const { t } = useTranslation()
-
-  const TYPE_FILTERS: { key: WishlistItemType | null; label: string }[] = [
-    { key: null,            label: t('wishlist_type_all') },
-    { key: 'city',          label: t('wishlist_type_city') },
-    { key: 'restaurant',    label: t('wishlist_type_restaurant') },
-    { key: 'activity',      label: t('wishlist_type_activity') },
-    { key: 'accommodation', label: t('wishlist_type_accommodation') },
-    { key: 'entertainment', label: t('wishlist_type_entertainment') },
-    { key: 'other',         label: t('wishlist_type_other') },
-  ]
-  const sectionProgress = useSharedValue(0)
-
-  useAnimatedReaction(
-    () => scrollY.value,
-    (y) => {
-      if (y > 44 && sectionProgress.value < 0.5) {
-        sectionProgress.value = withTiming(1, { duration: 180 })
-      } else if (y < 18 && sectionProgress.value > 0.5) {
-        sectionProgress.value = withTiming(0, { duration: 180 })
-      }
-    }
-  )
 
   const { fabAnimStyle } = useFabScroll(scrollY)
 
@@ -165,8 +114,26 @@ export default function WishlistScreen() {
     return map
   }, [items, visitedFilter])
 
+  const TYPE_TABS = useMemo<Array<{ key: WishlistItemType | null; label: string; count?: number }>>(() => ([
+    { key: null,            label: t('wishlist_type_all') },
+    { key: 'city',          label: t('wishlist_type_city'),          count: typeCounts['city'] ?? 0 },
+    { key: 'restaurant',    label: t('wishlist_type_restaurant'),    count: typeCounts['restaurant'] ?? 0 },
+    { key: 'activity',      label: t('wishlist_type_activity'),      count: typeCounts['activity'] ?? 0 },
+    { key: 'accommodation', label: t('wishlist_type_accommodation'), count: typeCounts['accommodation'] ?? 0 },
+    { key: 'entertainment', label: t('wishlist_type_entertainment'), count: typeCounts['entertainment'] ?? 0 },
+    { key: 'other',         label: t('wishlist_type_other'),         count: typeCounts['other'] ?? 0 },
+  ]), [t, typeCounts])
+
   const isFiltered = !!activeType || !!search.trim()
-  const activeTypeLabel = TYPE_FILTERS.find((f) => f.key === activeType)?.label ?? ''
+  const activeTypeLabel = TYPE_TABS.find((f) => f.key === activeType)?.label ?? ''
+
+  const baseCount = useMemo(() => items.filter((i) =>
+    visitedFilter === 'visited' ? !!i.visited_at : !i.visited_at
+  ).length, [items, visitedFilter])
+
+  const headerSubtitle = items.length === 0
+    ? t('wishlist_header_empty')
+    : t(visitedFilter === 'visited' ? 'wishlist_header_visited' : 'wishlist_header_pending', { count: baseCount })
 
   function handleOpenAdd() {
     setEditItem(undefined)
@@ -219,39 +186,26 @@ export default function WishlistScreen() {
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       <AppHeader
         title={t('wishlist_title')}
+        subtitle={headerSubtitle}
         scrollY={scrollY}
-        expandProgress={sectionProgress}
       />
 
       {isLoading ? (
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View className="px-5">
-            <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
-              {t('wishlist_title')}
-            </Text>
-          </View>
-          <View className="px-5 pt-1 pb-24 gap-3">
+          <View className="px-5 pt-2 pb-24 gap-3">
             {[0, 1, 2, 3, 4].map((i) => <WishlistCardSkeleton key={i} />)}
           </View>
         </ScrollView>
       ) : (
         <Animated.ScrollView
           ref={scrollRef}
-          stickyHeaderIndices={[1]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           onScroll={scrollHandler}
           scrollEventThrottle={16}
         >
-          {/* index 0: título scrollea hacia arriba */}
-          <View className="px-5">
-            <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
-              {t('wishlist_title')}
-            </Text>
-          </View>
-
-          {/* index 1: controles sticky — tab bar + búsqueda + filtros */}
-          <View className="bg-neutral-100 dark:bg-surface-900">
+          {/* tab bar + búsqueda + filtros — scrollean junto con la lista */}
+          <View className="pt-2">
             <SegmentedTabBar
               tabs={[
                 { key: 'pending', label: t('wishlist_segment_pending'), icon: 'heart-outline' },
@@ -278,25 +232,15 @@ export default function WishlistScreen() {
               </View>
             </View>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 12, paddingHorizontal: 20, gap: 8 }}
-              keyboardShouldPersistTaps="handled"
-            >
-              {TYPE_FILTERS.map((filter) => (
-                <FilterPill
-                  key={String(filter.key)}
-                  isActive={activeType === filter.key}
-                  label={filter.label}
-                  count={filter.key !== null ? (typeCounts[filter.key] ?? 0) : undefined}
-                  onPress={() => setActiveType(filter.key)}
-                />
-              ))}
-            </ScrollView>
+            <TypeIconFilter
+              tabs={TYPE_TABS}
+              active={activeType}
+              onChange={(key) => setActiveType(key as WishlistItemType | null)}
+              isDark={isDark}
+            />
           </View>
 
-          {/* index 2: items */}
+          {/* items */}
           <Animated.View style={contentAnimStyle} className="px-5 pt-1 pb-24 gap-3">
             {filtered.length === 0 ? (
               items.length === 0 ? (

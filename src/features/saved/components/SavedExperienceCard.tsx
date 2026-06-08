@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ImageBackground, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Animated, {
   Easing,
+  runOnJS,
   useAnimatedProps,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -176,8 +178,57 @@ function ScoreArc({ score, index, isDark }: { score: number | null; index: numbe
 
 // ─── Attribute bar ────────────────────────────────────────────────────────────
 
-function AttributeBar({ label, value, isDark }: { label: string; value: number; isDark: boolean }) {
+function AnimatedBar({ value, isDark, index, height = 3, style }: {
+  value: number; isDark: boolean; index: number; height?: number; style?: object
+}) {
   const barColor = value >= 8 ? '#22C55E' : value >= 5 ? '#F59E0B' : '#94A3B8'
+  const barWidth = useSharedValue(0)
+  const measured = useRef(false)
+
+  const handleLayout = ({ nativeEvent: { layout: { width: w } } }: { nativeEvent: { layout: { width: number } } }) => {
+    if (measured.current || w === 0) return
+    measured.current = true
+    barWidth.value = withDelay(
+      index * 50,
+      withTiming(w * (value / 10), { duration: 500, easing: Easing.out(Easing.cubic) })
+    )
+  }
+
+  const barStyle = useAnimatedStyle(() => ({ width: barWidth.value }))
+
+  return (
+    <View
+      onLayout={handleLayout}
+      style={[
+        { height, borderRadius: 2, backgroundColor: isDark ? colors.surface[700] : colors.neutral[200], overflow: 'hidden' },
+        style,
+      ]}
+    >
+      <Animated.View style={[barStyle, { height: '100%', borderRadius: 2, backgroundColor: barColor }]} />
+    </View>
+  )
+}
+
+function AttributeBar({ label, value, isDark, index }: { label: string; value: number; isDark: boolean; index: number }) {
+  const barColor = value >= 8 ? '#22C55E' : value >= 5 ? '#F59E0B' : '#94A3B8'
+  const animNum = useSharedValue(0)
+  const [displayNum, setDisplayNum] = useState(0)
+
+  useEffect(() => {
+    animNum.value = withDelay(
+      index * 50,
+      withTiming(value, { duration: 500, easing: Easing.out(Easing.cubic) })
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useAnimatedReaction(
+    () => Math.round(animNum.value),
+    (current, previous) => {
+      if (current !== previous) runOnJS(setDisplayNum)(current)
+    }
+  )
+
   return (
     <View style={{ flex: 1, minWidth: 0 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
@@ -185,12 +236,46 @@ function AttributeBar({ label, value, isDark }: { label: string; value: number; 
           {label}
         </Text>
         <Text style={{ fontSize: 11, fontWeight: '700', color: barColor, marginLeft: 4 }}>
-          {value}
+          {displayNum}
         </Text>
       </View>
-      <View style={{ height: 3, borderRadius: 2, backgroundColor: isDark ? colors.surface[700] : colors.neutral[200], overflow: 'hidden' }}>
-        <View style={{ width: `${value * 10}%`, height: '100%', borderRadius: 2, backgroundColor: barColor }} />
-      </View>
+      <AnimatedBar value={value} isDark={isDark} index={index} />
+    </View>
+  )
+}
+
+// ─── Rating row (sheet) ───────────────────────────────────────────────────────
+
+function RatingRow({ rating, isDark, index }: { rating: Rating; isDark: boolean; index: number }) {
+  const { t } = useTranslation()
+  const barColor = rating.value >= 8 ? '#22C55E' : rating.value >= 5 ? '#F59E0B' : '#94A3B8'
+  const animNum = useSharedValue(0)
+  const [displayNum, setDisplayNum] = useState(0)
+
+  useEffect(() => {
+    animNum.value = withDelay(
+      index * 60,
+      withTiming(rating.value, { duration: 500, easing: Easing.out(Easing.cubic) })
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useAnimatedReaction(
+    () => Math.round(animNum.value),
+    (current, previous) => {
+      if (current !== previous) runOnJS(setDisplayNum)(current)
+    }
+  )
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <Text style={{ width: 96, fontSize: 12, color: isDark ? colors.neutral[400] : colors.neutral[500] }}>
+        {t(`expAttr_label_${rating.attribute}`, rating.attribute)}
+      </Text>
+      <AnimatedBar value={rating.value} isDark={isDark} index={index} height={4} style={{ flex: 1 }} />
+      <Text style={{ width: 18, fontSize: 12, fontWeight: '700', color: barColor, textAlign: 'right' }}>
+        {displayNum}
+      </Text>
     </View>
   )
 }
@@ -226,18 +311,8 @@ function RatingsPreviewSheet({
             isDark={isDark}
           />
           <View style={{ width: '100%', gap: 10, marginTop: 8 }}>
-            {ratings.map((r) => (
-              <View key={r.attribute} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Text style={{ width: 96, fontSize: 12, color: isDark ? colors.neutral[400] : colors.neutral[500] }}>
-                  {t(`expAttr_label_${r.attribute}`, r.attribute)}
-                </Text>
-                <View style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: isDark ? colors.surface[600] : colors.neutral[200], overflow: 'hidden' }}>
-                  <View style={{ width: `${r.value * 10}%`, height: '100%', borderRadius: 2, backgroundColor: r.value >= 8 ? '#22C55E' : r.value >= 5 ? '#F59E0B' : '#94A3B8' }} />
-                </View>
-                <Text style={{ width: 18, fontSize: 12, fontWeight: '700', color: r.value >= 8 ? '#22C55E' : r.value >= 5 ? '#F59E0B' : '#94A3B8', textAlign: 'right' }}>
-                  {r.value}
-                </Text>
-              </View>
+            {ratings.map((r, i) => (
+              <RatingRow key={r.attribute} rating={r} isDark={isDark} index={i} />
             ))}
           </View>
         </View>
@@ -262,7 +337,6 @@ interface SavedExperienceCardProps {
 
 export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCardProps) {
   const { experience, note, coverPhotoUrl } = item
-  const would_return: boolean | null = (item as any).would_return ?? null
 
   const type = experience.type as Experience['type']
   const ratings = experience.attribute_ratings
@@ -415,26 +489,13 @@ export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCar
                       {experience.title}
                     </Text>
 
-                    {/* Location + would_return */}
-                    {(locationText || would_return !== null) && (
+                    {/* Location */}
+                    {locationText && (
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 }}>
-                        {locationText ? (
-                          <>
-                            <Ionicons name="location-outline" size={11} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
-                            <Text numberOfLines={1} style={{ fontSize: 12, color: isDark ? colors.neutral[400] : colors.neutral[500], flex: 1 }}>
-                              {locationText}
-                            </Text>
-                          </>
-                        ) : (
-                          <View style={{ flex: 1 }} />
-                        )}
-                        {would_return !== null && (
-                          <Ionicons
-                            name={would_return ? 'refresh-circle-outline' : 'ban-outline'}
-                            size={16}
-                            color={would_return ? '#22C55E' : '#94A3B8'}
-                          />
-                        )}
+                        <Ionicons name="location-outline" size={11} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
+                        <Text numberOfLines={1} style={{ fontSize: 12, color: isDark ? colors.neutral[400] : colors.neutral[500], flex: 1 }}>
+                          {locationText}
+                        </Text>
                       </View>
                     )}
 
@@ -442,13 +503,13 @@ export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCar
                     {displayRatings.length > 0 && (
                       <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
                         <View style={{ flex: 1, gap: 8 }}>
-                          {leftCol.map((r) => (
-                            <AttributeBar key={r.attribute} label={r.attribute} value={r.value} isDark={isDark} />
+                          {leftCol.map((r, i) => (
+                            <AttributeBar key={r.attribute} label={r.attribute} value={r.value} isDark={isDark} index={i * 2} />
                           ))}
                         </View>
                         <View style={{ flex: 1, gap: 8 }}>
-                          {rightCol.map((r) => (
-                            <AttributeBar key={r.attribute} label={r.attribute} value={r.value} isDark={isDark} />
+                          {rightCol.map((r, i) => (
+                            <AttributeBar key={r.attribute} label={r.attribute} value={r.value} isDark={isDark} index={i * 2 + 1} />
                           ))}
                         </View>
                       </View>

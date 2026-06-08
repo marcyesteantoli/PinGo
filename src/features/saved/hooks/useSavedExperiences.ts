@@ -17,7 +17,7 @@ export function useSavedExperiences() {
       // 1. Fetch saved rows (includes Phase 2 fields added by migration)
       const { data: savedRows, error: savedError } = await supabase
         .from('user_saved_experiences')
-        .select('experience_id, saved_at, note, tags, would_return, price_paid, cover_photo_url')
+        .select('experience_id, saved_at, note, price_paid, cover_photo_url')
         .eq('user_id', userId!)
         .order('saved_at', { ascending: false })
 
@@ -83,8 +83,6 @@ export function useSavedExperiences() {
             saved_at: row.saved_at,
             note: (row as any).note ?? null,
             coverPhotoUrl,
-            tags: (row as any).tags ?? [],
-            would_return: (row as any).would_return ?? null,
             price_paid: (row as any).price_paid ?? null,
             experience: {
               ...exp,

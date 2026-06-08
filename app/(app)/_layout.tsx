@@ -10,6 +10,7 @@ export default function AppLayout() {
       <Stack.Screen name="trips/experience/[experienceId]" options={{ headerShown: false }} />
       <Stack.Screen name="trips/expense/[expenseId]" options={{ headerShown: false }} />
       <Stack.Screen name="saved-experiences/[experienceId]" options={{ headerShown: false }} />
+      <Stack.Screen name="saved-experiences/map" options={{ headerShown: false }} />
     </Stack>
   )
 }

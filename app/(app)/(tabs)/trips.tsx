@@ -161,10 +161,17 @@ export default function TripsScreen() {
   const pastTrips    = trips?.filter(t => t.end_date <  today) ?? []
   const displayedTrips = segment === 'upcoming' ? upcomingTrips : pastTrips
 
+  const headerSubtitle = !trips?.length
+    ? t('trips_header_empty')
+    : segment === 'upcoming'
+      ? t('trips_header_upcoming', { count: upcomingTrips.length })
+      : t('trips_header_past', { count: pastTrips.length })
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       <AppHeader
         title={t('trips_title')}
+        subtitle={headerSubtitle}
         scrollY={scrollY}
       />
 
@@ -190,21 +197,14 @@ export default function TripsScreen() {
       ) : (
         <Animated.ScrollView
           ref={scrollRef}
-          stickyHeaderIndices={[1]}
+          stickyHeaderIndices={[0]}
           refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />}
           showsVerticalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
         >
-          {/* index 0: título scrollea hacia arriba */}
-          <View className="px-5">
-            <Text className="text-[34px] font-bold text-neutral-900 dark:text-neutral-50 pt-2 pb-3">
-              {t('trips_title')}
-            </Text>
-          </View>
-
-          {/* index 1: tab bar sticky */}
-          <View className="bg-neutral-100 dark:bg-surface-900">
+          {/* index 0: tab bar sticky */}
+          <View className="bg-neutral-100 dark:bg-surface-900 pt-2">
             <SegmentedTabBar
               tabs={[
                 { key: 'upcoming', label: t('trips_segment_upcoming') },
@@ -215,7 +215,7 @@ export default function TripsScreen() {
             />
           </View>
 
-          {/* index 2: contenido */}
+          {/* index 1: contenido */}
           <Animated.View style={contentAnimStyle} className="px-5 pt-2 pb-8 gap-5">
             {displayedTrips.length === 0 ? (
               segment === 'upcoming' ? (

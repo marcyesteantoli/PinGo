@@ -7,8 +7,6 @@ import type { SavedExperienceItem } from '@types/index'
 
 interface SavedMeta {
   note?: string | null
-  tags?: string[]
-  would_return?: boolean | null
   price_paid?: number | null
   cover_photo_url?: string | null
 }
@@ -31,8 +29,6 @@ export function useUpsertSavedMeta(experienceId: string) {
       // Build update object — only defined fields
       const update: Record<string, unknown> = {}
       if (meta.note !== undefined) update.note = meta.note?.trim() || null
-      if (meta.tags !== undefined) update.tags = meta.tags
-      if (meta.would_return !== undefined) update.would_return = meta.would_return
       if (meta.price_paid !== undefined) update.price_paid = meta.price_paid
       if (meta.cover_photo_url !== undefined) update.cover_photo_url = meta.cover_photo_url
 
@@ -62,8 +58,6 @@ export function useUpsertSavedMeta(experienceId: string) {
               ? {
                   ...item,
                   ...(meta.note !== undefined && { note: meta.note?.trim() || null }),
-                  ...(meta.tags !== undefined && { tags: meta.tags }),
-                  ...(meta.would_return !== undefined && { would_return: meta.would_return }),
                   ...(meta.price_paid !== undefined && { price_paid: meta.price_paid }),
                 }
               : item

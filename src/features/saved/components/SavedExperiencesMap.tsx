@@ -1,41 +1,14 @@
-import { useMemo, useState } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
-import MapView, { Marker } from 'react-native-maps'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Image, Platform, Text, View } from 'react-native'
+import MapView, { Marker, type MarkerPressEvent } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
-import { cardShadow } from '@lib/shadows'
+import { TYPE_ICON, TYPE_ICON_COLOR } from '@features/saved/constants'
+import { SavedExperienceMapSheet } from './SavedExperienceMapSheet'
 import type { SavedExperienceItem, Experience } from '@types/index'
-
-// ─── Type maps ────────────────────────────────────────────────────────────────
-
-const TYPE_ICON: Record<Experience['type'], React.ComponentProps<typeof Ionicons>['name']> = {
-  transport:     'airplane-outline',
-  accommodation: 'bed-outline',
-  activity:      'compass-outline',
-  restaurant:    'restaurant-outline',
-  entertainment: 'film-outline',
-  other:         'ellipse-outline',
-}
-
-const TYPE_BG_HEX: Record<Experience['type'], string> = {
-  transport:     '#061E4E',
-  accommodation: '#24064E',
-  activity:      '#064E3B',
-  restaurant:    '#4E1E06',
-  entertainment: '#4E062A',
-  other:         '#1E293B',
-}
-
-const TYPE_ICON_COLOR: Record<Experience['type'], string> = {
-  transport:     '#3B82F6',
-  accommodation: '#8B5CF6',
-  activity:      '#22C55E',
-  restaurant:    '#F97316',
-  entertainment: '#EC4899',
-  other:         '#94A3B8',
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -54,150 +27,154 @@ function getLocation(location: unknown): { lat: number; lng: number; name: strin
   return null
 }
 
-function calcAvgScore(ratings: Array<{ attribute: string; value: number }>): number | null {
-  if (!ratings.length) return null
-  const sum = ratings.reduce((acc, r) => acc + r.value, 0)
-  return Math.round((sum / ratings.length) * 10) / 10
+// angular spread (degrees) of the located experiences — null when there's nothing to fit
+function calcSpreadDeg(items: SavedExperienceItem[]): number | null {
+  const locs = items.map(i => getLocation(i.experience.location)).filter(Boolean) as Array<{ lat: number; lng: number }>
+  if (locs.length === 0) return null
+  const lats = locs.map(l => l.lat)
+  const lngs = locs.map(l => l.lng)
+  return Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs))
 }
 
-// ─── Mini card preview shown when a pin is tapped ────────────────────────────
-
-function MiniCard({
-  item,
-  onNavigate,
-  onClose,
-}: {
-  item: SavedExperienceItem
-  onNavigate: () => void
-  onClose: () => void
-}) {
-  const { isDark } = useTheme()
-  const { t } = useTranslation()
-  const type = item.experience.type as Experience['type']
-  const score = calcAvgScore(item.experience.attribute_ratings)
-  const loc = getLocation(item.experience.location)
-
-  const scoreColor =
-    score === null   ? colors.neutral[400]
-    : score >= 8    ? '#22C55E'
-    : score >= 5    ? '#F59E0B'
-                    : '#94A3B8'
-
-  return (
-    <View style={[cardShadow, { borderRadius: 20, overflow: 'hidden' }]}>
-      <View style={{
-        backgroundColor: isDark ? colors.surface[800] : '#fff',
-        borderRadius: 20,
-        padding: 14,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-      }}>
-        {/* Type icon */}
-        <View style={{
-          width: 44, height: 44, borderRadius: 12,
-          backgroundColor: TYPE_BG_HEX[type],
-          alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>
-          <Ionicons name={TYPE_ICON[type]} size={20} color={TYPE_ICON_COLOR[type]} />
-        </View>
-
-        {/* Info */}
-        <View style={{ flex: 1 }}>
-          <Text
-            numberOfLines={1}
-            style={{
-              fontSize: 15, fontWeight: '700',
-              color: isDark ? colors.neutral[50] : colors.neutral[900],
-              marginBottom: 2,
-            }}
-          >
-            {item.experience.title}
-          </Text>
-          {loc?.name ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <Ionicons name="location-outline" size={11} color={colors.neutral[400]} />
-              <Text numberOfLines={1} style={{ fontSize: 12, color: colors.neutral[400], flex: 1 }}>
-                {loc.name}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-
-        {/* Score */}
-        {score !== null && (
-          <View style={{ alignItems: 'center', flexShrink: 0 }}>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: scoreColor, letterSpacing: -0.5 }}>
-              {score.toFixed(1)}
-            </Text>
-            <Text style={{ fontSize: 9, color: colors.neutral[400], fontWeight: '600' }}>/10</Text>
-          </View>
-        )}
-
-        {/* Open detail */}
-        <TouchableOpacity
-          onPress={onNavigate}
-          style={{
-            width: 36, height: 36, borderRadius: 18,
-            backgroundColor: colors.primary[500],
-            alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="chevron-forward" size={16} color="#fff" />
-        </TouchableOpacity>
-
-        {/* Close */}
-        <TouchableOpacity
-          onPress={onClose}
-          hitSlop={8}
-          style={{ position: 'absolute', top: 10, right: 10 }}
-        >
-          <Ionicons name="close-circle" size={18} color={colors.neutral[400]} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  )
+// iOS (Apple Maps) camera takes `altitude` in metres — proportional to spread so distant clusters look globe-like
+function calcAltitude(spread: number | null): number {
+  if (spread === null) return 5_000_000
+  const km = spread * 111
+  // factor empiric: altitude in metres ≈ km × 8000 with generous margins
+  return Math.max(30_000, Math.min(12_000_000, km * 8_000))
 }
 
-// ─── Custom marker ────────────────────────────────────────────────────────────
+// Android (Google Maps) camera has no `altitude` — it uses a log2 `zoom` level instead
+function calcZoom(spread: number | null): number {
+  if (spread === null) return 2
+  return Math.max(1, Math.min(14, Math.log2(360 / Math.max(spread, 0.01))))
+}
+
+// ─── Photo-thumbnail map pin ──────────────────────────────────────────────────
 
 function PinMarker({
   type,
+  photoUrl,
   isSelected,
+  onImageLoadEnd,
 }: {
   type: Experience['type']
+  photoUrl: string | null
   isSelected: boolean
+  onImageLoadEnd?: () => void
 }) {
+  const size = isSelected ? 52 : 40
+  const tipSize = isSelected ? 13 : 10
+  const color = TYPE_ICON_COLOR[type]
+
   return (
-    <View style={{
-      width: isSelected ? 44 : 36,
-      height: isSelected ? 44 : 36,
-      borderRadius: isSelected ? 22 : 18,
-      backgroundColor: TYPE_BG_HEX[type],
-      borderWidth: isSelected ? 3 : 2,
-      borderColor: '#fff',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-      <Ionicons
-        name={TYPE_ICON[type]}
-        size={isSelected ? 20 : 16}
-        color={TYPE_ICON_COLOR[type]}
-      />
+    <View style={{ alignItems: 'center' }}>
+      {/* Shadow wrapper — kept separate from the clipping circle so iOS doesn't cut it off */}
+      <View style={{
+        borderRadius: size / 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: isSelected ? 4 : 2 },
+        shadowOpacity: isSelected ? 0.45 : 0.3,
+        shadowRadius: isSelected ? 6 : 3,
+        elevation: isSelected ? 8 : 4,
+      }}>
+        <View style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: isSelected ? 3 : 2.5,
+          borderColor: '#ffffff',
+          overflow: 'hidden',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: photoUrl ? colors.neutral[200] : color,
+        }}>
+          {photoUrl ? (
+            <Image
+              source={{ uri: photoUrl }}
+              resizeMode="cover"
+              style={{ width: '100%', height: '100%' }}
+              onLoadEnd={onImageLoadEnd}
+            />
+          ) : (
+            <Ionicons name={TYPE_ICON[type]} size={isSelected ? 24 : 18} color="#ffffff" />
+          )}
+        </View>
+      </View>
+      {/* Teardrop tip — keeps the type colour visible even on photo pins */}
+      <View style={{
+        width: tipSize,
+        height: tipSize,
+        backgroundColor: color,
+        transform: [{ rotate: '45deg' }],
+        marginTop: -(tipSize / 2) - 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 1, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 2,
+        elevation: 3,
+      }} />
     </View>
   )
 }
 
-// ─── Main map component ───────────────────────────────────────────────────────
+// On Android, a custom-view Marker rendered with `tracksViewChanges={false}` from the
+// start never gets rasterised by Google Maps and stays invisible — keep tracking on
+// until the photo has loaded (or a fallback timeout passes for icon-only pins), and
+// again whenever the pin's appearance changes (selection).
+function ExperienceMarker({
+  item,
+  isSelected,
+  onPress,
+}: {
+  item: SavedExperienceItem
+  isSelected: boolean
+  onPress: (e: MarkerPressEvent) => void
+}) {
+  const photoUrl = item.coverPhotoUrl
+  const [ready, setReady] = useState(Platform.OS === 'ios')
 
-const DEFAULT_REGION = {
-  latitude: 48.8566,
-  longitude: 2.3522,
-  latitudeDelta: 20,
-  longitudeDelta: 20,
+  useEffect(() => {
+    if (ready) return
+    // photo pins get more headroom — `onImageLoadEnd` below usually wins the race anyway
+    const id = setTimeout(() => setReady(true), photoUrl ? 1200 : 300)
+    return () => clearTimeout(id)
+  }, [ready, photoUrl])
+
+  const loc = getLocation(item.experience.location)!
+  const type = item.experience.type as Experience['type']
+
+  return (
+    <Marker
+      coordinate={{ latitude: loc.lat, longitude: loc.lng }}
+      anchor={{ x: 0.5, y: 1 }}
+      calloutAnchor={{ x: 0.5, y: 0 }}
+      onPress={onPress}
+      tracksViewChanges={!ready || isSelected}
+    >
+      <PinMarker type={type} photoUrl={photoUrl} isSelected={isSelected} onImageLoadEnd={() => setReady(true)} />
+    </Marker>
+  )
 }
+
+// ─── Dark vector style (Android — iOS uses native mutedStandard) ─────────────
+
+const MAP_STYLE_DARK = [
+  { elementType: 'geometry', stylers: [{ color: colors.surface[900] }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: colors.surface[900] }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: colors.neutral[400] }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: colors.surface[700] }] },
+  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: colors.surface[800] }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: colors.neutral[500] }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: colors.surface[700] }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: colors.surface[800] }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: colors.surface[600] }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: colors.surface[800] }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: colors.surface[900] }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: colors.neutral[600] }] },
+]
+
+// ─── Main map component ───────────────────────────────────────────────────────
 
 interface SavedExperiencesMapProps {
   items: SavedExperienceItem[]
@@ -206,6 +183,7 @@ interface SavedExperiencesMapProps {
 
 export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const { isDark } = useTheme()
   const { t } = useTranslation()
 
   const locatedItems = useMemo(() =>
@@ -218,44 +196,64 @@ export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapP
     [locatedItems, selectedId]
   )
 
-  const initialRegion = useMemo(() => {
-    if (locatedItems.length === 0) return DEFAULT_REGION
+  const centerCoord = useMemo(() => {
+    if (locatedItems.length === 0) return { latitude: 20, longitude: 0 }
     const lats = locatedItems.map((i) => getLocation(i.experience.location)!.lat)
     const lngs = locatedItems.map((i) => getLocation(i.experience.location)!.lng)
-    const minLat = Math.min(...lats)
-    const maxLat = Math.max(...lats)
-    const minLng = Math.min(...lngs)
-    const maxLng = Math.max(...lngs)
-    const pad = 0.5
     return {
-      latitude: (minLat + maxLat) / 2,
-      longitude: (minLng + maxLng) / 2,
-      latitudeDelta: Math.max((maxLat - minLat) + pad, 0.05),
-      longitudeDelta: Math.max((maxLng - minLng) + pad, 0.05),
+      latitude: (Math.min(...lats) + Math.max(...lats)) / 2,
+      longitude: (Math.min(...lngs) + Math.max(...lngs)) / 2,
     }
   }, [locatedItems])
+
+  const spreadDeg = useMemo(() => calcSpreadDeg(locatedItems), [locatedItems])
+
+  const initialCamera = useMemo(() =>
+    Platform.OS === 'android'
+      ? { center: centerCoord, pitch: 0, heading: 0, zoom: calcZoom(spreadDeg) }
+      : { center: centerCoord, pitch: 0, heading: 0, altitude: Math.max(calcAltitude(spreadDeg), 8_000_000) },
+    [centerCoord, spreadDeg]
+  )
+
+  const mapRef = useRef<MapView>(null)
+
+  useEffect(() => {
+    if (!selectedItem) return
+    const loc = getLocation(selectedItem.experience.location)
+    if (!loc) return
+    mapRef.current?.animateCamera(
+      Platform.OS === 'android'
+        ? { center: { latitude: loc.lat, longitude: loc.lng }, zoom: 14 }
+        : { center: { latitude: loc.lat, longitude: loc.lng }, altitude: 20_000 },
+      { duration: 350 }
+    )
+  }, [selectedItem])
 
   return (
     <View style={{ flex: 1 }}>
       <MapView
+        ref={mapRef}
         style={{ flex: 1 }}
-        initialRegion={initialRegion}
+        mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
+        userInterfaceStyle={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
+        customMapStyle={Platform.OS === 'android' && isDark ? MAP_STYLE_DARK : undefined}
+        camera={initialCamera}
         onPress={() => setSelectedId(null)}
+        showsCompass={false}
+        showsScale={false}
       >
-        {locatedItems.map((item) => {
-          const loc = getLocation(item.experience.location)!
-          const type = item.experience.type as Experience['type']
-          return (
-            <Marker
-              key={item.experience.id}
-              coordinate={{ latitude: loc.lat, longitude: loc.lng }}
-              onPress={() => setSelectedId(item.experience.id)}
-              tracksViewChanges={false}
-            >
-              <PinMarker type={type} isSelected={selectedId === item.experience.id} />
-            </Marker>
-          )
-        })}
+        {locatedItems.map((item) => (
+          <ExperienceMarker
+            key={item.experience.id}
+            item={item}
+            isSelected={selectedId === item.experience.id}
+            onPress={(e) => {
+              e.stopPropagation()
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              setSelectedId(item.experience.id)
+            }}
+          />
+        ))}
       </MapView>
 
       {/* No location empty state */}
@@ -263,14 +261,19 @@ export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapP
         <View style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           alignItems: 'center', justifyContent: 'center',
-          backgroundColor: 'rgba(0,0,0,0.15)',
+          backgroundColor: 'rgba(0,0,0,0.5)',
         }}>
           <View style={{
-            backgroundColor: '#fff', borderRadius: 20, padding: 24,
-            alignItems: 'center', margin: 32,
+            backgroundColor: isDark ? colors.surface[800] : 'rgba(20,20,30,0.85)',
+            borderRadius: 20,
+            padding: 24,
+            alignItems: 'center',
+            margin: 32,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.1)',
           }}>
-            <Ionicons name="map-outline" size={44} color={colors.neutral[400]} style={{ marginBottom: 12 }} />
-            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.neutral[700], textAlign: 'center', marginBottom: 6 }}>
+            <Ionicons name="globe-outline" size={44} color={colors.neutral[400]} style={{ marginBottom: 12 }} />
+            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.neutral[100], textAlign: 'center', marginBottom: 6 }}>
               {t('saved_map_noLocations_title', 'No locations yet')}
             </Text>
             <Text style={{ fontSize: 13, color: colors.neutral[400], textAlign: 'center' }}>
@@ -280,19 +283,12 @@ export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapP
         </View>
       )}
 
-      {/* Selected item preview card */}
-      {selectedItem && (
-        <View style={{ position: 'absolute', bottom: 24, left: 16, right: 16 }}>
-          <MiniCard
-            item={selectedItem}
-            onNavigate={() => {
-              setSelectedId(null)
-              onItemPress(selectedItem.experience.id)
-            }}
-            onClose={() => setSelectedId(null)}
-          />
-        </View>
-      )}
+      <SavedExperienceMapSheet
+        item={selectedItem}
+        visible={!!selectedItem}
+        onClose={() => setSelectedId(null)}
+        onViewDetail={() => selectedItem && onItemPress(selectedItem.experience.id)}
+      />
     </View>
   )
 }
