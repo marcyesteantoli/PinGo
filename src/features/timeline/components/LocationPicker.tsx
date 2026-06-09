@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import MapView, { Marker } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
+import { Platform } from 'react-native'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 
@@ -22,6 +23,7 @@ interface Location {
   lat: number
   lng: number
   city?: string
+  placeId?: string
 }
 
 interface LocationPickerProps {
@@ -30,61 +32,77 @@ interface LocationPickerProps {
   error?: string
 }
 
-interface NominatimResult {
-  place_id: number
-  display_name: string
-  lat: string
-  lon: string
-  address?: {
-    tourism?: string
-    amenity?: string
-    road?: string
-    building?: string
-    neighbourhood?: string
-    suburb?: string
-    city?: string
-    town?: string
-    village?: string
-    county?: string
-    state?: string
-    country?: string
+interface GooglePrediction {
+  placePrediction: {
+    placeId: string
+    structuredFormat: {
+      mainText: { text: string }
+      secondaryText: { text: string }
+    }
   }
 }
 
-async function searchPlaces(q: string): Promise<NominatimResult[]> {
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&addressdetails=1&accept-language=es`
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'PinGo-TFM/1.0 (marcyesteantoli@gmail.com)' },
+interface GooglePlaceDetails {
+  location: { latitude: number; longitude: number }
+  displayName: { text: string }
+  addressComponents: Array<{ longText: string; types: string[] }>
+}
+
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
   })
-  if (!res.ok) return []
-  return res.json()
 }
 
-function getPlaceName(r: NominatimResult): string {
-  return (
-    r.address?.tourism ??
-    r.address?.amenity ??
-    r.address?.building ??
-    r.address?.road ??
-    r.address?.neighbourhood ??
-    r.display_name.split(',')[0]
+const PLACES_API_KEY = Platform.OS === 'ios'
+  ? process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY_IOS!
+  : process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY_ANDROID!
+
+async function fetchPredictions(query: string, sessionToken: string, lang: string): Promise<GooglePrediction[]> {
+  const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+    method: 'POST',
+    headers: {
+      'X-Goog-Api-Key': PLACES_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ input: query, sessionToken, languageCode: lang }),
+  })
+  const data = await res.json()
+  if (!res.ok) {
+    const status = data?.error?.status ?? `HTTP_${res.status}`
+    console.error('[LocationPicker] Places API error:', status, data?.error?.message)
+    throw new Error(status)
+  }
+  if (data.error?.status === 'RESOURCE_EXHAUSTED') throw new Error('QUOTA_EXCEEDED')
+  return data.suggestions ?? []
+}
+
+async function getPlaceDetails(placeId: string, sessionToken: string): Promise<GooglePlaceDetails | null> {
+  const res = await fetch(
+    `https://places.googleapis.com/v1/places/${placeId}?sessionToken=${encodeURIComponent(sessionToken)}`,
+    {
+      headers: {
+        'X-Goog-Api-Key': PLACES_API_KEY,
+        'X-Goog-FieldMask': 'id,displayName,location,addressComponents',
+      },
+    }
   )
-}
-
-function getPlaceSubtitle(r: NominatimResult): string {
-  const parts = r.display_name.split(',').slice(1, 3).map((s) => s.trim())
-  return parts.join(', ')
+  if (!res.ok) return null
+  return res.json()
 }
 
 export function LocationPicker({ value, onChange, error }: LocationPickerProps) {
   const { isDark } = useTheme()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [modalVisible, setModalVisible] = useState(false)
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<NominatimResult[]>([])
+  const [results, setResults] = useState<GooglePrediction[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [selected, setSelected] = useState<Location | null>(null)
+  const [searchError, setSearchError] = useState<string | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionTokenRef = useRef<string | null>(null)
 
   const borderColor = error
     ? colors.error
@@ -102,13 +120,16 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
   const handleOpen = () => {
     setQuery('')
     setResults([])
+    setSearchError(null)
     setSelected(value ?? null)
     setModalVisible(true)
+    sessionTokenRef.current = generateUUID()
   }
 
   const handleClose = () => {
     setModalVisible(false)
     setSelected(null)
+    sessionTokenRef.current = null
   }
 
   const handleConfirm = () => {
@@ -119,6 +140,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
 
   const handleQueryChange = (text: string) => {
     setQuery(text)
+    setSearchError(null)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (!text.trim()) {
       setResults([])
@@ -127,29 +149,46 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const data = await searchPlaces(text)
+        const data = await fetchPredictions(text, sessionTokenRef.current!, i18n.language)
         setResults(data)
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          if (e.message === 'QUOTA_EXCEEDED') {
+            setSearchError(t('timeline_locationPicker_quota_exceeded'))
+          } else {
+            setSearchError(t('timeline_locationPicker_error_api'))
+          }
+        }
+        setResults([])
       } finally {
         setIsSearching(false)
       }
     }, 600)
   }
 
-  const handleSelectResult = (result: NominatimResult) => {
-    const city =
-      result.address?.city ??
-      result.address?.town ??
-      result.address?.village ??
-      result.address?.county ??
-      result.address?.state
-    setSelected({
-      name: getPlaceName(result),
-      lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
-      ...(city ? { city } : {}),
-    })
-    setResults([])
-    setQuery('')
+  const handleSelectResult = async (prediction: GooglePrediction) => {
+    const { placeId, structuredFormat } = prediction.placePrediction
+    setIsSearching(true)
+    try {
+      const details = await getPlaceDetails(placeId, sessionTokenRef.current!)
+      sessionTokenRef.current = null
+      if (!details) return
+      const city =
+        details.addressComponents.find((c) => c.types.includes('locality'))?.longText ??
+        details.addressComponents.find((c) => c.types.includes('administrative_area_level_2'))?.longText ??
+        details.addressComponents.find((c) => c.types.includes('administrative_area_level_1'))?.longText
+      setSelected({
+        name: structuredFormat.mainText.text,
+        lat: details.location.latitude,
+        lng: details.location.longitude,
+        placeId,
+        ...(city ? { city } : {}),
+      })
+      setResults([])
+      setQuery('')
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   const showMap = selected !== null && results.length === 0
@@ -277,7 +316,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                 )}
                 {query.length > 0 && !isSearching && (
                   <TouchableOpacity
-                    onPress={() => { setQuery(''); setResults([]) }}
+                    onPress={() => { setQuery(''); setResults([]); setSearchError(null) }}
                     hitSlop={8}
                   >
                     <Ionicons name="close-circle" size={17} color={colors.neutral[400]} />
@@ -285,6 +324,15 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                 )}
               </View>
             </View>
+
+            {/* Quota error */}
+            {searchError && (
+              <View style={{ marginHorizontal: 16, marginTop: 4 }}>
+                <Text style={{ fontSize: 13, color: colors.error, textAlign: 'center' }}>
+                  {searchError}
+                </Text>
+              </View>
+            )}
 
             {/* Results list */}
             {results.length > 0 && (
@@ -304,7 +352,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
               >
                 <FlatList
                   data={results}
-                  keyExtractor={(item) => String(item.place_id)}
+                  keyExtractor={(item) => item.placePrediction.placeId}
                   keyboardShouldPersistTaps="handled"
                   scrollEnabled={false}
                   renderItem={({ item, index }) => (
@@ -338,13 +386,13 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                           numberOfLines={1}
                           style={{ fontSize: 15, color: textColor, fontWeight: '500' }}
                         >
-                          {getPlaceName(item)}
+                          {item.placePrediction.structuredFormat.mainText.text}
                         </Text>
                         <Text
                           numberOfLines={1}
                           style={{ fontSize: 13, color: colors.neutral[400], marginTop: 2 }}
                         >
-                          {getPlaceSubtitle(item)}
+                          {item.placePrediction.structuredFormat.secondaryText.text}
                         </Text>
                       </View>
                       <Ionicons name="chevron-forward" size={15} color={colors.neutral[300]} />

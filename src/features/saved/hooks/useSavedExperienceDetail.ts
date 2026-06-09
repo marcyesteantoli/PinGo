@@ -85,13 +85,17 @@ export function useSavedExperienceDetail(experienceId: string) {
         attributeRatings[r.attribute] = r.value
       }
 
-      const storagePath: string | null = savedRow?.cover_photo_url ?? null
+      const rawPhoto: string | null = savedRow?.cover_photo_url ?? null
       let coverPhotoUrl: string | null = null
-      if (storagePath) {
-        const { data: signed } = await supabase.storage
-          .from('saved-photos')
-          .createSignedUrl(storagePath, 3600)
-        coverPhotoUrl = signed?.signedUrl ?? null
+      if (rawPhoto) {
+        if (rawPhoto.startsWith('http')) {
+          coverPhotoUrl = rawPhoto
+        } else {
+          const { data: signed } = await supabase.storage
+            .from('saved-photos')
+            .createSignedUrl(rawPhoto, 3600)
+          coverPhotoUrl = signed?.signedUrl ?? null
+        }
       }
 
       return {

@@ -18,17 +18,30 @@ export function useMemories(tripId: string) {
       if (error) throw error
       if (!data.length) return data
 
-      // Generate signed URLs (1h TTL) — bucket is private, public URLs are blocked
-      const paths = data.map((m) => m.image_url)
-      const { data: signed, error: signError } = await supabase.storage
-        .from('memories')
-        .createSignedUrls(paths, 3600)
+      // Only sign storage paths — skip full URLs (e.g. seed data from picsum.photos)
+      const storageIndices: number[] = []
+      const storagePaths: string[] = []
+      data.forEach((m, i) => {
+        if (!m.image_url.startsWith('http')) {
+          storageIndices.push(i)
+          storagePaths.push(m.image_url)
+        }
+      })
 
-      if (signError) throw signError
+      const signedMap: Record<number, string> = {}
+      if (storagePaths.length > 0) {
+        const { data: signed, error: signError } = await supabase.storage
+          .from('memories')
+          .createSignedUrls(storagePaths, 3600)
+        if (signError) throw signError
+        storageIndices.forEach((idx, j) => {
+          signedMap[idx] = signed[j]?.signedUrl ?? data[idx].image_url
+        })
+      }
 
       return data.map((memory, i) => ({
         ...memory,
-        image_url: signed[i]?.signedUrl ?? memory.image_url,
+        image_url: signedMap[i] ?? memory.image_url,
       }))
     },
     staleTime: 1000 * 60 * 5,

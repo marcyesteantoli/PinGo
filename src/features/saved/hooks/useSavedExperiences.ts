@@ -55,16 +55,18 @@ export function useSavedExperiences() {
         attrMap.set(r.experience_id, list)
       }
 
-      // 4. Batch-generate signed URLs for cover photos stored as storage paths
-      const photoPaths = savedRows
+      // 4. Batch-generate signed URLs for cover photos stored as storage paths.
+      // Direct URLs (http/https) are used as-is; only storage paths need signing.
+      const allPhotoPaths = savedRows
         .map((r) => (r as any).cover_photo_url as string | null | undefined)
         .filter((p): p is string => !!p)
 
+      const storagePaths = allPhotoPaths.filter((p) => !p.startsWith('http'))
       const photoUrlMap = new Map<string, string>()
-      if (photoPaths.length > 0) {
+      if (storagePaths.length > 0) {
         const { data: signed } = await supabase.storage
           .from('saved-photos')
-          .createSignedUrls(photoPaths, 3600)
+          .createSignedUrls(storagePaths, 3600)
         for (const item of signed ?? []) {
           if (item.signedUrl) photoUrlMap.set(item.path, item.signedUrl)
         }
@@ -76,8 +78,10 @@ export function useSavedExperiences() {
           const exp = expMap.get(row.experience_id)
           if (!exp) return null
 
-          const storagePath = ((row as any).cover_photo_url as string | null | undefined) ?? null
-          const coverPhotoUrl = storagePath ? (photoUrlMap.get(storagePath) ?? null) : null
+          const rawUrl = ((row as any).cover_photo_url as string | null | undefined) ?? null
+          const coverPhotoUrl = rawUrl
+            ? rawUrl.startsWith('http') ? rawUrl : (photoUrlMap.get(rawUrl) ?? null)
+            : null
 
           return {
             saved_at: row.saved_at,

@@ -1,5 +1,5 @@
--- Rename file_url → file_path to align with app code (stores storage path, not URL)
-alter table documents rename column file_url to file_path;
+-- file_url was already dropped and replaced by file_path in 20260604000010.
+-- This migration only adds the nullable constraint and new columns.
 
 -- Make nullable for link documents (no file in storage)
 alter table documents alter column file_path drop not null;

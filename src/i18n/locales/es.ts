@@ -31,6 +31,9 @@ export const es = {
   auth_login_passwordPlaceholder: '••••••••',
   auth_login_passwordA11y: 'Campo de contraseña',
   auth_login_submit: 'Iniciar sesión',
+  auth_social_divider: 'o',
+  auth_social_google: 'Continuar con Google',
+  auth_social_apple: 'Continuar con Apple',
   auth_login_noAccount: '¿Sin cuenta?',
   auth_login_registerLink: 'Regístrate',
   auth_register_title: 'Crear cuenta',
@@ -66,6 +69,9 @@ export const es = {
   profile_signout: 'Cerrar sesión',
   profile_signout_title: 'Cerrar sesión',
   profile_signout_confirm: '¿Seguro que quieres salir?',
+  profile_avatar_title: 'Foto de perfil',
+  profile_avatar_change: 'Cambiar foto',
+  profile_avatar_remove: 'Eliminar foto',
 
   // ─── LANGUAGE ────────────────────────────────────────────────────────────
   lang_es: 'Español',
@@ -174,6 +180,8 @@ export const es = {
   timeline_locationPicker_empty_initial_title: 'Busca un lugar',
   timeline_locationPicker_empty_initial_subtitle: 'Escribe el nombre de un lugar, ciudad o dirección',
   timeline_locationPicker_confirm: 'Confirmar ubicación',
+  timeline_locationPicker_quota_exceeded: 'Búsqueda no disponible temporalmente. Introduce la ubicación manualmente.',
+  timeline_locationPicker_error_api: 'Error al buscar. Comprueba tu conexión e inténtalo de nuevo.',
   timeline_typePicker_label: 'Tipo',
 
   // ─── EXPERIENCE TYPES ────────────────────────────────────────────────────

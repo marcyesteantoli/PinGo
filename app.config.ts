@@ -16,14 +16,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.tfm.pingo',
+    bundleIdentifier: 'io.pingo.app',
+    config: {
+      googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY_IOS,
+    },
   },
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    package: 'com.tfm.pingo',
+    package: 'io.pingo.app',
+    config: {
+      googleMaps: {
+        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY_ANDROID,
+      },
+    },
   },
   plugins: [
     'expo-router',
@@ -43,18 +51,31 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     '@react-native-community/datetimepicker',
-    // TODO: when adding Google Maps API key, add the react-native-maps plugin here:
-    // ['react-native-maps', { googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }]
+    'expo-apple-authentication',
     [
       'expo-share-intent',
       {
         iosActivationRules: {
           NSExtensionActivationSupportsAttachmentsWithMaxCount: 1,
         },
-        iosAppGroupIdentifier: 'group.com.tfm.pingo',
+        iosAppGroupIdentifier: 'group.io.pingo.app',
         androidIntentFilters: ['image/*', '*/*'],
       },
     ],
+    // Sign in with Google requires EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME to be set (Google Cloud Console
+    // OAuth iOS client reversed-client-id) — the plugin throws at config-eval time without it.
+    // TODO(android-google): Create Android OAuth client in Google Cloud Console.
+    //   1. Run `eas credentials --platform android` to get the debug SHA-1 keystore fingerprint.
+    //   2. After first production build, add the production SHA-1 to the same Android client.
+    //   3. Both SHA-1s can coexist in one client — no extra env var needed.
+    ...(process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME
+      ? [
+          [
+            '@react-native-google-signin/google-signin',
+            { iosUrlScheme: process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME as string },
+          ] satisfies [string, { iosUrlScheme: string }],
+        ]
+      : []),
   ],
   experiments: {
     typedRoutes: true,
@@ -62,5 +83,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+    googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   },
 })

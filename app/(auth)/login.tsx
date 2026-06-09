@@ -1,20 +1,31 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Ionicons } from '@expo/vector-icons'
+import {
+  AppleAuthenticationButton,
+  AppleAuthenticationButtonStyle,
+  AppleAuthenticationButtonType,
+} from 'expo-apple-authentication'
 import { useRouter } from 'expo-router'
 import { useEffect, useMemo, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { useSignIn } from '@features/auth/hooks/useSignIn'
+import { useSignInWithApple } from '@features/auth/hooks/useSignInWithApple'
+import { useSignInWithGoogle } from '@features/auth/hooks/useSignInWithGoogle'
 import { buildLoginSchema, type LoginFormData } from '@features/auth/types'
+import { colors } from '@lib/colors'
 import { cardShadow, ctaShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
 
 export default function LoginScreen() {
   const router = useRouter()
   const signIn = useSignIn()
+  const signInWithGoogle = useSignInWithGoogle()
+  const signInWithApple = useSignInWithApple()
   const passwordRef = useRef<TextInput>(null)
   const showError = useErrorToast()
   const { t } = useTranslation()
@@ -24,6 +35,14 @@ export default function LoginScreen() {
   useEffect(() => {
     if (signIn.error) showError(signIn.error.message)
   }, [signIn.error])
+
+  useEffect(() => {
+    if (signInWithGoogle.error) showError(signInWithGoogle.error.message)
+  }, [signInWithGoogle.error])
+
+  useEffect(() => {
+    if (signInWithApple.error) showError(signInWithApple.error.message)
+  }, [signInWithApple.error])
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(schema),
@@ -118,6 +137,43 @@ export default function LoginScreen() {
                 {t('auth_login_submit')}
               </Button>
             </View>
+          </View>
+
+          <View className="flex-row items-center gap-3 my-6">
+            <View className="flex-1 h-px bg-neutral-200 dark:bg-surface-700" />
+            <Text className="text-sm text-neutral-500 dark:text-neutral-400">{t('auth_social_divider')}</Text>
+            <View className="flex-1 h-px bg-neutral-200 dark:bg-surface-700" />
+          </View>
+
+          <View className="gap-3">
+            <Pressable
+              onPress={() => signInWithGoogle.mutate()}
+              disabled={signInWithGoogle.isPending}
+              className="flex-row items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-neutral-300 bg-white dark:bg-surface-800 dark:border-neutral-600"
+              accessibilityRole="button"
+              accessibilityLabel={t('auth_social_google')}
+            >
+              {signInWithGoogle.isPending ? (
+                <ActivityIndicator color={colors.neutral[600]} />
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={20} color={colors.neutral[700]} />
+                  <Text className="text-[17px] font-semibold text-neutral-700 dark:text-neutral-200">
+                    {t('auth_social_google')}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+
+            {Platform.OS === 'ios' && (
+              <AppleAuthenticationButton
+                buttonType={AppleAuthenticationButtonType.SIGN_IN}
+                buttonStyle={AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={16}
+                style={{ height: 52 }}
+                onPress={() => signInWithApple.mutate()}
+              />
+            )}
           </View>
 
           <View className="flex-row items-center justify-center mt-8 gap-1">

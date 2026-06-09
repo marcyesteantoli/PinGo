@@ -31,6 +31,9 @@ export const en = {
   auth_login_passwordPlaceholder: '••••••••',
   auth_login_passwordA11y: 'Password field',
   auth_login_submit: 'Sign in',
+  auth_social_divider: 'or',
+  auth_social_google: 'Continue with Google',
+  auth_social_apple: 'Continue with Apple',
   auth_login_noAccount: 'No account?',
   auth_login_registerLink: 'Sign up',
   auth_register_title: 'Create account',
@@ -66,6 +69,9 @@ export const en = {
   profile_signout: 'Sign out',
   profile_signout_title: 'Sign out',
   profile_signout_confirm: 'Are you sure you want to sign out?',
+  profile_avatar_title: 'Profile photo',
+  profile_avatar_change: 'Change photo',
+  profile_avatar_remove: 'Remove photo',
 
   // ─── LANGUAGE ────────────────────────────────────────────────────────────
   lang_es: 'Español',
@@ -174,6 +180,8 @@ export const en = {
   timeline_locationPicker_empty_initial_title: 'Search a place',
   timeline_locationPicker_empty_initial_subtitle: 'Type the name of a place, city or address',
   timeline_locationPicker_confirm: 'Confirm location',
+  timeline_locationPicker_quota_exceeded: 'Search temporarily unavailable. Enter location manually.',
+  timeline_locationPicker_error_api: 'Search failed. Check your connection and try again.',
   timeline_typePicker_label: 'Type',
 
   // ─── EXPERIENCE TYPES ────────────────────────────────────────────────────

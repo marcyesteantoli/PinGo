@@ -84,6 +84,23 @@ export default function ProfileScreen() {
     }
   }
 
+  const removeAvatar = async () => {
+    if (!user?.id) return
+    await updateProfile.mutateAsync({ userId: user.id, avatar_url: null })
+  }
+
+  const handleAvatarPress = () => {
+    if (profile?.avatar_url) {
+      Alert.alert(t('profile_avatar_title'), undefined, [
+        { text: t('profile_avatar_change'), onPress: pickAvatar },
+        { text: t('profile_avatar_remove'), style: 'destructive', onPress: removeAvatar },
+        { text: t('common_cancel'), style: 'cancel' },
+      ])
+    } else {
+      pickAvatar()
+    }
+  }
+
   const handleSignOut = () => {
     Alert.alert(t('profile_signout_title'), t('profile_signout_confirm'), [
       { text: t('common_cancel'), style: 'cancel' },
@@ -128,7 +145,7 @@ export default function ProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-12">
         {/* Avatar hero */}
         <View className="items-center pt-6 pb-6">
-          <TouchableOpacity onPress={pickAvatar} activeOpacity={0.75}>
+          <TouchableOpacity onPress={handleAvatarPress} activeOpacity={0.75}>
             <View className="relative">
               <View className="items-center justify-center">
                 <Avatar

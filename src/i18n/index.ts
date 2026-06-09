@@ -26,7 +26,7 @@ export async function initI18n(): Promise<void> {
 
   await i18next.use(initReactI18next).init({
     lng,
-    fallbackLng: 'es',
+    fallbackLng: 'en',
     resources: {
       es: { translation: es },
       en: { translation: en },

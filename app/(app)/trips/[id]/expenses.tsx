@@ -199,6 +199,15 @@ export default function ExpensesScreen() {
     [balances]
   )
 
+  const sortedDebtTransactions = useMemo(() => {
+    if (!currentUser?.id) return debtTransactions
+    return [...debtTransactions].sort((a, b) => {
+      const aInvolved = a.fromUserId === currentUser.id || a.toUserId === currentUser.id ? 0 : 1
+      const bInvolved = b.fromUserId === currentUser.id || b.toUserId === currentUser.id ? 0 : 1
+      return aInvolved - bInvolved
+    })
+  }, [debtTransactions, currentUser?.id])
+
   const currentUserBalance = balances.find((b) => b.user_id === currentUser?.id)
 
   const groupedExpenses = useMemo((): ExpenseGroup[] => {
@@ -366,17 +375,17 @@ export default function ExpensesScreen() {
 
               {/* Tab: Ajustes */}
               {activeTab === 'ajustes' && (
-                debtTransactions.length > 0 ? (
+                sortedDebtTransactions.length > 0 ? (
                   <>
                     <View className="flex-row items-center justify-between">
                       <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                         {t('expenses_pending_label')}
                       </Text>
                       <Text className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {t(debtTransactions.length === 1 ? 'expenses_pending_count_one' : 'expenses_pending_count_other', { count: debtTransactions.length })}
+                        {t(sortedDebtTransactions.length === 1 ? 'expenses_pending_count_one' : 'expenses_pending_count_other', { count: sortedDebtTransactions.length })}
                       </Text>
                     </View>
-                    {debtTransactions.map((tx, i) => {
+                    {sortedDebtTransactions.map((tx, i) => {
                       const isInvolved =
                         tx.fromUserId === currentUser?.id || tx.toUserId === currentUser?.id
                       return (

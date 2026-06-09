@@ -288,7 +288,7 @@ export default function TripsScreen() {
           onPressIn={() => { fabMainScale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT }) }}
           onPressOut={() => { fabMainScale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT }) }}
         >
-          <Animated.View style={[fabMainAnimStyle, { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' }]}>
+          <Animated.View style={[fabMainAnimStyle, { width: 49, height: 49, borderRadius: 28, alignItems: 'center', justifyContent: 'center' }]}>
             <Animated.View style={[fabBgStyle, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28, ...fabShadow }]} />
             <Animated.View style={iconStyle}>
               <Ionicons name="add" size={28} color="#ffffff" />
