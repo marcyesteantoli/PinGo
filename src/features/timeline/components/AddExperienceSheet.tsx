@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -56,14 +56,23 @@ export function AddExperienceSheet({
     defaultValues: createDefaults(),
   })
 
+  const titleManuallyTypedRef = useRef(false)
   const watchedDate = watch('date')
   const watchedDestId = watch('destination_id')
+  const watchedLocation = watch('location')
 
   useEffect(() => {
     if (visible) {
+      titleManuallyTypedRef.current = !!(initialValues?.title)
       reset(createDefaults())
     }
   }, [visible])
+
+  useEffect(() => {
+    if (!watchedLocation) return
+    if (titleManuallyTypedRef.current) return
+    setValue('title', watchedLocation.name, { shouldValidate: false })
+  }, [watchedLocation])
 
   useEffect(() => {
     if (!watchedDate || !destinations.length) return
@@ -98,13 +107,28 @@ export function AddExperienceSheet({
           <View className="gap-4 pb-4">
             <Controller
               control={control}
+              name="location"
+              render={({ field: { onChange, value } }) => (
+                <LocationPicker
+                  value={value}
+                  onChange={onChange}
+                  error={errors.location?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
               name="title"
               render={({ field: { onChange, value } }) => (
                 <Input
                   label={t('timeline_field_title')}
                   placeholder={t('timeline_field_title_placeholder')}
                   value={value}
-                  onChangeText={onChange}
+                  onChangeText={(text) => {
+                    titleManuallyTypedRef.current = true
+                    onChange(text)
+                  }}
                   error={errors.title?.message}
                 />
               )}
@@ -201,18 +225,6 @@ export function AddExperienceSheet({
                   value={value ?? ''}
                   onChangeText={onChange}
                   autoCapitalize="characters"
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="location"
-              render={({ field: { onChange, value } }) => (
-                <LocationPicker
-                  value={value}
-                  onChange={onChange}
-                  error={errors.location?.message}
                 />
               )}
             />

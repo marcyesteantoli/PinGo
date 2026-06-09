@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Platform, Text, View } from 'react-native'
-import MapView, { Marker, type MarkerPressEvent } from 'react-native-maps'
+import MapView, { Marker, type MarkerPressEvent, type Region } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
+import { useMapClusters } from '@lib/useMapClusters'
+import { PinMarker, ClusterMarker } from '@components/map/MapPin'
 import { TYPE_ICONS, TYPE_COLORS } from '@features/wishlist/constants'
 import { WishlistMapSheet } from './WishlistMapSheet'
-import type { WishlistItem, WishlistItemType } from '@types/index'
+import type { WishlistItem } from '@types/index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,6 +44,19 @@ function calcZoom(spread: number | null): number {
   return Math.max(1, Math.min(14, Math.log2(360 / Math.max(spread, 0.01))))
 }
 
+function spreadToRegion(
+  centerCoord: { latitude: number; longitude: number },
+  spreadDeg: number | null,
+): Region {
+  const delta = spreadDeg ? Math.max(spreadDeg * 1.4, 0.01) : 180
+  return {
+    latitude: centerCoord.latitude,
+    longitude: centerCoord.longitude,
+    latitudeDelta: delta,
+    longitudeDelta: delta,
+  }
+}
+
 // ─── Dark map style (Android) ─────────────────────────────────────────────────
 
 const MAP_STYLE_DARK = [
@@ -59,53 +74,7 @@ const MAP_STYLE_DARK = [
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: colors.neutral[600] }] },
 ]
 
-// ─── Pin marker ───────────────────────────────────────────────────────────────
-
-function PinMarker({ type, isSelected }: { type: WishlistItemType; isSelected: boolean }) {
-  const size = isSelected ? 52 : 40
-  const tipSize = isSelected ? 13 : 10
-  const color = TYPE_COLORS[type]
-  const icon = TYPE_ICONS[type]
-
-  return (
-    <View style={{ alignItems: 'center' }}>
-      <View style={{
-        borderRadius: size / 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: isSelected ? 4 : 2 },
-        shadowOpacity: isSelected ? 0.45 : 0.3,
-        shadowRadius: isSelected ? 6 : 3,
-        elevation: isSelected ? 8 : 4,
-      }}>
-        <View style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: isSelected ? 3 : 2.5,
-          borderColor: '#ffffff',
-          overflow: 'hidden',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: color,
-        }}>
-          <Ionicons name={icon} size={isSelected ? 24 : 18} color="#ffffff" />
-        </View>
-      </View>
-      <View style={{
-        width: tipSize,
-        height: tipSize,
-        backgroundColor: color,
-        transform: [{ rotate: '45deg' }],
-        marginTop: -(tipSize / 2) - 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 1, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 2,
-        elevation: 3,
-      }} />
-    </View>
-  )
-}
+// ─── Individual marker ────────────────────────────────────────────────────────
 
 function WishlistMarker({
   item,
@@ -117,7 +86,6 @@ function WishlistMarker({
   onPress: (e: MarkerPressEvent) => void
 }) {
   const coord = getCoord(item)!
-
   return (
     <Marker
       coordinate={{ latitude: coord.lat, longitude: coord.lng }}
@@ -126,7 +94,11 @@ function WishlistMarker({
       onPress={onPress}
       tracksViewChanges={isSelected}
     >
-      <PinMarker type={item.type} isSelected={isSelected} />
+      <PinMarker
+        color={TYPE_COLORS[item.type]}
+        icon={TYPE_ICONS[item.type]}
+        isSelected={isSelected}
+      />
     </Marker>
   )
 }
@@ -173,6 +145,23 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
     [centerCoord, spreadDeg]
   )
 
+  const [currentRegion, setCurrentRegion] = useState<Region>(() =>
+    spreadToRegion(centerCoord, spreadDeg)
+  )
+
+  const clusterItems = useMemo(
+    () =>
+      locatedItems.map((item) => ({
+        id: item.id,
+        lat: getCoord(item)!.lat,
+        lng: getCoord(item)!.lng,
+        data: item,
+      })),
+    [locatedItems]
+  )
+
+  const { clusters, getExpansionRegion } = useMapClusters<WishlistItem>(clusterItems, currentRegion)
+
   const mapRef = useRef<MapView>(null)
 
   useEffect(() => {
@@ -196,22 +185,50 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
         userInterfaceStyle={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
         customMapStyle={Platform.OS === 'android' && isDark ? MAP_STYLE_DARK : undefined}
         camera={initialCamera}
+        onRegionChangeComplete={setCurrentRegion}
         onPress={() => setSelectedId(null)}
         showsCompass={false}
         showsScale={false}
       >
-        {locatedItems.map((item) => (
-          <WishlistMarker
-            key={item.id}
-            item={item}
-            isSelected={selectedId === item.id}
-            onPress={(e) => {
-              e.stopPropagation()
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              setSelectedId(item.id)
-            }}
-          />
-        ))}
+        {clusters.map((item) => {
+          if (item.type === 'cluster') {
+            return (
+              <Marker
+                key={`cluster-${item.clusterId}-${item.count}`}
+                coordinate={{ latitude: item.latitude, longitude: item.longitude }}
+                anchor={{ x: 0.5, y: 0.5 }}
+                tracksViewChanges={false}
+                onPress={(e) => {
+                  e.stopPropagation()
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                  const region = getExpansionRegion(item.clusterId)
+                  if (!region) return
+                  const zoom = Math.max(0, Math.min(20, Math.round(Math.log2(360 / region.latitudeDelta))))
+                  mapRef.current?.animateCamera(
+                    Platform.OS === 'android'
+                      ? { center: { latitude: region.latitude, longitude: region.longitude }, zoom }
+                      : { center: { latitude: region.latitude, longitude: region.longitude }, altitude: Math.max(30_000, region.latitudeDelta * 111 * 8_000) },
+                    { duration: 400 }
+                  )
+                }}
+              >
+                <ClusterMarker count={item.count} />
+              </Marker>
+            )
+          }
+          return (
+            <WishlistMarker
+              key={item.id}
+              item={item.data}
+              isSelected={selectedId === item.id}
+              onPress={(e) => {
+                e.stopPropagation()
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                setSelectedId(item.id)
+              }}
+            />
+          )
+        })}
       </MapView>
 
       {locatedItems.length === 0 && (

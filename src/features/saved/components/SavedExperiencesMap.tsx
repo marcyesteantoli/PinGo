@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Image, Platform, Text, View } from 'react-native'
-import MapView, { Marker, type MarkerPressEvent } from 'react-native-maps'
+import { Platform, Text, View } from 'react-native'
+import MapView, { Marker, type MarkerPressEvent, type Region } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
+import { useMapClusters } from '@lib/useMapClusters'
+import { PinMarker, ClusterMarker } from '@components/map/MapPin'
 import { TYPE_ICON, TYPE_ICON_COLOR } from '@features/saved/constants'
 import { SavedExperienceMapSheet } from './SavedExperienceMapSheet'
 import type { SavedExperienceItem, Experience } from '@types/index'
@@ -27,7 +29,6 @@ function getLocation(location: unknown): { lat: number; lng: number; name: strin
   return null
 }
 
-// angular spread (degrees) of the located experiences — null when there's nothing to fit
 function calcSpreadDeg(items: SavedExperienceItem[]): number | null {
   const locs = items.map(i => getLocation(i.experience.location)).filter(Boolean) as Array<{ lat: number; lng: number }>
   if (locs.length === 0) return null
@@ -36,92 +37,35 @@ function calcSpreadDeg(items: SavedExperienceItem[]): number | null {
   return Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs))
 }
 
-// iOS (Apple Maps) camera takes `altitude` in metres — proportional to spread so distant clusters look globe-like
 function calcAltitude(spread: number | null): number {
   if (spread === null) return 5_000_000
   const km = spread * 111
-  // factor empiric: altitude in metres ≈ km × 8000 with generous margins
   return Math.max(30_000, Math.min(12_000_000, km * 8_000))
 }
 
-// Android (Google Maps) camera has no `altitude` — it uses a log2 `zoom` level instead
 function calcZoom(spread: number | null): number {
   if (spread === null) return 2
   return Math.max(1, Math.min(14, Math.log2(360 / Math.max(spread, 0.01))))
 }
 
-// ─── Photo-thumbnail map pin ──────────────────────────────────────────────────
-
-function PinMarker({
-  type,
-  photoUrl,
-  isSelected,
-  onImageLoadEnd,
-}: {
-  type: Experience['type']
-  photoUrl: string | null
-  isSelected: boolean
-  onImageLoadEnd?: () => void
-}) {
-  const size = isSelected ? 52 : 40
-  const tipSize = isSelected ? 13 : 10
-  const color = TYPE_ICON_COLOR[type]
-
-  return (
-    <View style={{ alignItems: 'center' }}>
-      {/* Shadow wrapper — kept separate from the clipping circle so iOS doesn't cut it off */}
-      <View style={{
-        borderRadius: size / 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: isSelected ? 4 : 2 },
-        shadowOpacity: isSelected ? 0.45 : 0.3,
-        shadowRadius: isSelected ? 6 : 3,
-        elevation: isSelected ? 8 : 4,
-      }}>
-        <View style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: isSelected ? 3 : 2.5,
-          borderColor: '#ffffff',
-          overflow: 'hidden',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: photoUrl ? colors.neutral[200] : color,
-        }}>
-          {photoUrl ? (
-            <Image
-              source={{ uri: photoUrl }}
-              resizeMode="cover"
-              style={{ width: '100%', height: '100%' }}
-              onLoadEnd={onImageLoadEnd}
-            />
-          ) : (
-            <Ionicons name={TYPE_ICON[type]} size={isSelected ? 24 : 18} color="#ffffff" />
-          )}
-        </View>
-      </View>
-      {/* Teardrop tip — keeps the type colour visible even on photo pins */}
-      <View style={{
-        width: tipSize,
-        height: tipSize,
-        backgroundColor: color,
-        transform: [{ rotate: '45deg' }],
-        marginTop: -(tipSize / 2) - 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 1, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 2,
-        elevation: 3,
-      }} />
-    </View>
-  )
+function spreadToRegion(
+  centerCoord: { latitude: number; longitude: number },
+  spreadDeg: number | null,
+): Region {
+  const delta = spreadDeg ? Math.max(spreadDeg * 1.4, 0.01) : 180
+  return {
+    latitude: centerCoord.latitude,
+    longitude: centerCoord.longitude,
+    latitudeDelta: delta,
+    longitudeDelta: delta,
+  }
 }
 
+// ─── Individual experience marker ─────────────────────────────────────────────
 // On Android, a custom-view Marker rendered with `tracksViewChanges={false}` from the
-// start never gets rasterised by Google Maps and stays invisible — keep tracking on
-// until the photo has loaded (or a fallback timeout passes for icon-only pins), and
-// again whenever the pin's appearance changes (selection).
+// start never gets rasterised — keep tracking on until the photo has loaded (or a
+// fallback timeout passes), and again whenever selection changes.
+
 function ExperienceMarker({
   item,
   isSelected,
@@ -136,7 +80,6 @@ function ExperienceMarker({
 
   useEffect(() => {
     if (ready) return
-    // photo pins get more headroom — `onImageLoadEnd` below usually wins the race anyway
     const id = setTimeout(() => setReady(true), photoUrl ? 1200 : 300)
     return () => clearTimeout(id)
   }, [ready, photoUrl])
@@ -152,7 +95,13 @@ function ExperienceMarker({
       onPress={onPress}
       tracksViewChanges={!ready || isSelected}
     >
-      <PinMarker type={type} photoUrl={photoUrl} isSelected={isSelected} onImageLoadEnd={() => setReady(true)} />
+      <PinMarker
+        color={TYPE_ICON_COLOR[type]}
+        icon={TYPE_ICON[type]}
+        photoUrl={photoUrl}
+        isSelected={isSelected}
+        onImageLoadEnd={() => setReady(true)}
+      />
     </Marker>
   )
 }
@@ -215,6 +164,23 @@ export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapP
     [centerCoord, spreadDeg]
   )
 
+  const [currentRegion, setCurrentRegion] = useState<Region>(() =>
+    spreadToRegion(centerCoord, spreadDeg)
+  )
+
+  const clusterItems = useMemo(
+    () =>
+      locatedItems.map((item) => ({
+        id: item.experience.id,
+        lat: getLocation(item.experience.location)!.lat,
+        lng: getLocation(item.experience.location)!.lng,
+        data: item,
+      })),
+    [locatedItems]
+  )
+
+  const { clusters, getExpansionRegion } = useMapClusters<SavedExperienceItem>(clusterItems, currentRegion)
+
   const mapRef = useRef<MapView>(null)
 
   useEffect(() => {
@@ -238,25 +204,52 @@ export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapP
         userInterfaceStyle={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
         customMapStyle={Platform.OS === 'android' && isDark ? MAP_STYLE_DARK : undefined}
         camera={initialCamera}
+        onRegionChangeComplete={setCurrentRegion}
         onPress={() => setSelectedId(null)}
         showsCompass={false}
         showsScale={false}
       >
-        {locatedItems.map((item) => (
-          <ExperienceMarker
-            key={item.experience.id}
-            item={item}
-            isSelected={selectedId === item.experience.id}
-            onPress={(e) => {
-              e.stopPropagation()
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              setSelectedId(item.experience.id)
-            }}
-          />
-        ))}
+        {clusters.map((item) => {
+          if (item.type === 'cluster') {
+            return (
+              <Marker
+                key={`cluster-${item.clusterId}-${item.count}`}
+                coordinate={{ latitude: item.latitude, longitude: item.longitude }}
+                anchor={{ x: 0.5, y: 0.5 }}
+                tracksViewChanges={false}
+                onPress={(e) => {
+                  e.stopPropagation()
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                  const region = getExpansionRegion(item.clusterId)
+                  if (!region) return
+                  const zoom = Math.max(0, Math.min(20, Math.round(Math.log2(360 / region.latitudeDelta))))
+                  mapRef.current?.animateCamera(
+                    Platform.OS === 'android'
+                      ? { center: { latitude: region.latitude, longitude: region.longitude }, zoom }
+                      : { center: { latitude: region.latitude, longitude: region.longitude }, altitude: Math.max(30_000, region.latitudeDelta * 111 * 8_000) },
+                    { duration: 400 }
+                  )
+                }}
+              >
+                <ClusterMarker count={item.count} />
+              </Marker>
+            )
+          }
+          return (
+            <ExperienceMarker
+              key={item.id}
+              item={item.data}
+              isSelected={selectedId === item.id}
+              onPress={(e) => {
+                e.stopPropagation()
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                setSelectedId(item.id)
+              }}
+            />
+          )
+        })}
       </MapView>
 
-      {/* No location empty state */}
       {locatedItems.length === 0 && (
         <View style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,

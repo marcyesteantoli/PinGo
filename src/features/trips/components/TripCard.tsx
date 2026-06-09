@@ -267,18 +267,27 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
         className="rounded-2xl"
         style={[
           { opacity: containerWidth > 0 ? 1 : 0 },
-          cardShadow,
-          status === 'active' && {
-            borderWidth: 1.5,
-            borderColor: isDark ? 'rgba(0,70,222,0.50)' : 'rgba(0,70,222,0.35)',
-          },
+          status === 'active'
+            ? {
+                shadowColor: colors.primary[500],
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.18,
+                shadowRadius: 10,
+              }
+            : cardShadow,
         ]}
         onLayout={(e) => {
           const w = e.nativeEvent.layout.width
           if (w > 0 && w !== containerWidth) setContainerWidth(w)
         }}
       >
-        <View className="overflow-hidden rounded-2xl">
+        <View
+          className="overflow-hidden rounded-2xl"
+          style={status === 'active' && {
+            borderWidth: 1.5,
+            borderColor: isDark ? colors.primary[400] : colors.primary[500],
+          }}
+        >
           <Animated.View style={[{ flexDirection: 'row', width: rowWidth }, cardStyle]}>
             <GestureDetector gesture={pan}>
               <View style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}>
