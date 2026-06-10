@@ -64,6 +64,8 @@ const CATEGORY_ICON_COLOR: Record<ExpenseCategory, string> = {
 type RawCollaboratorRow = {
   user_id: string
   role: TripRole
+  status: 'active' | 'left'
+  joined_at: string
   profiles: { name: string; avatar_url: string | null } | null
 }
 
@@ -92,6 +94,8 @@ export default function ExpenseDetailScreen() {
     name: c.profiles?.name ?? '',
     avatar_url: c.profiles?.avatar_url ?? null,
     role: c.role,
+    status: c.status,
+    joined_at: c.joined_at,
   }))
 
   const updateExpense = useUpdateExpense(tripId, collaborators)

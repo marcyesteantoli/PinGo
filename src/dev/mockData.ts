@@ -74,13 +74,13 @@ export const mockTrips: Trip[] = [
 
 export const mockCollaborators: Record<string, Collaborator[]> = {
   [DEMO_TRIP_ID]: [
-    { user_id: DEMO_USER_ID,  name: 'Marc Yeste',    avatar_url: null, role: 'owner' },
-    { user_id: COLLAB_002_ID, name: 'Nuria Fabregat', avatar_url: null, role: 'member' },
-    { user_id: COLLAB_003_ID, name: 'Paula Tena',     avatar_url: null, role: 'member' },
+    { user_id: DEMO_USER_ID,  name: 'Marc Yeste',    avatar_url: null, role: 'owner',  status: 'active', joined_at: '2026-01-01T00:00:00Z' },
+    { user_id: COLLAB_002_ID, name: 'Nuria Fabregat', avatar_url: null, role: 'member', status: 'active', joined_at: '2026-01-02T00:00:00Z' },
+    { user_id: COLLAB_003_ID, name: 'Paula Tena',     avatar_url: null, role: 'member', status: 'active', joined_at: '2026-01-03T00:00:00Z' },
   ],
   [DEMO_TRIP_ID_2]: [
-    { user_id: DEMO_USER_ID,  name: 'Usuario Demo', avatar_url: null, role: 'owner' },
-    { user_id: COLLAB_002_ID, name: 'Ana García',    avatar_url: null, role: 'member' },
+    { user_id: DEMO_USER_ID,  name: 'Usuario Demo', avatar_url: null, role: 'owner',  status: 'active', joined_at: '2026-01-01T00:00:00Z' },
+    { user_id: COLLAB_002_ID, name: 'Ana García',    avatar_url: null, role: 'member', status: 'active', joined_at: '2026-01-02T00:00:00Z' },
   ],
 }
 

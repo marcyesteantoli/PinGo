@@ -20,11 +20,15 @@ export type TripWithCollaborators = Trip & {
   collaborators: Array<TripCollaborator & { profile: Profile }>
 }
 
+export type CollaboratorStatus = 'active' | 'left'
+
 export type Collaborator = {
   user_id: string
   name: string
   avatar_url: string | null
   role: TripRole
+  status: CollaboratorStatus
+  joined_at: string
 }
 
 export type ExpenseWithSplits = Expense & {
@@ -78,6 +82,7 @@ export type UserBalance = {
   paid: number
   owes: number
   balance: number // positivo = le deben, negativo = debe
+  status: CollaboratorStatus
 }
 
 export type Settlement = {

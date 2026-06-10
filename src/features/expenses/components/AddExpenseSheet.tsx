@@ -37,7 +37,7 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
 
   const schema = useMemo(() => buildCreateExpenseSchema(), [t])
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<CreateExpenseFormData>({
+  const { control, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<CreateExpenseFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       participant_ids: [],
@@ -118,6 +118,28 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
               />
             </View>
 
+            {/* Experience picker — optional */}
+            {experiences && experiences.length > 0 && (
+              <Controller
+                control={control}
+                name="experience_id"
+                render={({ field: { onChange, value } }) => (
+                  <ExperiencePicker
+                    experiences={experiences}
+                    value={value}
+                    onChange={(id) => {
+                      const newId = id === value ? undefined : id
+                      onChange(newId)
+                      if (newId && !getValues('description')?.trim()) {
+                        const experience = experiences.find((e) => e.id === newId)
+                        if (experience) setValue('description', experience.title)
+                      }
+                    }}
+                  />
+                )}
+              />
+            )}
+
             {/* Description */}
             <Controller
               control={control}
@@ -132,21 +154,6 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
                 />
               )}
             />
-
-            {/* Experience picker — optional */}
-            {experiences && experiences.length > 0 && (
-              <Controller
-                control={control}
-                name="experience_id"
-                render={({ field: { onChange, value } }) => (
-                  <ExperiencePicker
-                    experiences={experiences}
-                    value={value}
-                    onChange={(id) => onChange(id === value ? undefined : id)}
-                  />
-                )}
-              />
-            )}
 
             {/* Payer selector */}
             <Controller

@@ -30,7 +30,7 @@ interface TripHeaderProps {
 
 export function TripHeader({ scrollY }: TripHeaderProps) {
   const router = useRouter()
-  const { trip, collaborators } = useTripContext()
+  const { trip, activeCollaborators } = useTripContext()
   const { data: user } = useCurrentUser()
   const { data: profile } = useProfile(user?.id)
   const { isDark } = useTheme()
@@ -63,7 +63,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
   )
 
   const dateRange = `${formatShortDate(trip.start_date, i18n.language)} - ${formatShortDate(trip.end_date, i18n.language)}`
-  const travelerCount = collaborators.length
+  const travelerCount = activeCollaborators.length
   const borderColor = isDark ? colors.surface[800] : colors.white
   const subtleColor = isDark ? colors.neutral[200] : colors.neutral[400]
 
@@ -137,7 +137,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
               activeOpacity={0.7}
             >
               <View className="flex-row">
-                {collaborators.slice(0, 4).map((c, i) => (
+                {activeCollaborators.slice(0, 4).map((c, i) => (
                   <View
                     key={c.user_id}
                     style={{
@@ -151,7 +151,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
                     <Avatar name={c.name} uri={c.avatar_url} size="sm" />
                   </View>
                 ))}
-                {collaborators.length > 4 && (
+                {activeCollaborators.length > 4 && (
                   <View
                     style={{
                       marginLeft: -8,
@@ -167,7 +167,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
                     }}
                   >
                     <Text className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">
-                      +{collaborators.length - 4}
+                      +{activeCollaborators.length - 4}
                     </Text>
                   </View>
                 )}
@@ -193,7 +193,7 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
         title={t('tripHeader_membersSheet_title')}
       >
         <View className="mb-2">
-          {collaborators.map((c, i) => (
+          {activeCollaborators.map((c, i) => (
             <View
               key={c.user_id}
               className="flex-row items-center gap-3 py-3"

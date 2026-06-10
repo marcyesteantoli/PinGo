@@ -23,6 +23,7 @@ interface BalanceCardProps {
 export function BalanceCard({ balance, isCurrentUser, currency = 'EUR', index = 0 }: BalanceCardProps) {
   const { t } = useTranslation()
   const { colorScheme } = useColorScheme()
+  const hasLeft = balance.status === 'left'
 
   const isPositive = balance.balance > 0.005
   const isNegative = balance.balance < -0.005
@@ -58,7 +59,7 @@ export function BalanceCard({ balance, isCurrentUser, currency = 'EUR', index = 
       exiting={FadeOut.duration(160)}
       layout={LinearTransition.duration(280)}
       className="rounded-2xl"
-      style={cardShadow}
+      style={[cardShadow, hasLeft && { opacity: 0.5 }]}
     >
       <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
         {/* State-coded accent bar */}
@@ -68,7 +69,7 @@ export function BalanceCard({ balance, isCurrentUser, currency = 'EUR', index = 
           <Avatar uri={balance.avatar_url} name={balance.name} size="md" />
 
           <View className="flex-1 min-w-0 gap-0.5">
-            {/* Name row with inline "you" badge */}
+            {/* Name row with inline "you"/"left" badge */}
             <View className="flex-row items-center gap-1.5 flex-wrap">
               <Text
                 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50"
@@ -80,6 +81,13 @@ export function BalanceCard({ balance, isCurrentUser, currency = 'EUR', index = 
                 <View className="rounded-full px-1.5 py-px bg-neutral-100 dark:bg-surface-700">
                   <Text className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400">
                     {t('common_youLabel')}
+                  </Text>
+                </View>
+              )}
+              {hasLeft && (
+                <View className="rounded-full px-1.5 py-px bg-neutral-100 dark:bg-surface-700">
+                  <Text className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400">
+                    {t('balanceCard_leftTrip')}
                   </Text>
                 </View>
               )}

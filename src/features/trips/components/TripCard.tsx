@@ -13,7 +13,7 @@ import { formatDateRange } from '@utils/date'
 import { SUPPORTED_CURRENCIES } from '@utils/currencies'
 import { useTheme } from '@lib/theme'
 import type { TripWithCollaborators } from '@features/trips/hooks/useTrips'
-import { useDeleteTrip } from '../hooks/useDeleteTrip'
+import { useLeaveTrip } from '../hooks/useLeaveTrip'
 import { useUpdateTrip } from '../hooks/useUpdateTrip'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
@@ -58,7 +58,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
   const status = getTripStatus(trip.start_date, trip.end_date)
   const daysUntil = status === 'upcoming' ? getDaysUntil(trip.start_date) : 0
 
-  const deleteTrip = useDeleteTrip()
+  const leaveTrip = useLeaveTrip()
   const updateTrip = useUpdateTrip()
   const showError = useErrorToast()
 
@@ -68,7 +68,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
 
   const [containerWidth, setContainerWidth] = useState(() => Dimensions.get('window').width - 40)
   const [renameVisible, setRenameVisible] = useState(false)
-  const [deleteVisible, setDeleteVisible] = useState(false)
+  const [leaveVisible, setLeaveVisible] = useState(false)
   const [newTitle, setNewTitle] = useState(trip.title)
   const [newStartDate, setNewStartDate] = useState(trip.start_date)
   const [newEndDate, setNewEndDate] = useState(trip.end_date)
@@ -109,9 +109,9 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
     setRenameVisible(true)
   }
 
-  const handleDeletePress = () => {
+  const handleLeavePress = () => {
     closeSwipe()
-    setDeleteVisible(true)
+    setLeaveVisible(true)
   }
 
   const handleRenameConfirm = () => {
@@ -137,9 +137,9 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
     )
   }
 
-  const handleDeleteConfirm = () => {
-    deleteTrip.mutate(trip.id, {
-      onSuccess: () => setDeleteVisible(false),
+  const handleLeaveConfirm = () => {
+    leaveTrip.mutate(trip.id, {
+      onSuccess: () => setLeaveVisible(false),
     })
   }
 
@@ -306,15 +306,15 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
               <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>{t('common_edit')}</Text>
             </TouchableOpacity>
 
-            {/* Delete action */}
+            {/* Leave action */}
             <TouchableOpacity
-              onPress={handleDeletePress}
+              onPress={handleLeavePress}
               style={{ width: ACTION_WIDTH, backgroundColor: colors.error }}
               className="items-center justify-center gap-1"
               activeOpacity={0.8}
             >
-              <Ionicons name="trash-outline" size={20} color={colors.white} />
-              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>{t('common_delete')}</Text>
+              <Ionicons name="exit-outline" size={20} color={colors.white} />
+              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>{t('common_leave')}</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -399,27 +399,27 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
         </View>
       </BottomSheet>
 
-      {/* Delete confirm sheet */}
+      {/* Leave confirm sheet */}
       <BottomSheet
-        visible={deleteVisible}
-        onClose={() => setDeleteVisible(false)}
-        title={t('tripCard_deleteSheet_title')}
+        visible={leaveVisible}
+        onClose={() => setLeaveVisible(false)}
+        title={t('tripCard_leaveSheet_title')}
       >
         <View className="gap-4 mb-2">
           <View className="flex-row items-start gap-3 bg-error/10 rounded-2xl p-4">
             <Ionicons name="warning-outline" size={20} color={colors.error} />
             <Text className="text-sm text-neutral-700 dark:text-neutral-300 flex-1">
-              {t('tripCard_deleteSheet_body', { title: trip.title })}
+              {t('tripCard_leaveSheet_body', { title: trip.title })}
             </Text>
           </View>
           <Button
             variant="destructive"
-            onPress={handleDeleteConfirm}
-            isLoading={deleteTrip.isPending}
+            onPress={handleLeaveConfirm}
+            isLoading={leaveTrip.isPending}
           >
-            {t('tripCard_deleteSheet_title')}
+            {t('tripCard_leaveSheet_title')}
           </Button>
-          <TouchableOpacity onPress={() => setDeleteVisible(false)} className="py-3 items-center">
+          <TouchableOpacity onPress={() => setLeaveVisible(false)} className="py-3 items-center">
             <Text className="text-neutral-500 font-medium">{t('common_cancel')}</Text>
           </TouchableOpacity>
         </View>

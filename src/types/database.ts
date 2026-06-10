@@ -58,14 +58,20 @@ export interface Database {
           trip_id: string
           user_id: string
           role: 'owner' | 'member'
+          status: 'active' | 'left'
+          joined_at: string
         }
         Insert: {
           trip_id: string
           user_id: string
           role?: 'owner' | 'member'
+          status?: 'active' | 'left'
+          joined_at?: string
         }
         Update: {
           role?: 'owner' | 'member'
+          status?: 'active' | 'left'
+          joined_at?: string
         }
       }
       experiences: {

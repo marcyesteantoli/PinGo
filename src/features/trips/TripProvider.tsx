@@ -13,6 +13,8 @@ import type { Collaborator, TripRole, Trip } from '@types/index'
 type CollaboratorRow = {
   user_id: string
   role: TripRole
+  status: 'active' | 'left'
+  joined_at: string
   profiles: { name: string; avatar_url: string | null } | null
 }
 
@@ -20,6 +22,7 @@ type TripContextValue = {
   tripId: string
   trip: Trip
   collaborators: Collaborator[]
+  activeCollaborators: Collaborator[]
   currentUserRole: 'owner' | 'member'
   isOwner: boolean
   isLoading: boolean
@@ -57,7 +60,7 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
         supabase.from('trips').select('*').eq('id', tripId).single(),
         supabase
           .from('trip_collaborators')
-          .select('user_id, role, profiles(name, avatar_url)')
+          .select('user_id, role, status, joined_at, profiles(name, avatar_url)')
           .eq('trip_id', tripId),
         supabase.auth.getUser(),
       ])
@@ -94,10 +97,14 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
       name: c.profiles?.name ?? '',
       avatar_url: c.profiles?.avatar_url ?? null,
       role: c.role,
+      status: c.status,
+      joined_at: c.joined_at,
     }))
 
+  const activeCollaborators = collaborators.filter((c) => c.status === 'active')
+
   const currentUserRole =
-    collaborators.find((c) => c.user_id === data.userId)?.role ?? 'member'
+    activeCollaborators.find((c) => c.user_id === data.userId)?.role ?? 'member'
 
   return (
     <TripContext.Provider
@@ -105,6 +112,7 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
         tripId,
         trip: data.trip,
         collaborators,
+        activeCollaborators,
         currentUserRole,
         isOwner: currentUserRole === 'owner',
         isLoading,

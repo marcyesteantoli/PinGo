@@ -101,6 +101,11 @@ export default function ProfileScreen() {
     }
   }
 
+  const handleReplayOnboarding = () => {
+    router.back()
+    setTimeout(() => router.push('/(app)/onboarding?replay=1'), 50)
+  }
+
   const handleSignOut = () => {
     Alert.alert(t('profile_signout_title'), t('profile_signout_confirm'), [
       { text: t('common_cancel'), style: 'cancel' },
@@ -329,6 +334,21 @@ export default function ProfileScreen() {
             <Text className={`${labelBase} flex-1`}>{t('profile_field_version')}</Text>
             <Text className={valueBase}>{appVersion}</Text>
           </View>
+          <View className={divider} />
+          <TouchableOpacity
+            onPress={handleReplayOnboarding}
+            className={rowBase}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="play-circle-outline"
+              size={20}
+              color={iconColor}
+              style={{ marginRight: 12 }}
+            />
+            <Text className={`${labelBase} flex-1`}>{t('profile_replay_onboarding')}</Text>
+            <Ionicons name="chevron-forward" size={16} color={iconColor} />
+          </TouchableOpacity>
           <View className={divider} />
           <TouchableOpacity
             onPress={() => Linking.openURL('https://pingo.app/terminos')}

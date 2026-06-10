@@ -173,14 +173,14 @@ function CategoryExpenseCard({
 }
 
 export default function ExpensesScreen() {
-  const { tripId, collaborators, trip } = useTripContext()
+  const { tripId, collaborators, activeCollaborators, trip } = useTripContext()
   const tripCurrency = trip.currency ?? 'EUR'
   const router = useRouter()
   const { t } = useTranslation()
   const { data: currentUser } = useCurrentUser()
   const { data: expenses, isLoading, isFetching, refetch } = useExpenses(tripId)
   const { data: experiences } = useExperiences(tripId)
-  const createExpense = useCreateExpense(tripId, collaborators, tripCurrency)
+  const createExpense = useCreateExpense(tripId, activeCollaborators, tripCurrency)
   const updateExpense = useUpdateExpense(tripId, collaborators)
   const deleteExpense = useDeleteExpense(tripId)
   const settleDebt = useSettleDebt(tripId)
@@ -521,7 +521,7 @@ export default function ExpensesScreen() {
         isLoading={createExpense.isPending || updateExpense.isPending}
         error={createExpense.error?.message ?? updateExpense.error?.message}
         currentUserId={currentUser?.id}
-        collaborators={collaborators}
+        collaborators={activeCollaborators}
         experiences={experiences ?? []}
         tripCurrency={tripCurrency}
         initialData={

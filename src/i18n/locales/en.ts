@@ -4,6 +4,7 @@ export const en = {
   common_save: 'Save changes',
   common_saveNew: 'Save',
   common_delete: 'Delete',
+  common_leave: 'Leave',
   common_edit: 'Edit',
   common_retry: 'Retry',
   common_loading: 'Loading...',
@@ -99,8 +100,8 @@ export const en = {
   tripCard_persons_other: '{{count}} people',
   tripCard_share_message: 'Join "{{title}}" on PinGo with code: {{code}}',
   tripCard_editSheet_title: 'Edit trip',
-  tripCard_deleteSheet_title: 'Delete trip',
-  tripCard_deleteSheet_body: '"{{title}}" and all its data will be permanently deleted. This action cannot be undone.',
+  tripCard_leaveSheet_title: 'Leave trip',
+  tripCard_leaveSheet_body: 'You\'ll stop seeing "{{title}}". If you\'re the only member, the trip will be deleted entirely; if others remain, your past expenses are kept for them.',
 
   // ─── TRIP HEADER ─────────────────────────────────────────────────────────
   tripHeader_travelers_one: '{{count}} traveler',
@@ -399,6 +400,7 @@ export const en = {
   expenses_balance_even: 'Even',
   expenses_balance_owed: 'Owed to you',
   expenses_balance_owes_badge: 'You owe',
+  balanceCard_leftTrip: 'Left the trip',
   expenses_pending_label: 'Pending',
   expenses_pending_count_one: '{{count}} pending',
   expenses_pending_count_other: '{{count}} pending',
@@ -530,4 +532,30 @@ export const en = {
 
   // ─── BOTTOMSHEET ─────────────────────────────────────────────────────────
   bottomSheet_close: 'Close',
+
+  // ─── ONBOARDING ──────────────────────────────────────────────────────────
+  profile_replay_onboarding: 'View introduction',
+
+  onboarding_skip: 'Skip',
+  onboarding_get_started: 'Get started',
+  onboarding_create_trip: 'Create my first trip →',
+  onboarding_explore_first: 'Explore first',
+  onboarding_slide1_title: 'Welcome to PinGo',
+  onboarding_slide1_subtitle: 'The way to travel you\'ve been waiting for.',
+  onboarding_slide2_title: 'Planning trips is chaos',
+  onboarding_slide2_subtitle: 'You know it well.',
+  onboarding_slide2_chip1: '💬  Endless messages chains',
+  onboarding_slide2_chip2: '📊  Expense spreadsheets',
+  onboarding_slide2_chip3: '📸  Lost screenshots',
+  onboarding_slide2_chip4: '📧  Documents over email',
+  onboarding_slide3_title: 'One itinerary for everyone',
+  onboarding_slide3_subtitle: 'Plan together in real time. The group always in sync, no more confirmation messages.',
+  onboarding_slide4_title: 'Every photo, a memory',
+  onboarding_slide4_subtitle: 'Share your trip photos with the whole group and relive those moments together.',
+  onboarding_slide5_title: 'Expenses split instantly',
+  onboarding_slide5_subtitle: 'Add an expense and PinGo splits it automatically across the group. Keep receipts and trip documents in the same place.',
+  onboarding_slide6_title: 'Save your favorite places',
+  onboarding_slide6_subtitle: 'Build your map of must-go spots and share it with friends so they can discover your recommendations.',
+  onboarding_slide8_title: 'Ready for takeoff',
+  onboarding_slide8_subtitle: 'Create your first trip now and start planning.',
 } as const

@@ -4,6 +4,7 @@ export const es = {
   common_save: 'Guardar cambios',
   common_saveNew: 'Guardar',
   common_delete: 'Eliminar',
+  common_leave: 'Salir',
   common_edit: 'Editar',
   common_retry: 'Reintentar',
   common_loading: 'Cargando...',
@@ -99,8 +100,8 @@ export const es = {
   tripCard_persons_other: '{{count}} personas',
   tripCard_share_message: 'Únete a "{{title}}" en PinGo con el código: {{code}}',
   tripCard_editSheet_title: 'Editar viaje',
-  tripCard_deleteSheet_title: 'Eliminar viaje',
-  tripCard_deleteSheet_body: 'Se eliminará «{{title}}» y todos sus datos permanentemente. Esta acción no se puede deshacer.',
+  tripCard_leaveSheet_title: 'Salir del viaje',
+  tripCard_leaveSheet_body: 'Dejarás de ver «{{title}}». Si eres el único miembro, el viaje se eliminará por completo; si quedan más personas, tus gastos pasados se conservan para ellas.',
 
   // ─── TRIP HEADER ─────────────────────────────────────────────────────────
   tripHeader_travelers_one: '{{count}} viajero',
@@ -399,6 +400,7 @@ export const es = {
   expenses_balance_even: 'En paz',
   expenses_balance_owed: 'Te deben',
   expenses_balance_owes_badge: 'Debes',
+  balanceCard_leftTrip: 'Salió del viaje',
   expenses_pending_label: 'Pendientes',
   expenses_pending_count_one: '{{count}} pendiente',
   expenses_pending_count_other: '{{count}} pendientes',
@@ -530,6 +532,32 @@ export const es = {
 
   // ─── BOTTOMSHEET ─────────────────────────────────────────────────────────
   bottomSheet_close: 'Cerrar',
+
+  // ─── ONBOARDING ──────────────────────────────────────────────────────────
+  profile_replay_onboarding: 'Ver introducción',
+
+  onboarding_skip: 'Saltar',
+  onboarding_get_started: 'Empezar',
+  onboarding_create_trip: 'Crear mi primer viaje →',
+  onboarding_explore_first: 'Explorar primero',
+  onboarding_slide1_title: 'Bienvenido a PinGo',
+  onboarding_slide1_subtitle: 'La forma de viajar que estabas esperando.',
+  onboarding_slide2_title: 'Planificar viajes es un caos',
+  onboarding_slide2_subtitle: 'Lo conoces bien.',
+  onboarding_slide2_chip1: '💬  WhatsApp interminable',
+  onboarding_slide2_chip2: '📊  Excel de gastos',
+  onboarding_slide2_chip3: '📸  Screenshots perdidas',
+  onboarding_slide2_chip4: '📧  Documentos por email',
+  onboarding_slide3_title: 'Un itinerario para todos',
+  onboarding_slide3_subtitle: 'Planificad juntos en tiempo real. El grupo siempre sincronizado, sin más mensajes de confirmación.',
+  onboarding_slide4_title: 'Cada foto, un recuerdo',
+  onboarding_slide4_subtitle: 'Compartid las fotos del viaje con todo el grupo y revivid juntos esos momentos.',
+  onboarding_slide5_title: 'Gastos divididos al instante',
+  onboarding_slide5_subtitle: 'Añade un gasto y PinGo lo reparte automáticamente entre el grupo. Guarda también tickets y documentos del viaje.',
+  onboarding_slide6_title: 'Guarda tus lugares favoritos',
+  onboarding_slide6_subtitle: 'Crea tu mapa de sitios para volver y compártelo con tus amigos para que descubran tus recomendaciones.',
+  onboarding_slide8_title: 'Listo para despegar',
+  onboarding_slide8_subtitle: 'Crea tu primer viaje ahora y empieza a planificar.',
 } as const
 
 export type TranslationKeys = keyof typeof es

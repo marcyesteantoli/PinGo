@@ -13,23 +13,27 @@ export function useTrips() {
       if (DEV_MODE) {
         return mockTrips.map(trip => ({
           ...trip,
-          collaborators: mockCollaborators[trip.id] ?? [],
+          collaborators: (mockCollaborators[trip.id] ?? []).filter((c) => c.status === 'active'),
         }))
       }
       const { data, error } = await supabase
         .from('trips')
-        .select('*, trip_collaborators(user_id, role, profiles(name, avatar_url))')
+        .select('*, trip_collaborators(user_id, role, status, joined_at, profiles(name, avatar_url))')
         .order('start_date', { ascending: true })
 
       if (error) throw new Error(error.message)
       return (data ?? []).map(({ trip_collaborators, ...trip }) => ({
         ...trip,
-        collaborators: (trip_collaborators ?? []).map((c: any) => ({
-          user_id: c.user_id,
-          role: c.role,
-          name: c.profiles?.name ?? '',
-          avatar_url: c.profiles?.avatar_url ?? null,
-        })),
+        collaborators: (trip_collaborators ?? [])
+          .filter((c: any) => c.status === 'active')
+          .map((c: any) => ({
+            user_id: c.user_id,
+            role: c.role,
+            status: c.status,
+            joined_at: c.joined_at,
+            name: c.profiles?.name ?? '',
+            avatar_url: c.profiles?.avatar_url ?? null,
+          })),
       }))
     },
   })

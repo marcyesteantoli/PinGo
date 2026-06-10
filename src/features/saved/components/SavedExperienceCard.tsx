@@ -104,7 +104,7 @@ function ScoreArc({ score, index, isDark }: { score: number | null; index: numbe
       withTiming(target, { duration: 600, easing: Easing.out(Easing.cubic) })
     )
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [score])
 
   const arcColor =
     score === null ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)')

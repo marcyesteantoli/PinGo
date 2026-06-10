@@ -13,6 +13,7 @@ import { ThemeProvider, useTheme } from '@lib/theme'
 import { LanguageProvider } from '@lib/language'
 import { ErrorToastProvider, ErrorToastPortal } from '@lib/errorToast'
 import { getLastActiveTripId } from '@lib/lastActiveTrip'
+import { getOnboardingCompleted } from '@features/onboarding/hooks/useOnboardingStatus'
 import { ShareDocumentSheet } from '@features/documents/components/ShareDocumentSheet'
 import { initI18n } from '@/i18n'
 import { DEV_MODE } from '@/dev/mockData'
@@ -64,10 +65,14 @@ function AppShell() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const inAuthGroup = segmentsRef.current[0] === '(auth)'
-      if (!session && !inAuthGroup) router.replace('/(auth)/login')
+      const isPublicRoute = inAuthGroup || segmentsRef.current[0] === 'intro'
+      if (!session && !isPublicRoute) router.replace('/(auth)/login')
       else if (session && inAuthGroup) {
         queryClient.clear()
-        router.replace('/(app)/(tabs)/trips')
+        ;(async () => {
+          const completed = await getOnboardingCompleted(session.user.id)
+          router.replace(completed ? '/(app)/(tabs)/trips' : '/(app)/onboarding')
+        })()
       }
     })
     return () => subscription.unsubscribe()
