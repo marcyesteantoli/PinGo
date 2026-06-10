@@ -49,7 +49,9 @@ export const en = {
   auth_confirm_body: 'We sent a confirmation link to {{email}}. Confirm your account to continue.',
   auth_confirm_back: 'Back to sign in',
   auth_validation_password: 'Minimum 6 characters',
+  auth_validation_password_strong: 'At least 8 characters, with uppercase, lowercase and a number',
   auth_validation_name: 'Name is required',
+  auth_register_passwordHint: 'At least 8 characters, with uppercase, lowercase and a number',
 
   // ─── PROFILE ───────────────────────────────────────────────────────────────
   profile_title: 'Profile',

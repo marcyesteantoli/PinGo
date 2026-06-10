@@ -181,6 +181,11 @@ export default function RegisterScreen() {
                 />
               )}
             />
+            {!errors.password && (
+              <Text className="text-xs text-neutral-500 dark:text-neutral-400 -mt-3">
+                {t('auth_register_passwordHint')}
+              </Text>
+            )}
 
             <View style={ctaShadow}>
               <Button

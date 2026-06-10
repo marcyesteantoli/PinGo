@@ -49,7 +49,9 @@ export const es = {
   auth_confirm_body: 'Hemos enviado un enlace de confirmación a {{email}}. Confirma tu cuenta para continuar.',
   auth_confirm_back: 'Volver al inicio de sesión',
   auth_validation_password: 'Mínimo 6 caracteres',
+  auth_validation_password_strong: 'Mínimo 8 caracteres, con mayúscula, minúscula y número',
   auth_validation_name: 'El nombre es obligatorio',
+  auth_register_passwordHint: 'Mínimo 8 caracteres, con mayúscula, minúscula y número',
 
   // ─── PROFILE ───────────────────────────────────────────────────────────────
   profile_title: 'Perfil',
