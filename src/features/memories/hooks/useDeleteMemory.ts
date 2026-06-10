@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockMemories } from '@/dev/mockData'
-import type { Memory } from '@types/index'
+import type { MemoryWithUrl } from './useMemories'
 
 type DeleteMemoryParams = { memoryId: string; tripId: string }
 
@@ -26,8 +26,8 @@ export function useDeleteMemory() {
     },
     onMutate: async ({ memoryId, tripId }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.memories.all(tripId) })
-      const previous = queryClient.getQueryData<Memory[]>(queryKeys.memories.all(tripId))
-      queryClient.setQueryData<Memory[]>(
+      const previous = queryClient.getQueryData<MemoryWithUrl[]>(queryKeys.memories.all(tripId))
+      queryClient.setQueryData<MemoryWithUrl[]>(
         queryKeys.memories.all(tripId),
         (old = []) => old.filter((m) => m.id !== memoryId)
       )

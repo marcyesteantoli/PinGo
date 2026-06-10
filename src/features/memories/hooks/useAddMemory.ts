@@ -7,7 +7,7 @@ import { queryKeys } from '@lib/queryKeys'
 import { compressImage } from '@utils/image'
 import { LIMITS } from '@/config/limits'
 import { DEV_MODE, DEMO_USER_ID, mockMemories } from '@/dev/mockData'
-import type { Memory } from '@types/index'
+import type { MemoryWithUrl } from './useMemories'
 
 export type AddMemoryParams = {
   tripId: string
@@ -30,7 +30,7 @@ async function uploadMemory(
   tripId: string,
   userId: string,
   caption?: string
-): Promise<Memory> {
+): Promise<MemoryWithUrl> {
   // 1. Comprimir
   const compressed = await compressImage(asset.uri)
 
@@ -77,7 +77,7 @@ async function uploadMemory(
     } satisfies AddMemoryError
   }
 
-  return data
+  return { ...data, cacheKey: data.image_url }
 }
 
 export function useAddMemories() {
@@ -91,17 +91,19 @@ export function useAddMemories() {
         setProgress({ done: 0, total: assets.length })
         for (let i = 0; i < assets.length; i++) {
           const seed = seeds[Math.floor(Math.random() * seeds.length)]
-          const newMemory: Memory = {
+          const imageUrl = `https://picsum.photos/seed/${seed}${Date.now() + i}/800/600`
+          const newMemory: MemoryWithUrl = {
             id: `demo-mem-${Date.now()}-${i}`,
             trip_id: tripId,
             user_id: DEMO_USER_ID,
-            image_url: `https://picsum.photos/seed/${seed}${Date.now() + i}/800/600`,
+            image_url: imageUrl,
+            cacheKey: imageUrl,
             caption: null,
             created_at: new Date().toISOString(),
           }
           if (!mockMemories[tripId]) mockMemories[tripId] = []
           mockMemories[tripId].unshift(newMemory)
-          queryClient.setQueryData<Memory[]>(
+          queryClient.setQueryData<MemoryWithUrl[]>(
             queryKeys.memories.all(tripId),
             (old = []) => [newMemory, ...old]
           )
@@ -121,7 +123,7 @@ export function useAddMemories() {
 
       for (const asset of assets) {
         const memory = await uploadMemory(asset, tripId, user.id)
-        queryClient.setQueryData<Memory[]>(
+        queryClient.setQueryData<MemoryWithUrl[]>(
           queryKeys.memories.all(tripId),
           (old = []) => [memory, ...old]
         )
@@ -145,16 +147,18 @@ export function useAddMemory() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ tripId, caption, asset }: AddMemoryParams): Promise<Memory> => {
+    mutationFn: async ({ tripId, caption, asset }: AddMemoryParams): Promise<MemoryWithUrl> => {
       // DEV_MODE: genera imagen mock aleatoria, ignora el asset real
       if (DEV_MODE) {
         const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara', 'nikko', 'hakone']
         const seed = seeds[Math.floor(Math.random() * seeds.length)]
-        const newMemory: Memory = {
+        const imageUrl = `https://picsum.photos/seed/${seed}${Date.now()}/800/600`
+        const newMemory: MemoryWithUrl = {
           id: `demo-mem-${Date.now()}`,
           trip_id: tripId,
           user_id: DEMO_USER_ID,
-          image_url: `https://picsum.photos/seed/${seed}${Date.now()}/800/600`,
+          image_url: imageUrl,
+          cacheKey: imageUrl,
           caption: caption ?? null,
           created_at: new Date().toISOString(),
         }
@@ -187,7 +191,7 @@ export function useAddMemory() {
       return uploadMemory(asset, tripId, user.id, caption)
     },
     onSuccess: (newMemory) => {
-      queryClient.setQueryData<Memory[]>(
+      queryClient.setQueryData<MemoryWithUrl[]>(
         queryKeys.memories.all(newMemory.trip_id),
         (old = []) => [newMemory, ...old]
       )

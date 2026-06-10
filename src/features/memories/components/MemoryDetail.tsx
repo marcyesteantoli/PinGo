@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native'
+import { Image } from 'expo-image'
 import Animated, {
   Extrapolation,
   interpolate,
@@ -29,7 +29,7 @@ import Gallery from 'react-native-awesome-gallery'
 import { Avatar } from '@components/ui/Avatar'
 import { colors } from '@lib/colors'
 import { EASE_OUT, EASE_DRAWER } from '@lib/animations'
-import type { Memory } from '@types/index'
+import type { MemoryWithUrl } from '../hooks/useMemories'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -105,7 +105,7 @@ function IconBtn({
 // ─── Bottom panel ─────────────────────────────────────────────────────────────
 
 interface BottomPanelProps {
-  memory: Memory
+  memory: MemoryWithUrl
   uploaderName: string
   uploaderAvatar: string | null | undefined
   onDownload: () => void
@@ -179,21 +179,22 @@ function BottomPanel({
 
 interface GalleryItemProps {
   uri: string
+  cacheKey: string
   setImageDimensions: (d: { width: number; height: number }) => void
 }
 
-function GalleryItemRenderer({ uri, setImageDimensions }: GalleryItemProps) {
+function GalleryItemRenderer({ uri, cacheKey, setImageDimensions }: GalleryItemProps) {
   const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading')
 
   return (
     <View style={StyleSheet.absoluteFillObject}>
       <Image
-        source={{ uri }}
+        source={{ uri, cacheKey }}
         style={StyleSheet.absoluteFillObject}
-        resizeMode="contain"
+        contentFit="contain"
+        cachePolicy="disk"
         onLoad={(e) => {
-          const { width: w, height: h } = e.nativeEvent.source
-          setImageDimensions({ width: w, height: h })
+          setImageDimensions({ width: e.source.width, height: e.source.height })
           setStatus('loaded')
         }}
         onError={() => setStatus('error')}
@@ -215,11 +216,11 @@ function GalleryItemRenderer({ uri, setImageDimensions }: GalleryItemProps) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export interface MemoryDetailProps {
-  memories: Memory[]
+  memories: MemoryWithUrl[]
   initialIndex: number
   visible: boolean
   onClose: () => void
-  canDelete: (memory: Memory) => boolean
+  canDelete: (memory: MemoryWithUrl) => boolean
   onDelete: (id: string) => void
   getUploaderName: (userId: string) => string
   getUploaderAvatar: (userId: string) => string | null | undefined
@@ -300,7 +301,7 @@ export function MemoryDetail({
 
   if (!visible || memories.length === 0) return null
 
-  const uris = memories.map((m) => m.image_url)
+  const galleryItems = memories.map((m) => ({ uri: m.image_url, cacheKey: m.cacheKey }))
 
   return (
     <Modal
@@ -322,11 +323,15 @@ export function MemoryDetail({
           onLayout={(e) => setGalleryHeight(e.nativeEvent.layout.height)}
         >
           <Gallery
-            data={uris}
+            data={galleryItems}
             renderItem={({ item, setImageDimensions }) => (
-              <GalleryItemRenderer uri={item} setImageDimensions={setImageDimensions} />
+              <GalleryItemRenderer
+                uri={item.uri}
+                cacheKey={item.cacheKey}
+                setImageDimensions={setImageDimensions}
+              />
             )}
-            keyExtractor={(item, i) => `${item}-${i}`}
+            keyExtractor={(item, i) => `${item.cacheKey}-${i}`}
             initialIndex={initialIndex}
             onIndexChange={setCurrentIndex}
             onSwipeToClose={dismiss}

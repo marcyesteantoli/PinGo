@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Dimensions, FlatList, Image, Pressable, View } from 'react-native'
+import { Dimensions, FlatList, Pressable, View } from 'react-native'
+import { Image } from 'expo-image'
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -12,7 +13,7 @@ import * as Haptics from 'expo-haptics'
 import { Skeleton } from '@components/ui/Skeleton'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { EASE_OUT, DURATION } from '@lib/animations'
-import type { Memory } from '@types/index'
+import type { MemoryWithUrl } from '../hooks/useMemories'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const CELL_GAP = 3
@@ -21,25 +22,25 @@ const CELL_SIZE = (SCREEN_WIDTH - 40 - CELL_GAP * 2) / 3 // px-5 each side + 2 g
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
 
 export interface MemoryGridProps {
-  memories: Memory[]
-  onPress: (memory: Memory, index: number) => void
-  onLongPress?: (memory: Memory) => void
+  memories: MemoryWithUrl[]
+  onPress: (memory: MemoryWithUrl, index: number) => void
+  onLongPress?: (memory: MemoryWithUrl) => void
   scrollY?: SharedValue<number>
   selectionMode?: boolean
   selectedIds?: Set<string>
-  onToggleSelect?: (memory: Memory) => void
+  onToggleSelect?: (memory: MemoryWithUrl) => void
 }
 
 type ImageStatus = 'loading' | 'loaded' | 'error'
 
 interface MemoryCellProps {
-  memory: Memory
+  memory: MemoryWithUrl
   index: number
-  onPress: (m: Memory, i: number) => void
-  onLongPress?: (m: Memory) => void
+  onPress: (m: MemoryWithUrl, i: number) => void
+  onLongPress?: (m: MemoryWithUrl) => void
   selectionMode: boolean
   selected: boolean
-  onToggleSelect?: (m: Memory) => void
+  onToggleSelect?: (m: MemoryWithUrl) => void
 }
 
 function MemoryCell({
@@ -114,9 +115,10 @@ function MemoryCell({
         <Animated.View style={[size, pressStyle]}>
           {/* Image */}
           <Image
-            source={{ uri: memory.image_url }}
+            source={{ uri: memory.image_url, cacheKey: memory.cacheKey }}
             style={size}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="disk"
             onLoad={() => setStatus('loaded')}
             onError={() => setStatus('error')}
           />
@@ -181,18 +183,18 @@ export function MemoryGrid({
   return (
     <AnimatedFlatList
       data={memories}
-      keyExtractor={(item) => (item as Memory).id}
+      keyExtractor={(item) => (item as MemoryWithUrl).id}
       numColumns={3}
       contentContainerClassName="px-5 pb-24"
       columnWrapperStyle={{ gap: CELL_GAP, marginBottom: CELL_GAP }}
       renderItem={({ item, index }) => (
         <MemoryCell
-          memory={item as Memory}
+          memory={item as MemoryWithUrl}
           index={index}
           onPress={onPress}
           onLongPress={onLongPress}
           selectionMode={selectionMode}
-          selected={selectedIds.has((item as Memory).id)}
+          selected={selectedIds.has((item as MemoryWithUrl).id)}
           onToggleSelect={onToggleSelect}
         />
       )}
