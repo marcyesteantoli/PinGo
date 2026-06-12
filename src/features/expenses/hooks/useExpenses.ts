@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, mockExpenses } from '@/dev/mockData'
 import type { Expense, Experience, ExpenseSplit, Profile, ExpenseWithSplits } from '@app-types/index'
 
 type ExpenseRow = Expense & {
@@ -14,7 +13,6 @@ export function useExpenses(tripId: string) {
   return useQuery<ExpenseWithSplits[]>({
     queryKey: queryKeys.expenses.all(tripId),
     queryFn: async () => {
-      if (DEV_MODE) return [...(mockExpenses[tripId] ?? [])]
       const { data, error } = await supabase
         .from('expenses')
         .select('*, expense_splits(*), payer:profiles!payer_id(name, avatar_url), experience:experiences(type, title)')

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, DEMO_USER_ID, mockExperiences } from '@/dev/mockData'
 import type { CreateExperienceFormData } from '../types'
 import type { Experience } from '@app-types/index'
 
@@ -10,26 +9,6 @@ export function useCreateExperience(tripId: string) {
 
   return useMutation({
     mutationFn: async (formData: CreateExperienceFormData) => {
-      if (DEV_MODE) {
-        const newExp: Experience = {
-          id: `demo-exp-${Date.now()}`,
-          trip_id: tripId,
-          title: formData.title,
-          type: formData.type,
-          date: formData.date || null,
-          start_time: formData.start_time || null,
-          end_time: formData.end_time || null,
-          confirmation_code: formData.confirmation_code ?? null,
-          location: formData.location ?? null,
-          destination_id: formData.destination_id ?? null,
-          created_by: DEMO_USER_ID,
-          updated_at: new Date().toISOString(),
-        }
-        if (!mockExperiences[tripId]) mockExperiences[tripId] = []
-        mockExperiences[tripId].push(newExp)
-        return newExp
-      }
-
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No hay sesión activa')
 
@@ -119,7 +98,6 @@ export function useCreateExperience(tripId: string) {
       )
     },
     onSettled: () => {
-      if (DEV_MODE) return
       queryClient.invalidateQueries({ queryKey: queryKeys.experiences.all(tripId) })
     },
   })

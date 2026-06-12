@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
-import { DEV_MODE } from '@/dev/mockData'
 import type { SavedExperienceItem } from '@app-types/index'
 
 interface SavedMeta {
@@ -24,8 +23,6 @@ export function useUpsertSavedMeta(experienceId: string) {
 
   return useMutation({
     mutationFn: async (meta: SavedMeta) => {
-      if (DEV_MODE) return
-
       // Build update object — only defined fields
       const update: Record<string, unknown> = {}
       if (meta.note !== undefined) update.note = meta.note?.trim() || null

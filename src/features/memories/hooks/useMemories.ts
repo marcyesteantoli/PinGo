@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, mockMemories } from '@/dev/mockData'
 import type { Memory } from '@app-types/index'
 
 // `cacheKey` is the stable storage path (or http url for seed data) — used so
@@ -12,9 +11,6 @@ export function useMemories(tripId: string) {
   return useQuery({
     queryKey: queryKeys.memories.all(tripId),
     queryFn: async (): Promise<MemoryWithUrl[]> => {
-      if (DEV_MODE) {
-        return (mockMemories[tripId] ?? []).map((m) => ({ ...m, cacheKey: m.image_url }))
-      }
       const { data, error } = await supabase
         .from('memories')
         .select('*')

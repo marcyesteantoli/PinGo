@@ -16,7 +16,6 @@ import { getLastActiveTripId } from '@lib/lastActiveTrip'
 import { getOnboardingCompleted } from '@features/onboarding/hooks/useOnboardingStatus'
 import { ShareDocumentSheet } from '@features/documents/components/ShareDocumentSheet'
 import { initI18n } from '@/i18n'
-import { DEV_MODE } from '@/dev/mockData'
 import '../global.css'
 
 function ShareIntentHandler() {
@@ -55,14 +54,6 @@ function AppShell() {
   }, [segments])
 
   useEffect(() => {
-    if (DEV_MODE) {
-      const inAuthGroup = segmentsRef.current[0] === '(auth)'
-      if (inAuthGroup) {
-        router.replace('/(app)/(tabs)/trips')
-      }
-      return
-    }
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const inAuthGroup = segmentsRef.current[0] === '(auth)'
       const isPublicRoute = inAuthGroup || segmentsRef.current[0] === 'intro'

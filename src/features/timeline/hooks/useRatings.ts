@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
-import { DEV_MODE, DEMO_USER_ID } from '@/dev/mockData'
 import type { ExperienceRating } from '@app-types/index'
 
 export type RatingWithProfile = ExperienceRating & {
@@ -18,15 +17,11 @@ export type RatingsData = {
 
 export function useRatings(experienceId: string) {
   const { data: user } = useCurrentUser()
-  const userId = DEV_MODE ? DEMO_USER_ID : user?.id
+  const userId = user?.id
 
   return useQuery<RatingsData>({
     queryKey: queryKeys.ratings.byExperience(experienceId),
     queryFn: async () => {
-      if (DEV_MODE) {
-        return { ratings: [], userRating: null, avg: null, count: 0 }
-      }
-
       const { data, error } = await supabase
         .from('experience_ratings')
         .select('*, profiles(name, avatar_url)')

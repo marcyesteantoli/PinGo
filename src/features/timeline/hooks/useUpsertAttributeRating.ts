@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE } from '@/dev/mockData'
 import type { AttributeRatingsData } from '@app-types/index'
 
 export function useUpsertAttributeRating(experienceId: string) {
@@ -10,8 +9,6 @@ export function useUpsertAttributeRating(experienceId: string) {
 
   return useMutation({
     mutationFn: async ({ attribute, value }: { attribute: string; value: number }) => {
-      if (DEV_MODE) return
-
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No hay sesión activa')
 

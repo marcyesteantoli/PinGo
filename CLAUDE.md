@@ -5,6 +5,8 @@ App móvil colaborativa para gestión de viajes. Permite organizar itinerarios, 
 
 **Stack:** Expo + React Native · Supabase · TanStack Query · NativeWind
 
+**Estado:** Proyecto con intención de salir a producción. No existe modo demo ni datos mock — todo el código asume Supabase real (Auth, BD, Storage). No reintroducir flags `DEV_MODE`/`DEMO_*` ni datos hardcodeados de prueba.
+
 ---
 
 ## Estándares de diseño iOS

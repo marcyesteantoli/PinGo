@@ -2,18 +2,15 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
-import { DEV_MODE, DEMO_USER_ID } from '@/dev/mockData'
 import type { SavedExperienceItem } from '@app-types/index'
 
 export function useSavedExperiences() {
   const { data: user } = useCurrentUser()
-  const userId = DEV_MODE ? DEMO_USER_ID : user?.id
+  const userId = user?.id
 
   return useQuery<SavedExperienceItem[]>({
     queryKey: queryKeys.savedExperiences.byUser(),
     queryFn: async () => {
-      if (DEV_MODE) return []
-
       // 1. Fetch saved rows (includes Phase 2 fields added by migration)
       const { data: savedRows, error: savedError } = await supabase
         .from('user_saved_experiences')

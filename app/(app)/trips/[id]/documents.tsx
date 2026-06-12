@@ -29,7 +29,6 @@ import { UploadDocumentSheet } from '@features/documents/components/UploadDocume
 import { AddLinkSheet } from '@features/documents/components/AddLinkSheet'
 import { AddPassSheet } from '@features/documents/components/AddPassSheet'
 import { DeleteDocumentSheet } from '@features/documents/components/DeleteDocumentSheet'
-import { DEV_MODE } from '@/dev/mockData'
 import { useDocuments, type DocumentWithExperience } from '@features/documents/hooks/useDocuments'
 import { useUploadDocument } from '@features/documents/hooks/useUploadDocument'
 import { useAddDocumentLink } from '@features/documents/hooks/useAddDocumentLink'
@@ -282,14 +281,12 @@ export default function DocumentsScreen() {
 
   const handleActionSelect = async (type: ActionSheetOption) => {
     if (type === 'file') {
-      if (!DEV_MODE) {
-        const result = await DocumentPicker.getDocumentAsync({
-          type: ['application/pdf', 'image/*'],
-          copyToCacheDirectory: true,
-        })
-        if (result.canceled || !result.assets?.[0]) return
-        setPendingAsset(result.assets[0])
-      }
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/*'],
+        copyToCacheDirectory: true,
+      })
+      if (result.canceled || !result.assets?.[0]) return
+      setPendingAsset(result.assets[0])
       setUploadSheetVisible(true)
     } else if (type === 'link') {
       setLinkSheetVisible(true)

@@ -3,7 +3,6 @@ import type { DocumentPickerAsset } from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, DEMO_USER_ID, mockDocuments, mockExperiences } from '@/dev/mockData'
 import type { UploadDocumentFormData } from '../types'
 
 type UploadDocumentParams = UploadDocumentFormData & { tripId: string; asset?: DocumentPickerAsset }
@@ -13,27 +12,6 @@ export function useUploadDocument() {
 
   return useMutation({
     mutationFn: async ({ name, experience_id, tripId, asset }: UploadDocumentParams) => {
-      if (DEV_MODE) {
-        const expTitle = mockExperiences[tripId]?.find((e) => e.id === experience_id)?.title ?? null
-        const newDoc = {
-          id: `demo-doc-${Date.now()}`,
-          experience_id,
-          trip_id: tripId,
-          name,
-          file_path: 'mock/demo.pdf',
-          file_url: 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/sample.pdf',
-          file_type: 'application/pdf',
-          document_type: 'file' as const,
-          url: null,
-          uploaded_by: DEMO_USER_ID,
-          created_at: new Date().toISOString(),
-          experience_title: expTitle,
-        }
-        if (!mockDocuments[tripId]) mockDocuments[tripId] = []
-        mockDocuments[tripId].unshift(newDoc)
-        return newDoc
-      }
-
       if (!asset) return null
 
       const { data: { user } } = await supabase.auth.getUser()
@@ -73,14 +51,7 @@ export function useUploadDocument() {
         throw new Error('Error al guardar el documento. Inténtalo de nuevo.')
       }
     },
-    onSuccess: (newDoc, variables) => {
-      if (DEV_MODE && newDoc) {
-        queryClient.setQueryData(
-          queryKeys.documents.all(variables.tripId),
-          (old: any[] = []) => [newDoc, ...old]
-        )
-        return
-      }
+    onSuccess: (_newDoc, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.all(variables.tripId) })
     },
   })

@@ -3,7 +3,6 @@ import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, DEMO_USER_ID, mockDocuments, mockExperiences } from '@/dev/mockData'
 
 type AddPassParams = {
   name: string
@@ -16,27 +15,6 @@ export function useAddDocumentPass() {
 
   return useMutation({
     mutationFn: async ({ name, experience_id, tripId }: AddPassParams) => {
-      if (DEV_MODE) {
-        const expTitle = mockExperiences[tripId]?.find((e) => e.id === experience_id)?.title ?? null
-        const newDoc = {
-          id: `demo-pass-${Date.now()}`,
-          experience_id,
-          trip_id: tripId,
-          name,
-          file_path: 'mock/path/pass.pkpass',
-          file_type: 'application/vnd.apple.pkpass',
-          document_type: 'pass' as const,
-          url: null,
-          file_url: null,
-          uploaded_by: DEMO_USER_ID,
-          created_at: new Date().toISOString(),
-          experience_title: expTitle,
-        }
-        if (!mockDocuments[tripId]) mockDocuments[tripId] = []
-        mockDocuments[tripId].unshift(newDoc as any)
-        return newDoc
-      }
-
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No hay sesión activa')
 

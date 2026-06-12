@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { splitEquallyAll } from '@utils/currency'
-import { DEV_MODE, mockExpenses, mockSettlements } from '@/dev/mockData'
 import type { CreateExpenseFormData } from '../types'
 import type { Collaborator, ExpenseWithSplits } from '@app-types/index'
 
@@ -16,33 +15,6 @@ export function useUpdateExpense(tripId: string, collaborators: Collaborator[] =
 
   return useMutation({
     mutationFn: async ({ expenseId, formData }: UpdateExpenseArgs) => {
-      if (DEV_MODE) {
-        if (mockExpenses[tripId]) {
-          const idx = mockExpenses[tripId].findIndex((e) => e.id === expenseId)
-          if (idx !== -1) {
-            const payerId = formData.payer_id!
-            const splitAmounts = splitEquallyAll(formData.amount, formData.participant_ids)
-            mockExpenses[tripId][idx] = {
-              ...mockExpenses[tripId][idx],
-              description: formData.description,
-              amount: formData.amount,
-              payer_id: payerId,
-              experience_id: formData.experience_id ?? null,
-              splits: splitAmounts.map(({ userId, amount }) => ({
-                expense_id: expenseId,
-                user_id: userId,
-                amount,
-              })),
-            }
-          }
-        }
-        // In dev mode, always clear settlements — server does smart clearing in prod.
-        if (mockSettlements[tripId]) {
-          mockSettlements[tripId] = []
-        }
-        return
-      }
-
       const { error } = await supabase.rpc('update_expense_with_splits', {
         p_expense_id: expenseId,
         p_description: formData.description,

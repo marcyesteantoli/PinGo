@@ -2,19 +2,16 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
-import { DEV_MODE, DEMO_USER_ID } from '@/dev/mockData'
 
 export type SavedExperienceLink = { experienceId: string } | null
 
 export function useSavedExperienceLink(tripExperienceId: string) {
   const { data: user } = useCurrentUser()
-  const userId = DEV_MODE ? DEMO_USER_ID : user?.id
+  const userId = user?.id
 
   return useQuery<SavedExperienceLink>({
     queryKey: queryKeys.savedExperiences.savedCopyForSource(tripExperienceId),
     queryFn: async () => {
-      if (DEV_MODE) return null
-
       const { data, error } = await (supabase as any)
         .from('user_saved_experiences')
         .select('experience_id')

@@ -2,20 +2,15 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
-import { DEV_MODE, DEMO_USER_ID } from '@/dev/mockData'
 import type { AttributeRatingsData } from '@app-types/index'
 
 export function useAttributeRatings(experienceId: string) {
   const { data: user } = useCurrentUser()
-  const userId = DEV_MODE ? DEMO_USER_ID : user?.id
+  const userId = user?.id
 
   return useQuery<AttributeRatingsData>({
     queryKey: queryKeys.attributeRatings.byExperience(experienceId),
     queryFn: async () => {
-      if (DEV_MODE) {
-        return { userValues: {}, groupAvg: {}, count: 0 }
-      }
-
       if (!userId) return { userValues: {}, groupAvg: {}, count: 0 }
 
       type Row = { attribute: string; value: number }

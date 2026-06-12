@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE } from '@/dev/mockData'
 
 export function useSaveExperienceFromTrip(tripExperienceId: string) {
   const queryClient = useQueryClient()
@@ -10,8 +9,6 @@ export function useSaveExperienceFromTrip(tripExperienceId: string) {
 
   return useMutation({
     mutationFn: async (savedExperienceId: string | null) => {
-      if (DEV_MODE) return null
-
       if (savedExperienceId) {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error('No hay sesión activa')

@@ -22,7 +22,6 @@ import { useDeleteMemory } from '@features/memories/hooks/useDeleteMemory'
 import { useMemories } from '@features/memories/hooks/useMemories'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { LIMITS } from '@/config/limits'
-import { DEV_MODE } from '@/dev/mockData'
 import { useErrorToast } from '@lib/errorToast'
 import { colors } from '@lib/colors'
 import type { Memory } from '@app-types/index'
@@ -146,14 +145,6 @@ export default function MemoriesScreen() {
   const handlePickImage = async () => {
     const remaining = LIMITS.MAX_PHOTOS_PER_TRIP - count
     if (remaining <= 0) return
-
-    if (DEV_MODE) {
-      const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara']
-      const seed = seeds[Math.floor(Math.random() * seeds.length)]
-      setPendingAsset({ uri: `https://picsum.photos/seed/${seed}${Date.now()}/800/600` } as ImagePicker.ImagePickerAsset)
-      setCaptionSheetVisible(true)
-      return
-    }
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {

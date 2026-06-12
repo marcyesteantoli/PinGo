@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
-import { DEV_MODE } from '@/dev/mockData'
 import type { SavedExperienceDetail } from './useSavedExperienceDetail'
 import type { SavedExperienceItem } from '@app-types/index'
 
@@ -15,8 +14,6 @@ export function useUpsertSavedNote(experienceId: string) {
 
   return useMutation({
     mutationFn: async (note: string) => {
-      if (DEV_MODE) return
-
       const { error } = await (supabase as any)
         .from('user_saved_experiences')
         .update({ note: note.trim() || null })

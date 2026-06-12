@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, mockSettlements } from '@/dev/mockData'
 import type { Settlement } from '@app-types/index'
 
 interface SettleDebtParams {
@@ -16,19 +15,6 @@ export function useSettleDebt(tripId: string) {
 
   return useMutation({
     mutationFn: async ({ fromUserId, toUserId, amount, settledBy }: SettleDebtParams) => {
-      if (DEV_MODE) {
-        if (!mockSettlements[tripId]) mockSettlements[tripId] = []
-        mockSettlements[tripId].push({
-          id: `settle-${Date.now()}`,
-          trip_id: tripId,
-          from_user_id: fromUserId,
-          to_user_id: toUserId,
-          amount,
-          settled_by: settledBy,
-          created_at: new Date().toISOString(),
-        })
-        return
-      }
       const { error } = await supabase.rpc('settle_debt_safe', {
         p_trip_id: tripId,
         p_from_user_id: fromUserId,

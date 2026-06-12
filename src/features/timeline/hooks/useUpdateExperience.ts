@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, mockExperiences } from '@/dev/mockData'
 import type { CreateExperienceFormData } from '../types'
 import type { Experience } from '@app-types/index'
 
@@ -10,28 +9,6 @@ export function useUpdateExperience(tripId: string) {
 
   return useMutation({
     mutationFn: async ({ experienceId, formData }: { experienceId: string; formData: CreateExperienceFormData }) => {
-      if (DEV_MODE) {
-        if (mockExperiences[tripId]) {
-          const idx = mockExperiences[tripId].findIndex(e => e.id === experienceId)
-          if (idx !== -1) {
-            mockExperiences[tripId][idx] = {
-              ...mockExperiences[tripId][idx],
-              title: formData.title,
-              type: formData.type,
-              date: formData.date || null,
-              start_time: formData.start_time || null,
-              end_time: formData.end_time || null,
-              confirmation_code: formData.confirmation_code ?? null,
-              location: formData.location ?? null,
-              destination_id: formData.destination_id ?? null,
-              updated_at: new Date().toISOString(),
-            }
-            return mockExperiences[tripId][idx]
-          }
-        }
-        return null
-      }
-
       const { data, error } = await supabase
         .from('experiences')
         .update({
@@ -83,7 +60,6 @@ export function useUpdateExperience(tripId: string) {
       }
     },
     onSettled: () => {
-      if (DEV_MODE) return
       queryClient.invalidateQueries({ queryKey: queryKeys.experiences.all(tripId) })
     },
   })

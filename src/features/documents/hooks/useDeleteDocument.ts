@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, mockDocuments } from '@/dev/mockData'
 
 interface DeleteDocumentParams {
   documentId: string
@@ -14,13 +13,6 @@ export function useDeleteDocument() {
 
   return useMutation({
     mutationFn: async ({ documentId, tripId, fileUrl }: DeleteDocumentParams) => {
-      if (DEV_MODE) {
-        if (mockDocuments[tripId]) {
-          mockDocuments[tripId] = mockDocuments[tripId].filter((d) => d.id !== documentId)
-        }
-        return
-      }
-
       // Extract storage path from signed URL if present
       if (fileUrl) {
         const match = fileUrl.match(/\/object\/sign\/documents\/(.+?)(\?|$)/)

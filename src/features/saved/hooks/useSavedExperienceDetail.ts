@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
-import { DEV_MODE } from '@/dev/mockData'
 import type { Experience } from '@app-types/index'
 
 export type SavedExperienceDetail = {
@@ -26,8 +25,6 @@ export function useSavedExperienceDetail(experienceId: string) {
   return useQuery<SavedExperienceDetail | null>({
     queryKey: queryKeys.savedExperiences.detail(experienceId),
     queryFn: async () => {
-      if (DEV_MODE) return null
-
       const userId = user!.id
 
       const [
@@ -120,6 +117,6 @@ export function useSavedExperienceDetail(experienceId: string) {
         ratedCount: Object.keys(attributeRatings).length,
       }
     },
-    enabled: !!user && !!experienceId && !DEV_MODE,
+    enabled: !!user && !!experienceId,
   })
 }

@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, DEMO_USER_ID } from '@/dev/mockData'
 
 export type Profile = {
   id: string
@@ -10,18 +9,10 @@ export type Profile = {
   updated_at: string
 }
 
-const DEMO_PROFILE: Profile = {
-  id: DEMO_USER_ID,
-  name: 'Marc Yeste',
-  avatar_url: null,
-  updated_at: '',
-}
-
 export function useProfile(userId?: string) {
   return useQuery({
     queryKey: queryKeys.auth.profile(userId),
     queryFn: async () => {
-      if (DEV_MODE) return DEMO_PROFILE
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -30,7 +21,7 @@ export function useProfile(userId?: string) {
       if (error) throw new Error(error.message)
       return data as Profile
     },
-    enabled: !!userId || DEV_MODE,
+    enabled: !!userId,
     staleTime: 5 * 60 * 1000,
   })
 }

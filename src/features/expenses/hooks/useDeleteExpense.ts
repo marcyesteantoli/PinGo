@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, mockExpenses, mockSettlements } from '@/dev/mockData'
 import type { ExpenseWithSplits, Settlement } from '@app-types/index'
 
 interface DeleteExpenseArgs {
@@ -13,17 +12,6 @@ export function useDeleteExpense(tripId: string) {
 
   return useMutation({
     mutationFn: async ({ expenseId }: DeleteExpenseArgs) => {
-      if (DEV_MODE) {
-        if (mockExpenses[tripId]) {
-          mockExpenses[tripId] = mockExpenses[tripId].filter((e) => e.id !== expenseId)
-        }
-        // In dev mode, always clear settlements — server does smart clearing in prod.
-        if (mockSettlements[tripId]) {
-          mockSettlements[tripId] = []
-        }
-        return
-      }
-
       const { error } = await supabase.rpc('delete_expense_safe', {
         p_expense_id: expenseId,
       })

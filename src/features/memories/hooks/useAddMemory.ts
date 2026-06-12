@@ -6,13 +6,12 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { compressImage } from '@utils/image'
 import { LIMITS } from '@/config/limits'
-import { DEV_MODE, DEMO_USER_ID, mockMemories } from '@/dev/mockData'
 import type { MemoryWithUrl } from './useMemories'
 
 export type AddMemoryParams = {
   tripId: string
   caption?: string
-  asset?: ImagePicker.ImagePickerAsset // undefined en DEV_MODE
+  asset?: ImagePicker.ImagePickerAsset
 }
 
 export type AddMemoriesParams = {
@@ -86,32 +85,6 @@ export function useAddMemories() {
 
   const mutation = useMutation({
     mutationFn: async ({ tripId, assets }: AddMemoriesParams): Promise<number> => {
-      if (DEV_MODE) {
-        const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara', 'nikko', 'hakone']
-        setProgress({ done: 0, total: assets.length })
-        for (let i = 0; i < assets.length; i++) {
-          const seed = seeds[Math.floor(Math.random() * seeds.length)]
-          const imageUrl = `https://picsum.photos/seed/${seed}${Date.now() + i}/800/600`
-          const newMemory: MemoryWithUrl = {
-            id: `demo-mem-${Date.now()}-${i}`,
-            trip_id: tripId,
-            user_id: DEMO_USER_ID,
-            image_url: imageUrl,
-            cacheKey: imageUrl,
-            caption: null,
-            created_at: new Date().toISOString(),
-          }
-          if (!mockMemories[tripId]) mockMemories[tripId] = []
-          mockMemories[tripId].unshift(newMemory)
-          queryClient.setQueryData<MemoryWithUrl[]>(
-            queryKeys.memories.all(tripId),
-            (old = []) => [newMemory, ...old]
-          )
-          setProgress({ done: i + 1, total: assets.length })
-        }
-        return assets.length
-      }
-
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -135,7 +108,6 @@ export function useAddMemories() {
     },
     onSettled: (_, __, variables) => {
       setProgress(null)
-      if (DEV_MODE) return
       queryClient.invalidateQueries({ queryKey: queryKeys.memories.all(variables.tripId) })
     },
   })
@@ -148,25 +120,6 @@ export function useAddMemory() {
 
   return useMutation({
     mutationFn: async ({ tripId, caption, asset }: AddMemoryParams): Promise<MemoryWithUrl> => {
-      // DEV_MODE: genera imagen mock aleatoria, ignora el asset real
-      if (DEV_MODE) {
-        const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara', 'nikko', 'hakone']
-        const seed = seeds[Math.floor(Math.random() * seeds.length)]
-        const imageUrl = `https://picsum.photos/seed/${seed}${Date.now()}/800/600`
-        const newMemory: MemoryWithUrl = {
-          id: `demo-mem-${Date.now()}`,
-          trip_id: tripId,
-          user_id: DEMO_USER_ID,
-          image_url: imageUrl,
-          cacheKey: imageUrl,
-          caption: caption ?? null,
-          created_at: new Date().toISOString(),
-        }
-        if (!mockMemories[tripId]) mockMemories[tripId] = []
-        mockMemories[tripId].unshift(newMemory)
-        return newMemory
-      }
-
       // Double-check del límite antes del upload (el screen ya lo verifica antes de abrir el picker)
       const { count, error: countError } = await supabase
         .from('memories')
@@ -197,7 +150,6 @@ export function useAddMemory() {
       )
     },
     onSettled: (_, __, variables) => {
-      if (DEV_MODE) return
       queryClient.invalidateQueries({ queryKey: queryKeys.memories.all(variables.tripId) })
     },
   })
