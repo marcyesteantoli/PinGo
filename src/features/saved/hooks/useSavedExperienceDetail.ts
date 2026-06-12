@@ -14,7 +14,6 @@ export type SavedExperienceDetail = {
     title: string
     type: Experience['type']
     location: { name: string; lat: number; lng: number } | null
-    trip_id: string
     trip: { name: string } | null
   }
   attributeRatings: Record<string, number>
@@ -38,13 +37,13 @@ export function useSavedExperienceDetail(experienceId: string) {
       ] = await Promise.all([
         (supabase as any)
           .from('user_saved_experiences')
-          .select('note, price_paid, cover_photo_url')
+          .select('note, price_paid, cover_photo_url, source_experience_id')
           .eq('user_id', userId)
           .eq('experience_id', experienceId)
           .maybeSingle(),
         supabase
           .from('experiences')
-          .select('id, title, type, location, trip_id')
+          .select('id, title, type, location')
           .eq('id', experienceId)
           .single(),
         supabase
@@ -60,13 +59,21 @@ export function useSavedExperienceDetail(experienceId: string) {
       if (!exp) return null
 
       let tripName: string | null = null
-      if (exp.trip_id) {
-        const { data: trip } = await supabase
-          .from('trips')
-          .select('name')
-          .eq('id', exp.trip_id)
-          .single()
-        tripName = trip?.name ?? null
+      const sourceExperienceId: string | null = savedRow?.source_experience_id ?? null
+      if (sourceExperienceId) {
+        const { data: sourceExp } = await supabase
+          .from('experiences')
+          .select('trip_id')
+          .eq('id', sourceExperienceId)
+          .maybeSingle()
+        if (sourceExp?.trip_id) {
+          const { data: trip } = await supabase
+            .from('trips')
+            .select('name')
+            .eq('id', sourceExp.trip_id)
+            .maybeSingle()
+          tripName = trip?.name ?? null
+        }
       }
 
       const rawLoc = exp.location
@@ -107,7 +114,6 @@ export function useSavedExperienceDetail(experienceId: string) {
           title: exp.title,
           type: exp.type as Experience['type'],
           location,
-          trip_id: exp.trip_id,
           trip: tripName ? { name: tripName } : null,
         },
         attributeRatings,

@@ -7,6 +7,7 @@ export const TYPE_ICON: Record<Experience['type'], React.ComponentProps<typeof I
   activity:      'compass-outline',
   restaurant:    'restaurant-outline',
   entertainment: 'film-outline',
+  city:          'business-outline',
   other:         'ellipse-outline',
 }
 
@@ -16,5 +17,6 @@ export const TYPE_ICON_COLOR: Record<Experience['type'], string> = {
   activity:      '#22C55E',
   restaurant:    '#F97316',
   entertainment: '#EC4899',
+  city:          '#0EA5E9',
   other:         '#94A3B8',
 }

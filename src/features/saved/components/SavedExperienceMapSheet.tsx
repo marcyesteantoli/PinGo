@@ -8,6 +8,7 @@ import { Badge } from '@components/ui/Badge'
 import { TYPE_ICON, TYPE_ICON_COLOR } from '@features/saved/constants'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
+import { openInMaps } from '@lib/openInMaps'
 import type { SavedExperienceItem, Experience } from '@app-types/index'
 
 function getLocationName(location: unknown): string {
@@ -15,6 +16,13 @@ function getLocationName(location: unknown): string {
     return String((location as { name?: unknown }).name ?? '')
   }
   return ''
+}
+
+function getLocationCoords(location: unknown): { lat: number; lng: number } | null {
+  if (typeof location !== 'object' || location === null) return null
+  const { lat, lng } = location as { lat?: unknown; lng?: unknown }
+  if (typeof lat !== 'number' || typeof lng !== 'number') return null
+  return { lat, lng }
 }
 
 function calcAvgScore(ratings: Array<{ attribute: string; value: number }>): number | null {
@@ -68,6 +76,13 @@ function SheetContent({
   const typeColor = TYPE_ICON_COLOR[type]
   const score = calcAvgScore(experience.attribute_ratings)
   const locationName = getLocationName(experience.location)
+  const coords = getLocationCoords(experience.location)
+
+  function handleOpenMaps() {
+    if (!coords) return
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    openInMaps(coords.lat, coords.lng, locationName || experience.title)
+  }
 
   const labelColor = isDark ? colors.neutral[400] : colors.neutral[500]
   const titleColor = isDark ? colors.neutral[50] : colors.neutral[900]
@@ -116,13 +131,25 @@ function SheetContent({
         {experience.title}
       </Text>
 
-      {locationName ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 }}>
+      {(locationName || coords) ? (
+        <TouchableOpacity
+          onPress={coords ? handleOpenMaps : undefined}
+          activeOpacity={coords ? 0.6 : 1}
+          disabled={!coords}
+          style={{
+            flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14,
+            paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20,
+            backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+          }}
+        >
           <Ionicons name="location-outline" size={14} color={labelColor} />
           <Text numberOfLines={1} style={{ fontSize: 14, color: labelColor, flex: 1 }}>
             {locationName}
           </Text>
-        </View>
+          {coords && (
+            <Ionicons name="chevron-forward" size={14} color={labelColor} />
+          )}
+        </TouchableOpacity>
       ) : null}
 
       {(price_paid != null || note) && (

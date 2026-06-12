@@ -57,19 +57,24 @@ function spreadToRegion(
   }
 }
 
-// ─── Dark map style (Android) ─────────────────────────────────────────────────
+// ─── Map styles (Android — hide POI/transit icons & labels on Google Maps) ───
+
+const POI_OFF_STYLE = [
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+]
+
+const MAP_STYLE_LIGHT = POI_OFF_STYLE
 
 const MAP_STYLE_DARK = [
+  ...POI_OFF_STYLE,
   { elementType: 'geometry', stylers: [{ color: colors.surface[900] }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: colors.surface[900] }] },
   { elementType: 'labels.text.fill', stylers: [{ color: colors.neutral[400] }] },
   { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: colors.surface[700] }] },
-  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: colors.surface[800] }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: colors.neutral[500] }] },
   { featureType: 'road', elementType: 'geometry', stylers: [{ color: colors.surface[700] }] },
   { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: colors.surface[800] }] },
   { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: colors.surface[600] }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: colors.surface[800] }] },
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: colors.surface[900] }] },
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: colors.neutral[600] }] },
 ]
@@ -206,14 +211,17 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
       <MapView
         ref={mapRef}
         style={{ flex: 1 }}
-        mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
+        mapType="standard"
         userInterfaceStyle={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
-        customMapStyle={Platform.OS === 'android' && isDark ? MAP_STYLE_DARK : undefined}
+        customMapStyle={Platform.OS === 'android' ? (isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT) : undefined}
         camera={initialCamera}
         onRegionChangeComplete={setCurrentRegion}
         onPress={() => setSelectedId(null)}
         showsCompass={false}
         showsScale={false}
+        showsPointsOfInterest={false}
+        showsBuildings={false}
+        showsTraffic={false}
       >
         {clusters.map((item) => {
           if (item.type === 'cluster') {

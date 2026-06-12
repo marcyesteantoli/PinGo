@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { ActivityIndicator, Alert, Image, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, Dimensions, Image, Linking, Modal, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as MediaLibrary from 'expo-media-library'
@@ -13,11 +13,13 @@ import { useUpsertSavedNote } from '@features/saved/hooks/useUpsertSavedNote'
 import { useUpsertSavedMeta } from '@features/saved/hooks/useUpsertSavedMeta'
 import { useUploadSavedCoverPhoto } from '@features/saved/hooks/useUploadSavedCoverPhoto'
 import { useRemoveSavedCoverPhoto } from '@features/saved/hooks/useRemoveSavedCoverPhoto'
-import { useIsSaved } from '@features/saved/hooks/useIsSaved'
 import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExperience'
 import { Badge } from '@components/ui/Badge'
 import { AttributeRatingSection } from '@features/timeline/components/AttributeRatingSection'
 import { RateExperienceSheet } from '@features/saved/components/RateExperienceSheet'
+import { EditSavedExperienceSheet } from '@features/saved/components/EditSavedExperienceSheet'
+import { ConfirmDeleteSheet } from '@components/ui/ConfirmDeleteSheet'
+import { DetailActionBar } from '@components/ui/DetailActionBar'
 import { useTranslation } from 'react-i18next'
 import { EXPERIENCE_ATTRIBUTES } from '@features/timeline/config/experienceAttributes'
 import { useTheme } from '@lib/theme'
@@ -32,6 +34,7 @@ const TYPE_BADGE_VARIANT: Record<string, BadgeVariant> = {
   accommodation: 'accommodation',
   activity: 'activity',
   restaurant: 'restaurant',
+  city: 'city',
   entertainment: 'entertainment',
   other: 'other',
 }
@@ -43,7 +46,6 @@ export default function SavedExperienceDetailScreen() {
   const { t } = useTranslation()
 
   const { data, isLoading } = useSavedExperienceDetail(experienceId)
-  const { data: isSaved = true } = useIsSaved(experienceId)
   const toggleSave = useToggleSaveExperience(experienceId)
   const upsertNote = useUpsertSavedNote(experienceId)
   const upsertMeta = useUpsertSavedMeta(experienceId)
@@ -56,10 +58,14 @@ export default function SavedExperienceDetailScreen() {
   const priceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [ratingSheetVisible, setRatingSheetVisible] = useState(false)
   const [downloadingPhoto, setDownloadingPhoto] = useState(false)
-  const [photoDownloaded, setPhotoDownloaded] = useState(false)
+  const [removePhotoConfirmVisible, setRemovePhotoConfirmVisible] = useState(false)
+  const [photoMenuVisible, setPhotoMenuVisible] = useState(false)
+  const [photoMenuPos, setPhotoMenuPos] = useState({ top: 0, right: 0 })
+  const photoMenuButtonRef = useRef<View>(null)
+  const [unsaveSheetVisible, setUnsaveSheetVisible] = useState(false)
+  const [editInfoSheetVisible, setEditInfoSheetVisible] = useState(false)
 
   function handleUnsave() {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     toggleSave.mutate(true, {
       onSuccess: () => router.back(),
     })
@@ -78,14 +84,7 @@ export default function SavedExperienceDetailScreen() {
 
   function handleRemovePhoto() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    Alert.alert(
-      t('saved_detail_removePhotoConfirmTitle'),
-      t('saved_detail_removePhotoConfirmBody'),
-      [
-        { text: t('common_cancel'), style: 'cancel' },
-        { text: t('common_delete'), style: 'destructive', onPress: () => removePhoto.mutate() },
-      ]
-    )
+    setRemovePhotoConfirmVisible(true)
   }
 
   async function handleDownloadPhoto(url: string) {
@@ -102,13 +101,23 @@ export default function SavedExperienceDetailScreen() {
       await MediaLibrary.saveToLibraryAsync(localUri)
       await FileSystem.deleteAsync(localUri, { idempotent: true })
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      setPhotoDownloaded(true)
-      setTimeout(() => setPhotoDownloaded(false), 2000)
     } catch {
       Alert.alert(t('common_error'), t('saved_detail_photoDownloadError'))
     } finally {
       setDownloadingPhoto(false)
     }
+  }
+
+  function handlePhotoMenuPress() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    photoMenuButtonRef.current?.measureInWindow((x, y, width, height) => {
+      setPhotoMenuPos({ top: y + height + 4, right: Dimensions.get('window').width - (x + width) })
+      setPhotoMenuVisible(true)
+    })
+  }
+
+  function closePhotoMenu() {
+    setPhotoMenuVisible(false)
   }
 
   if (isLoading) {
@@ -145,7 +154,7 @@ export default function SavedExperienceDetailScreen() {
   const location = experience.location
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top', 'bottom']}>
       {/* iOS-style nav bar */}
       <View className="flex-row items-center px-2 py-2.5 bg-neutral-100 dark:bg-surface-900">
         <TouchableOpacity
@@ -157,17 +166,6 @@ export default function SavedExperienceDetailScreen() {
           <Text className="text-[17px] ml-0.5" style={{ color: colors.primary[500] }}>{t('saved_detail_back')}</Text>
         </TouchableOpacity>
         <View className="flex-1" />
-        <TouchableOpacity
-          onPress={handleUnsave}
-          hitSlop={8}
-          className="px-3 py-1.5"
-        >
-          <Ionicons
-            name={isSaved ? 'bookmark' : 'bookmark-outline'}
-            size={22}
-            color={isSaved ? colors.primary[500] : (isDark ? colors.neutral[400] : colors.neutral[500])}
-          />
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -176,8 +174,65 @@ export default function SavedExperienceDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Title card */}
-        <View className="rounded-2xl mb-3" style={cardShadow}>
-          <View className="bg-white dark:bg-surface-800 rounded-2xl p-4">
+        <View className="rounded-2xl mb-3 overflow-hidden" style={cardShadow}>
+          {/* Cover photo */}
+          <TouchableOpacity
+            onPress={handlePickPhoto}
+            activeOpacity={0.85}
+            disabled={uploadPhoto.isPending}
+            className="bg-white dark:bg-surface-800"
+            style={{ height: coverPhotoUrl ? 200 : 72 }}
+          >
+            {uploadPhoto.isPending ? (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator color={colors.primary[500]} />
+              </View>
+            ) : coverPhotoUrl ? (
+              <>
+                <Image
+                  source={{ uri: coverPhotoUrl }}
+                  style={{ flex: 1 }}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  ref={photoMenuButtonRef}
+                  onPress={handlePhotoMenuPress}
+                  hitSlop={8}
+                  disabled={downloadingPhoto || removePhoto.isPending}
+                  style={{
+                    position: 'absolute',
+                    top: 10,
+                    right: 10,
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(0,0,0,0.50)',
+                  }}
+                >
+                  {downloadingPhoto || removePhoto.isPending ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Ionicons name="ellipsis-vertical" size={16} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <Ionicons
+                  name="camera-outline"
+                  size={20}
+                  color={isDark ? colors.neutral[500] : colors.neutral[400]}
+                />
+                <Text style={{ fontSize: 15, fontWeight: '500', color: isDark ? colors.neutral[400] : colors.neutral[500] }}>
+                  {t('saved_detail_addPhoto', 'Añadir foto de portada')}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <View className="bg-white dark:bg-surface-800 p-4">
             <View className="flex-row items-start justify-between mb-2.5">
               <Badge
                 label={t(`expType_${experience.type}`)}
@@ -196,113 +251,63 @@ export default function SavedExperienceDetailScreen() {
               {experience.title}
             </Text>
           </View>
-        </View>
-
-        {/* Cover photo card */}
-        <View className="rounded-2xl mb-3" style={cardShadow}>
-          <TouchableOpacity
-            onPress={handlePickPhoto}
-            activeOpacity={0.85}
-            disabled={uploadPhoto.isPending}
-            className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden"
-            style={{ height: coverPhotoUrl ? 200 : 72 }}
-          >
-            {uploadPhoto.isPending ? (
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator color={colors.primary[500]} />
-              </View>
-            ) : coverPhotoUrl ? (
-              <>
-                <Image
-                  source={{ uri: coverPhotoUrl }}
-                  style={{ flex: 1 }}
-                  resizeMode="cover"
-                />
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: 10,
-                    right: 10,
-                    flexDirection: 'row',
-                    gap: 8,
-                  }}
-                >
-                  <TouchableOpacity
-                    onPress={() => handleDownloadPhoto(coverPhotoUrl)}
-                    hitSlop={8}
-                    disabled={downloadingPhoto}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'rgba(0,0,0,0.50)',
-                    }}
-                  >
-                    {downloadingPhoto ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      <Ionicons
-                        name={photoDownloaded ? 'checkmark' : 'download-outline'}
-                        size={16}
-                        color="#fff"
-                      />
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleRemovePhoto}
-                    hitSlop={8}
-                    disabled={removePhoto.isPending}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'rgba(0,0,0,0.50)',
-                    }}
-                  >
-                    {removePhoto.isPending ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      <Ionicons name="trash-outline" size={16} color="#fff" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-                <View
-                  style={{
-                    position: 'absolute',
-                    bottom: 10,
-                    right: 10,
-                    backgroundColor: 'rgba(0,0,0,0.50)',
-                    borderRadius: 8,
-                    paddingHorizontal: 10,
-                    paddingVertical: 6,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 5,
-                  }}
-                >
-                  <Ionicons name="camera-outline" size={14} color="#fff" />
-                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>
-                    {t('saved_detail_changePhoto', 'Cambiar foto')}
-                  </Text>
-                </View>
-              </>
-            ) : (
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <Ionicons
-                  name="camera-outline"
-                  size={20}
-                  color={isDark ? colors.neutral[500] : colors.neutral[400]}
-                />
-                <Text style={{ fontSize: 15, fontWeight: '500', color: isDark ? colors.neutral[400] : colors.neutral[500] }}>
-                  {t('saved_detail_addPhoto', 'Añadir foto de portada')}
+          {experience.type !== 'city' && (
+            <View
+              className="flex-row items-center justify-between px-4 py-3 bg-white dark:bg-surface-800 border-neutral-100 dark:border-surface-700"
+              style={{ borderTopWidth: 0.5 }}
+            >
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="pricetag-outline" size={17} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
+                <Text className="text-[15px] text-neutral-700 dark:text-neutral-200">
+                  {t('saved_detail_priceLabel')}
                 </Text>
               </View>
-            )}
-          </TouchableOpacity>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  gap: 4,
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  borderRadius: 8,
+                  backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+                }}
+              >
+                <TextInput
+                  value={priceValue}
+                  onChangeText={(v) => {
+                    const clean = v.replace(/[^0-9]/g, '')
+                    setPriceText(clean)
+                    clearTimeout(priceTimer.current)
+                    priceTimer.current = setTimeout(() => {
+                      const parsed = clean === '' ? null : parseInt(clean, 10)
+                      upsertMeta.mutate({ price_paid: isNaN(parsed as number) ? null : parsed })
+                    }, 800)
+                  }}
+                  onBlur={() => {
+                    clearTimeout(priceTimer.current)
+                    const parsed = priceValue === '' ? null : parseInt(priceValue, 10)
+                    upsertMeta.mutate({ price_paid: parsed !== null && !isNaN(parsed) ? parsed : null })
+                  }}
+                  placeholder={t('saved_detail_pricePlaceholder')}
+                  placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
+                  keyboardType="numeric"
+                  returnKeyType="done"
+                  textAlign="right"
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '600',
+                    color: isDark ? colors.neutral[50] : colors.neutral[900],
+                    padding: 0,
+                    minWidth: 24,
+                  }}
+                />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: isDark ? colors.neutral[400] : colors.neutral[500] }}>
+                  €
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Location + map card */}
@@ -351,70 +356,6 @@ export default function SavedExperienceDetailScreen() {
           </View>
         )}
 
-        {/* Price card — prominent stat layout */}
-        <View className="rounded-2xl mb-3" style={cardShadow}>
-          <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
-            <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-              {t('saved_detail_priceLabel')}
-            </Text>
-            <View
-              className="px-4 pb-4 pt-1.5 items-center border-neutral-100 dark:border-surface-700"
-              style={{ borderTopWidth: 0.5 }}
-            >
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 8,
-                  backgroundColor: isDark ? colors.surface[700] : `${colors.primary[500]}14`,
-                }}
-              >
-                <Ionicons name="pricetag" size={20} color={colors.primary[500]} />
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 5 }}>
-                <TextInput
-                  value={priceValue}
-                  onChangeText={(v) => {
-                    const clean = v.replace(/[^0-9]/g, '')
-                    setPriceText(clean)
-                    clearTimeout(priceTimer.current)
-                    priceTimer.current = setTimeout(() => {
-                      const parsed = clean === '' ? null : parseInt(clean, 10)
-                      upsertMeta.mutate({ price_paid: isNaN(parsed as number) ? null : parsed })
-                    }, 800)
-                  }}
-                  onBlur={() => {
-                    clearTimeout(priceTimer.current)
-                    const parsed = priceValue === '' ? null : parseInt(priceValue, 10)
-                    upsertMeta.mutate({ price_paid: parsed !== null && !isNaN(parsed) ? parsed : null })
-                  }}
-                  placeholder={t('saved_detail_pricePlaceholder')}
-                  placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
-                  keyboardType="numeric"
-                  returnKeyType="done"
-                  textAlign="center"
-                  style={{
-                    fontSize: 30,
-                    fontWeight: '800',
-                    letterSpacing: -0.5,
-                    color: isDark ? colors.neutral[50] : colors.neutral[900],
-                    padding: 0,
-                    minWidth: 36,
-                  }}
-                />
-                {priceValue !== '' && (
-                  <Text style={{ fontSize: 18, fontWeight: '700', color: isDark ? colors.neutral[500] : colors.neutral[400] }}>
-                    €
-                  </Text>
-                )}
-              </View>
-            </View>
-          </View>
-        </View>
-
         {/* Personal note card */}
         <View className="rounded-2xl mb-3" style={cardShadow}>
           <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
@@ -462,6 +403,90 @@ export default function SavedExperienceDetailScreen() {
           />
         )}
       </ScrollView>
+
+      <DetailActionBar
+        onEdit={() => setEditInfoSheetVisible(true)}
+        onDelete={() => setUnsaveSheetVisible(true)}
+        deleteLabel={t('saved_detail_unsaveLabel')}
+        isDeleting={toggleSave.isPending}
+      />
+
+      <Modal visible={photoMenuVisible} transparent animationType="fade" onRequestClose={closePhotoMenu}>
+        <Pressable style={{ flex: 1 }} onPress={closePhotoMenu}>
+          <View
+            style={{
+              position: 'absolute',
+              top: photoMenuPos.top,
+              right: photoMenuPos.right,
+              width: 210,
+              borderRadius: 14,
+              overflow: 'hidden',
+              backgroundColor: isDark ? colors.surface[800] : colors.white,
+              ...cardShadow,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => { closePhotoMenu(); handlePickPhoto() }}
+              className="flex-row items-center justify-between px-4 py-3"
+            >
+              <Text className="text-[15px] text-neutral-900 dark:text-neutral-50">
+                {t('saved_detail_changePhoto', 'Cambiar foto')}
+              </Text>
+              <Ionicons name="image-outline" size={18} color={isDark ? colors.neutral[300] : colors.neutral[600]} />
+            </TouchableOpacity>
+            <View className="border-neutral-100 dark:border-surface-700" style={{ borderTopWidth: 0.5 }} />
+            <TouchableOpacity
+              onPress={() => { closePhotoMenu(); handleDownloadPhoto(coverPhotoUrl ?? '') }}
+              className="flex-row items-center justify-between px-4 py-3"
+            >
+              <Text className="text-[15px] text-neutral-900 dark:text-neutral-50">
+                {t('saved_detail_downloadPhoto', 'Descargar foto')}
+              </Text>
+              <Ionicons name="arrow-down-circle-outline" size={18} color={isDark ? colors.neutral[300] : colors.neutral[600]} />
+            </TouchableOpacity>
+            <View className="border-neutral-100 dark:border-surface-700" style={{ borderTopWidth: 0.5 }} />
+            <TouchableOpacity
+              onPress={() => { closePhotoMenu(); handleRemovePhoto() }}
+              className="flex-row items-center justify-between px-4 py-3"
+            >
+              <Text className="text-[15px]" style={{ color: colors.error }}>
+                {t('common_delete')}
+              </Text>
+              <Ionicons name="trash-outline" size={18} color={colors.error} />
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <ConfirmDeleteSheet
+        visible={removePhotoConfirmVisible}
+        onClose={() => setRemovePhotoConfirmVisible(false)}
+        onConfirm={() => {
+          removePhoto.mutate(undefined, { onSuccess: () => setRemovePhotoConfirmVisible(false) })
+        }}
+        isLoading={removePhoto.isPending}
+        title={t('saved_detail_removePhotoConfirmTitle')}
+        message={t('saved_detail_removePhotoConfirmBody')}
+      />
+
+      <ConfirmDeleteSheet
+        visible={unsaveSheetVisible}
+        onClose={() => setUnsaveSheetVisible(false)}
+        onConfirm={handleUnsave}
+        isLoading={toggleSave.isPending}
+        title={t('saved_detail_unsaveConfirmTitle')}
+        message={t('saved_detail_unsaveConfirmBody')}
+        confirmLabel={t('saved_detail_unsaveLabel')}
+      />
+
+      <EditSavedExperienceSheet
+        visible={editInfoSheetVisible}
+        onClose={() => setEditInfoSheetVisible(false)}
+        experienceId={experienceId}
+        initialTitle={experience.title}
+        initialType={experience.type as Experience['type']}
+        initialLocation={location}
+      />
 
       <RateExperienceSheet
         visible={ratingSheetVisible}

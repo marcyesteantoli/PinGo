@@ -189,11 +189,13 @@ export default function TimelineScreen() {
   const { data: experiences, isLoading, error, refetch } = useExperiences(tripId)
   const { data: documents } = useDocuments(tripId)
   const experienceIds = useMemo(() => experiences?.map(e => e.id) ?? [], [experiences])
-  const { data: ratingsMap } = useRatingsForTrip(tripId, experienceIds)
+  const { data: ratingsMap, isLoading: ratingsLoading } = useRatingsForTrip(tripId, experienceIds)
   const createExperience = useCreateExperience(tripId)
   const deleteExperience = useDeleteExperience(tripId)
   const updateExperience = useUpdateExperience(tripId)
-  const { data: destinations = [] } = useDestinations(tripId)
+  const { data: destinations = [], isLoading: destinationsLoading } = useDestinations(tripId)
+
+  const showSkeleton = isLoading || destinationsLoading || (experienceIds.length > 0 && ratingsLoading)
   const [sheetVisible, setSheetVisible] = useState(false)
   const [destSheetVisible, setDestSheetVisible] = useState(false)
   const [editExperience, setEditExperience] = useState<Experience | null>(null)
@@ -406,7 +408,7 @@ export default function TimelineScreen() {
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
       <TripHeader scrollY={scrollY} />
       <View style={{ flex: 1 }}>
-      {isLoading ? (
+      {showSkeleton ? (
         <View className="px-5 pt-4 gap-3">
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
         </View>
@@ -447,13 +449,13 @@ export default function TimelineScreen() {
             />
           }
           onRefresh={refetch}
-          refreshing={isLoading}
+          refreshing={showSkeleton}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
         />
       )}
 
-      {!isLoading && (
+      {!showSkeleton && (
         <Animated.View className="absolute right-5" style={[fabAnimStyle, { bottom: 16, pointerEvents: 'box-none' }]}>
           <TouchableOpacity
             onPress={() => setSheetVisible(true)}

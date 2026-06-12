@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
+import { openInMaps } from '@lib/openInMaps'
 import { TYPE_ICONS, TYPE_COLORS } from '@features/wishlist/constants'
 import type { WishlistItem } from '@app-types/index'
 
@@ -54,6 +55,14 @@ function SheetContent({
   const titleColor = isDark ? colors.neutral[50] : colors.neutral[900]
 
   const locationLine = [item.location?.city, item.location?.country].filter(Boolean).join(', ')
+  const { lat, lng, address } = item.location ?? {}
+  const hasCoords = typeof lat === 'number' && typeof lng === 'number'
+
+  function handleOpenMaps() {
+    if (!hasCoords) return
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    openInMaps(lat, lng, address ?? item.name)
+  }
 
   return (
     <View style={{ paddingBottom: 4 }}>
@@ -99,13 +108,25 @@ function SheetContent({
         {item.name}
       </Text>
 
-      {locationLine ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 }}>
+      {(locationLine || hasCoords) ? (
+        <TouchableOpacity
+          onPress={hasCoords ? handleOpenMaps : undefined}
+          activeOpacity={hasCoords ? 0.6 : 1}
+          disabled={!hasCoords}
+          style={{
+            flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14,
+            paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20,
+            backgroundColor: isDark ? colors.surface[700] : colors.neutral[100],
+          }}
+        >
           <Ionicons name="location-outline" size={14} color={labelColor} />
           <Text numberOfLines={1} style={{ fontSize: 14, color: labelColor, flex: 1 }}>
             {locationLine}
           </Text>
-        </View>
+          {hasCoords && (
+            <Ionicons name="chevron-forward" size={14} color={labelColor} />
+          )}
+        </TouchableOpacity>
       ) : null}
 
       {item.note ? (

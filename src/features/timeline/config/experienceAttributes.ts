@@ -38,5 +38,6 @@ export const EXPERIENCE_ATTRIBUTES: Record<Experience['type'], AttributeConfig[]
     { key: 'Ambiente',     emoji: '✨', ionIcon: 'musical-notes-outline',   question: '¿Cómo era el ambiente?' },
     { key: 'Duración',     emoji: '⏱️', ionIcon: 'time-outline',            question: '¿Fue bien de tiempo?' },
   ],
+  city: [],
   other: [],
 }

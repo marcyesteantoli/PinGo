@@ -36,8 +36,8 @@ interface GooglePrediction {
   placePrediction: {
     placeId: string
     structuredFormat: {
-      mainText: { text: string }
-      secondaryText: { text: string }
+      mainText?: { text: string }
+      secondaryText?: { text: string }
     }
   }
 }
@@ -45,7 +45,7 @@ interface GooglePrediction {
 interface GooglePlaceDetails {
   location: { latitude: number; longitude: number }
   displayName: { text: string }
-  addressComponents: Array<{ longText: string; types: string[] }>
+  addressComponents?: Array<{ longText: string; types?: string[] }>
 }
 
 function generateUUID(): string {
@@ -173,10 +173,11 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
       const details = await getPlaceDetails(placeId, sessionTokenRef.current!)
       sessionTokenRef.current = null
       if (!details) return
+      const addressComponents = details.addressComponents ?? []
       const city =
-        details.addressComponents.find((c) => c.types.includes('locality'))?.longText ??
-        details.addressComponents.find((c) => c.types.includes('administrative_area_level_2'))?.longText ??
-        details.addressComponents.find((c) => c.types.includes('administrative_area_level_1'))?.longText
+        addressComponents.find((c) => c.types?.includes('locality'))?.longText ??
+        addressComponents.find((c) => c.types?.includes('administrative_area_level_2'))?.longText ??
+        addressComponents.find((c) => c.types?.includes('administrative_area_level_1'))?.longText
       setSelected({
         name: structuredFormat.mainText.text,
         lat: details.location.latitude,
@@ -386,14 +387,16 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                           numberOfLines={1}
                           style={{ fontSize: 15, color: textColor, fontWeight: '500' }}
                         >
-                          {item.placePrediction.structuredFormat.mainText.text}
+                          {item.placePrediction.structuredFormat.mainText?.text}
                         </Text>
-                        <Text
-                          numberOfLines={1}
-                          style={{ fontSize: 13, color: colors.neutral[400], marginTop: 2 }}
-                        >
-                          {item.placePrediction.structuredFormat.secondaryText.text}
-                        </Text>
+                        {item.placePrediction.structuredFormat.secondaryText?.text && (
+                          <Text
+                            numberOfLines={1}
+                            style={{ fontSize: 13, color: colors.neutral[400], marginTop: 2 }}
+                          >
+                            {item.placePrediction.structuredFormat.secondaryText.text}
+                          </Text>
+                        )}
                       </View>
                       <Ionicons name="chevron-forward" size={15} color={colors.neutral[300]} />
                     </TouchableOpacity>

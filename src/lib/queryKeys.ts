@@ -32,6 +32,7 @@ export const queryKeys = {
   savedExperiences: {
     byUser: () => ['savedExperiences'] as const,
     isSaved: (experienceId: string) => ['savedExperiences', 'isSaved', experienceId] as const,
+    savedCopyForSource: (sourceExperienceId: string) => ['savedExperiences', 'sourceLookup', sourceExperienceId] as const,
     note: (experienceId: string) => ['savedExperiences', 'note', experienceId] as const,
     detail: (experienceId: string) => ['savedExperiences', 'detail', experienceId] as const,
   },

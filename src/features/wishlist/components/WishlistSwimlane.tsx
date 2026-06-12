@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useTheme } from '@lib/theme'
+import { colors } from '@lib/colors'
 import { TYPE_ICONS, TYPE_COLORS, TYPE_BG_COLORS } from '../constants'
 import { WishlistLaneCard } from './WishlistLaneCard'
 import type { WishlistItem, WishlistItemType } from '@app-types/index'
@@ -37,20 +38,34 @@ export function WishlistSwimlane({ type, label, items, index, onCardPress, onSee
           <Ionicons name={typeIcon} size={17} color={typeColor} />
         </View>
 
-        <Text className="flex-1 text-[15px] font-bold text-neutral-900 dark:text-neutral-50">
-          {label}
-        </Text>
-
-        <View className="bg-neutral-200 dark:bg-surface-700 rounded-full px-2 py-0.5 mr-1">
-          <Text className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
-            {items.length}
+        <View className="flex-1 flex-row items-center gap-2">
+          <Text className="text-[15px] font-bold text-neutral-900 dark:text-neutral-50">
+            {label}
           </Text>
+          <View
+            style={{ backgroundColor: bgColor }}
+            className="min-w-[20px] h-5 items-center justify-center rounded-full px-1.5"
+          >
+            <Text style={{ color: typeColor }} className="text-[11px] font-bold">
+              {items.length}
+            </Text>
+          </View>
         </View>
 
-        <TouchableOpacity onPress={onSeeAll} hitSlop={8} activeOpacity={0.7}>
-          <Text className="text-[13px] font-semibold text-primary-500">
+        <TouchableOpacity
+          onPress={onSeeAll}
+          hitSlop={8}
+          activeOpacity={0.7}
+          className="flex-row items-center gap-1 bg-neutral-200 dark:bg-surface-700 rounded-full pl-3 pr-2 py-1"
+        >
+          <Text className="text-[12px] font-semibold text-neutral-600 dark:text-neutral-300">
             {t('wishlist_seeAll')}
           </Text>
+          <Ionicons
+            name="chevron-forward"
+            size={13}
+            color={isDark ? colors.neutral[300] : colors.neutral[600]}
+          />
         </TouchableOpacity>
       </View>
 

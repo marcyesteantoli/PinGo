@@ -51,7 +51,7 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
       reset(initialData)
       setAmountText(String(initialData.amount).replace('.', ','))
     } else {
-      reset({ participant_ids: [], payer_id: currentUserId, experience_id: undefined })
+      reset({ participant_ids: collaborators.map((c) => c.user_id), payer_id: currentUserId, experience_id: undefined })
       setAmountText('')
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,14 +62,14 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
   }, [error])
 
   const handleClose = () => {
-    reset({ participant_ids: [], payer_id: currentUserId, experience_id: undefined })
+    reset({ participant_ids: collaborators.map((c) => c.user_id), payer_id: currentUserId, experience_id: undefined })
     setAmountText('')
     onClose()
   }
 
   const handleSubmitForm = async (data: CreateExpenseFormData) => {
     await onSubmit(data)
-    reset({ participant_ids: [], payer_id: currentUserId, experience_id: undefined })
+    reset({ participant_ids: collaborators.map((c) => c.user_id), payer_id: currentUserId, experience_id: undefined })
     setAmountText('')
   }
 

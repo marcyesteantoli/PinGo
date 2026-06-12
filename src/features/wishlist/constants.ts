@@ -4,7 +4,7 @@ import type { WishlistItemType } from '@app-types/index'
 export const TYPE_ICONS: Record<WishlistItemType, keyof typeof Ionicons.glyphMap> = {
   city:          'business-outline',
   restaurant:    'restaurant-outline',
-  activity:      'bicycle-outline',
+  activity:      'compass-outline',
   accommodation: 'bed-outline',
   entertainment: 'film-outline',
   other:         'ellipsis-horizontal-outline',
@@ -35,7 +35,7 @@ export const WISHLIST_TYPES: {
 }[] = [
   { key: 'city',          label: 'Ciudad',          icon: 'business-outline' },
   { key: 'restaurant',    label: 'Restaurante',     icon: 'restaurant-outline' },
-  { key: 'activity',      label: 'Actividad',       icon: 'bicycle-outline' },
+  { key: 'activity',      label: 'Actividad',       icon: 'compass-outline' },
   { key: 'accommodation', label: 'Alojamiento',     icon: 'bed-outline' },
   { key: 'entertainment', label: 'Entretenimiento', icon: 'film-outline' },
   { key: 'other',         label: 'Otro',            icon: 'ellipsis-horizontal-outline' },

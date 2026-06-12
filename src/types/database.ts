@@ -78,7 +78,7 @@ export interface Database {
         Row: {
           id: string
           trip_id: string | null
-          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'other'
+          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'city' | 'other'
           title: string
           location: Json | null
           confirmation_code: string | null
@@ -92,7 +92,7 @@ export interface Database {
         Insert: {
           id?: string
           trip_id?: string | null
-          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'other'
+          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'city' | 'other'
           title: string
           location?: Json | null
           confirmation_code?: string | null
@@ -104,7 +104,7 @@ export interface Database {
           updated_at?: string
         }
         Update: {
-          type?: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'other'
+          type?: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'city' | 'other'
           title?: string
           location?: Json | null
           confirmation_code?: string | null

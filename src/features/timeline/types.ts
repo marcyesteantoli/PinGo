@@ -14,7 +14,7 @@ export function buildCreateExperienceSchema() {
   return z
     .object({
       title: z.string().min(1, i18n.t('validation_required_title')),
-      type: z.enum(['transport', 'accommodation', 'activity', 'restaurant', 'entertainment', 'other']),
+      type: z.enum(['transport', 'accommodation', 'activity', 'restaurant', 'entertainment', 'city', 'other']),
       date: z.string().min(1, i18n.t('validation_required_date')),
       start_time: buildOptionalTime(),
       end_time: buildOptionalTime(),
@@ -37,7 +37,7 @@ export function buildCreateExperienceSchema() {
 
 export type CreateExperienceFormData = z.infer<ReturnType<typeof buildCreateExperienceSchema>>
 
-export type ExperienceType = 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'other'
+export type ExperienceType = 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'city' | 'other'
 
 export function formatTimeRange(startTime: string | null, endTime: string | null): string | null {
   if (!startTime) return null

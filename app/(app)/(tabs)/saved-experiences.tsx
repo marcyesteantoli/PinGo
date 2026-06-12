@@ -78,11 +78,12 @@ export default function SavedExperiencesScreen() {
   // Filter tabs definition
   const TYPE_TABS = useMemo<Array<{ key: Experience['type'] | null; label: string; count?: number }>>(() => ([
     { key: null,             label: t('saved_filter_all'),      count: saved.length },
+    { key: 'city',          label: t('expType_city'),          count: typeCounts['city'] },
     { key: 'restaurant',    label: t('expType_restaurant'),    count: typeCounts['restaurant'] },
     { key: 'activity',      label: t('expType_activity'),      count: typeCounts['activity'] },
     { key: 'accommodation', label: t('expType_accommodation'), count: typeCounts['accommodation'] },
-    { key: 'transport',     label: t('expType_transport'),     count: typeCounts['transport'] },
     { key: 'entertainment', label: t('expType_entertainment'), count: typeCounts['entertainment'] },
+    { key: 'transport',     label: t('expType_transport'),     count: typeCounts['transport'] },
     { key: 'other',         label: t('expType_other'),         count: typeCounts['other'] },
   ] as Array<{ key: Experience['type'] | null; label: string; count?: number }>
   ).filter((tab) => tab.key === null || (tab.count ?? 0) > 0), [saved.length, typeCounts, t])

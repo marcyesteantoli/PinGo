@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Alert, Linking, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Linking, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import MapView, { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -11,6 +11,8 @@ import { useDeleteWishlistItem } from '@features/wishlist/hooks/useDeleteWishlis
 import { useToggleWishlistVisited } from '@features/wishlist/hooks/useToggleWishlistVisited'
 import { useUpdateWishlistNote } from '@features/wishlist/hooks/useUpdateWishlistNote'
 import { AddWishlistSheet } from '@features/wishlist/components/AddWishlistSheet'
+import { ConfirmDeleteSheet } from '@components/ui/ConfirmDeleteSheet'
+import { DetailActionBar } from '@components/ui/DetailActionBar'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
@@ -40,6 +42,7 @@ export default function WishlistItemDetailScreen() {
   const updateNote = useUpdateWishlistNote(itemId)
 
   const [editSheetVisible, setEditSheetVisible] = useState(false)
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false)
   const [noteText, setNoteText] = useState<string | undefined>(undefined)
   const noteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
@@ -69,25 +72,6 @@ export default function WishlistItemDetailScreen() {
     toggleVisited.mutate({ itemId: item.id, currentVisitedAt: item.visited_at })
   }
 
-  function handleDelete() {
-    Alert.alert(
-      t('wishlist_delete_title'),
-      t('wishlist_delete_body', { name: item.name }),
-      [
-        { text: t('common_cancel'), style: 'cancel' },
-        {
-          text: t('common_delete'),
-          style: 'destructive',
-          onPress: () => {
-            deleteItem.mutate(item.id, {
-              onSuccess: () => router.back(),
-            })
-          },
-        },
-      ]
-    )
-  }
-
   function openInMaps() {
     if (!location?.lat || !location?.lng) return
     const label = encodeURIComponent(location.address ?? item.name)
@@ -101,7 +85,7 @@ export default function WishlistItemDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top', 'bottom']}>
       {/* Nav bar */}
       <View className="flex-row items-center px-2 py-2.5 bg-neutral-100 dark:bg-surface-900">
         <TouchableOpacity
@@ -112,15 +96,6 @@ export default function WishlistItemDetailScreen() {
           <Ionicons name="chevron-back" size={22} color={colors.primary[500]} />
           <Text className="text-[17px] ml-0.5" style={{ color: colors.primary[500] }}>{t('wishlist_detail_back')}</Text>
         </TouchableOpacity>
-        <View className="flex-1" />
-        <View className="flex-row items-center gap-1">
-          <TouchableOpacity onPress={handleDelete} hitSlop={12} className="p-2">
-            <Ionicons name="trash-outline" size={20} color={colors.neutral[400]} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setEditSheetVisible(true)} hitSlop={12} className="p-2">
-            <Ionicons name="create-outline" size={22} color={colors.primary[500]} />
-          </TouchableOpacity>
-        </View>
       </View>
 
       <ScrollView
@@ -266,10 +241,25 @@ export default function WishlistItemDetailScreen() {
 
       </ScrollView>
 
+      <DetailActionBar
+        onEdit={() => setEditSheetVisible(true)}
+        onDelete={() => setDeleteSheetVisible(true)}
+        isDeleting={deleteItem.isPending}
+      />
+
       <AddWishlistSheet
         visible={editSheetVisible}
         onClose={() => setEditSheetVisible(false)}
         editItem={item}
+      />
+
+      <ConfirmDeleteSheet
+        visible={deleteSheetVisible}
+        title={t('wishlist_delete_title')}
+        message={t('wishlist_delete_body', { name: item.name })}
+        isLoading={deleteItem.isPending}
+        onClose={() => setDeleteSheetVisible(false)}
+        onConfirm={() => deleteItem.mutate(item.id, { onSuccess: () => router.back() })}
       />
     </SafeAreaView>
   )

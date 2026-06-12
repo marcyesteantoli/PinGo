@@ -114,6 +114,20 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
     <BottomSheet visible={visible} onClose={handleClose} title={isEdit ? t('wishlist_addSheet_edit') : t('wishlist_addSheet_create')} scrollable>
       <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
 
+        {/* Ubicación */}
+        <Text style={LABEL_STYLE}>{t('wishlist_addSheet_location')}</Text>
+        <View style={{ marginBottom: SECTION_GAP }}>
+          <LocationPicker
+            value={location}
+            onChange={(loc) => {
+              setLocation(loc ?? undefined)
+              if (loc && !name.trim()) {
+                setName(loc.name)
+              }
+            }}
+          />
+        </View>
+
         {/* Nombre */}
         <Text style={LABEL_STYLE}>{t('wishlist_addSheet_place')}</Text>
         <View
@@ -187,15 +201,6 @@ export function AddWishlistSheet({ visible, onClose, editItem }: AddWishlistShee
             )
           })}
         </ScrollView>
-
-        {/* Ubicación */}
-        <Text style={LABEL_STYLE}>{t('wishlist_addSheet_location')}</Text>
-        <View style={{ marginBottom: SECTION_GAP }}>
-          <LocationPicker
-            value={location}
-            onChange={(loc) => setLocation(loc ?? undefined)}
-          />
-        </View>
 
         {/* Nota */}
         <Text style={LABEL_STYLE}>{t('wishlist_addSheet_note')}</Text>

@@ -88,6 +88,8 @@ module.exports = {
           green:  { main: '#22C55E', bg: '#DCFCE7', darkBg: '#064E3B' },
           purple: { main: '#8B5CF6', bg: '#EDE9FE', darkBg: '#24064E' },
           gray:   { main: '#94A3B8', bg: '#F1F5F9', darkBg: '#334155' },
+          teal:   { main: '#14B8A6', bg: '#CCFBF1', darkBg: '#042F2E' },
+          sky:    { main: '#0EA5E9', bg: '#E0F2FE', darkBg: '#06304E' },
         },
       },
       fontFamily: {

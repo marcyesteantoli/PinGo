@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { LocationPicker } from '@features/timeline/components/LocationPicker'
 import { ExperienceTypePicker } from '@features/timeline/components/ExperienceTypePicker'
-import { useCreateStandaloneSavedExperience } from '../hooks/useCreateStandaloneSavedExperience'
+import { useUpdateSavedExperienceInfo } from '../hooks/useUpdateSavedExperienceInfo'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import type { Experience } from '@app-types/index'
@@ -16,34 +16,31 @@ interface PickedLocation {
   city?: string
 }
 
-interface AddSavedExperienceSheetProps {
+interface EditSavedExperienceSheetProps {
   visible: boolean
   onClose: () => void
+  experienceId: string
+  initialTitle: string
+  initialType: Experience['type']
+  initialLocation: PickedLocation | null
 }
 
-export function AddSavedExperienceSheet({ visible, onClose }: AddSavedExperienceSheetProps) {
+export function EditSavedExperienceSheet({ visible, onClose, experienceId, initialTitle, initialType, initialLocation }: EditSavedExperienceSheetProps) {
   const { isDark } = useTheme()
   const { t } = useTranslation()
-  const createItem = useCreateStandaloneSavedExperience()
+  const updateInfo = useUpdateSavedExperienceInfo(experienceId)
 
-  const [title, setTitle] = useState('')
-  const [type, setType] = useState<Experience['type']>('transport')
-  const [location, setLocation] = useState<PickedLocation | undefined>()
-  const [note, setNote] = useState('')
-  const [price, setPrice] = useState('')
+  const [title, setTitle] = useState(initialTitle)
+  const [type, setType] = useState<Experience['type']>(initialType)
+  const [location, setLocation] = useState<PickedLocation | undefined>(initialLocation ?? undefined)
 
-  function reset() {
-    setTitle('')
-    setType('restaurant')
-    setLocation(undefined)
-    setNote('')
-    setPrice('')
-  }
-
-  function handleClose() {
-    reset()
-    onClose()
-  }
+  useEffect(() => {
+    if (visible) {
+      setTitle(initialTitle)
+      setType(initialType)
+      setLocation(initialLocation ?? undefined)
+    }
+  }, [visible, initialTitle, initialType, initialLocation])
 
   function handleSubmit() {
     if (!title.trim()) {
@@ -51,12 +48,10 @@ export function AddSavedExperienceSheet({ visible, onClose }: AddSavedExperience
       return
     }
 
-    const price_paid = price.trim() ? Math.round(Number(price.replace(',', '.'))) : null
-
-    createItem.mutate(
-      { title, type, location, note, price_paid },
+    updateInfo.mutate(
+      { title, type, location },
       {
-        onSuccess: () => { reset(); onClose() },
+        onSuccess: () => onClose(),
         onError: () => {
           Alert.alert(t('common_error'), t('saved_save_error_create'))
         },
@@ -80,7 +75,7 @@ export function AddSavedExperienceSheet({ visible, onClose }: AddSavedExperience
   const SECTION_GAP = 20
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose} title={t('saved_addSheet_create')} scrollable>
+    <BottomSheet visible={visible} onClose={onClose} title={t('saved_editSheet_title')} scrollable>
       <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
 
         {/* Ubicación */}
@@ -88,12 +83,7 @@ export function AddSavedExperienceSheet({ visible, onClose }: AddSavedExperience
         <View style={{ marginBottom: SECTION_GAP }}>
           <LocationPicker
             value={location}
-            onChange={(loc) => {
-              setLocation(loc ?? undefined)
-              if (loc && !title.trim()) {
-                setTitle(loc.name)
-              }
-            }}
+            onChange={(loc) => setLocation(loc ?? undefined)}
           />
         </View>
 
@@ -119,7 +109,7 @@ export function AddSavedExperienceSheet({ visible, onClose }: AddSavedExperience
               paddingVertical: 12,
               paddingHorizontal: 14,
             }}
-            returnKeyType="next"
+            returnKeyType="done"
           />
         </View>
 
@@ -128,61 +118,7 @@ export function AddSavedExperienceSheet({ visible, onClose }: AddSavedExperience
           <ExperienceTypePicker
             value={type}
             onChange={setType}
-            types={['city',  'restaurant', 'accommodation', 'activity', 'entertainment', 'transport', 'other']}
-          />
-        </View>
-
-        {/* Precio pagado */}
-        <Text style={LABEL_STYLE}>{t('saved_addSheet_price')}</Text>
-        <View
-          style={{
-            backgroundColor: inputBg,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: inactiveBorder,
-            marginBottom: SECTION_GAP,
-          }}
-        >
-          <TextInput
-            value={price}
-            onChangeText={setPrice}
-            placeholder={t('saved_addSheet_price_placeholder')}
-            placeholderTextColor={placeholderColor}
-            keyboardType="numeric"
-            style={{
-              fontSize: 15,
-              color: textColor,
-              paddingVertical: 12,
-              paddingHorizontal: 14,
-            }}
-          />
-        </View>
-
-        {/* Nota */}
-        <Text style={LABEL_STYLE}>{t('saved_addSheet_note')}</Text>
-        <View
-          style={{
-            backgroundColor: inputBg,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: inactiveBorder,
-            marginBottom: SECTION_GAP,
-          }}
-        >
-          <TextInput
-            value={note}
-            onChangeText={setNote}
-            placeholder={t('saved_addSheet_note_placeholder')}
-            placeholderTextColor={placeholderColor}
-            multiline
-            style={{
-              fontSize: 15,
-              color: textColor,
-              paddingVertical: 12,
-              paddingHorizontal: 14,
-              minHeight: 80,
-              textAlignVertical: 'top',
-            }}
+            types={['city', 'restaurant', 'accommodation', 'activity', 'entertainment', 'transport', 'other']}
           />
         </View>
 
@@ -190,9 +126,9 @@ export function AddSavedExperienceSheet({ visible, onClose }: AddSavedExperience
         <TouchableOpacity
           onPress={handleSubmit}
           activeOpacity={0.85}
-          disabled={createItem.isPending}
+          disabled={updateInfo.isPending}
           style={{
-            backgroundColor: createItem.isPending ? colors.primary[400] : colors.primary[500],
+            backgroundColor: updateInfo.isPending ? colors.primary[400] : colors.primary[500],
             borderRadius: 14,
             paddingVertical: 14,
             alignItems: 'center',
@@ -200,11 +136,11 @@ export function AddSavedExperienceSheet({ visible, onClose }: AddSavedExperience
             minHeight: 52,
           }}
         >
-          {createItem.isPending ? (
+          {updateInfo.isPending ? (
             <ActivityIndicator color={colors.white} size="small" />
           ) : (
             <Text style={{ color: colors.white, fontSize: 16, fontWeight: '600' }}>
-              {t('saved_addSheet_submit')}
+              {t('common_save')}
             </Text>
           )}
         </TouchableOpacity>

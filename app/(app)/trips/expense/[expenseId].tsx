@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -12,6 +12,8 @@ import { useUpdateExpense } from '@features/expenses/hooks/useUpdateExpense'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { AddExpenseSheet } from '@features/expenses/components/AddExpenseSheet'
 import { Avatar } from '@components/ui/Avatar'
+import { ConfirmDeleteSheet } from '@components/ui/ConfirmDeleteSheet'
+import { DetailActionBar } from '@components/ui/DetailActionBar'
 import { queryKeys } from '@lib/queryKeys'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
@@ -100,24 +102,9 @@ export default function ExpenseDetailScreen() {
 
   const updateExpense = useUpdateExpense(tripId, collaborators)
   const [editSheetVisible, setEditSheetVisible] = useState(false)
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false)
 
   const expense = expenses?.find((e) => e.id === expenseId)
-
-  const handleDelete = () => {
-    if (!expense) return
-    Alert.alert(
-      t('common_delete'),
-      t('wishlist_delete_body', { name: expense.description }),
-      [
-        { text: t('common_cancel'), style: 'cancel' },
-        {
-          text: t('common_delete'),
-          style: 'destructive',
-          onPress: () => deleteExpense.mutate(expense.id, { onSuccess: () => router.back() }),
-        },
-      ]
-    )
-  }
 
   const handleEditSubmit = async (data: CreateExpenseFormData) => {
     if (!expense) return
@@ -300,27 +287,11 @@ export default function ExpenseDetailScreen() {
 
       {/* Bottom actions — solo para el pagador */}
       {isCurrentUserPayer && (
-        <View
-          className="px-5 pt-3 pb-4 flex-row gap-3 bg-neutral-100 dark:bg-surface-900 border-neutral-100 dark:border-surface-700"
-          style={{ borderTopWidth: 0.5 }}
-        >
-          <TouchableOpacity
-            onPress={handleDelete}
-            disabled={deleteExpense.isPending}
-            className="flex-1 h-12 rounded-xl border items-center justify-center flex-row gap-2"
-            style={{ borderColor: colors.error }}
-          >
-            <Ionicons name="trash-outline" size={18} color={colors.error} />
-            <Text style={{ color: colors.error }} className="text-sm font-semibold">{t('common_delete')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setEditSheetVisible(true)}
-            className="flex-1 h-12 rounded-xl bg-primary-500 items-center justify-center flex-row gap-2"
-          >
-            <Ionicons name="pencil-outline" size={18} color={colors.white} />
-            <Text className="text-sm font-semibold text-white">{t('common_edit')}</Text>
-          </TouchableOpacity>
-        </View>
+        <DetailActionBar
+          onEdit={() => setEditSheetVisible(true)}
+          onDelete={() => setDeleteSheetVisible(true)}
+          isDeleting={deleteExpense.isPending}
+        />
       )}
 
       <AddExpenseSheet
@@ -339,6 +310,15 @@ export default function ExpenseDetailScreen() {
           experience_id: expense.experience_id ?? undefined,
           participant_ids: expense.splits.map((s) => s.user_id),
         }}
+      />
+
+      <ConfirmDeleteSheet
+        visible={deleteSheetVisible}
+        title={t('expenseDetail_deleteSheet_title')}
+        message={t('expenseDetail_deleteSheet_body', { description: expense.description })}
+        isLoading={deleteExpense.isPending}
+        onClose={() => setDeleteSheetVisible(false)}
+        onConfirm={() => deleteExpense.mutate({ expenseId: expense.id }, { onSuccess: () => router.back() })}
       />
     </SafeAreaView>
   )

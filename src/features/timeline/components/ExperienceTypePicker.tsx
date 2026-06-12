@@ -12,6 +12,7 @@ const TYPE_ICONS: Record<ExperienceType, React.ComponentProps<typeof Ionicons>['
   activity:      'compass-outline',
   restaurant:    'restaurant-outline',
   entertainment: 'film-outline',
+  city:          'business-outline',
   other:         'ellipse-outline',
 }
 
@@ -19,9 +20,10 @@ interface ExperienceTypePickerProps {
   value?: ExperienceType
   onChange: (type: ExperienceType) => void
   error?: string
+  types?: ExperienceType[]
 }
 
-const TYPES: ExperienceType[] = ['transport', 'accommodation', 'activity', 'restaurant', 'entertainment', 'other']
+const DEFAULT_TYPES: ExperienceType[] = ['transport', 'accommodation', 'activity', 'restaurant', 'entertainment', 'other']
 
 const TYPE_SELECTED_CLASSES: Record<ExperienceType, string> = {
   transport:     'bg-activity-blue-main border-activity-blue-main',
@@ -29,17 +31,18 @@ const TYPE_SELECTED_CLASSES: Record<ExperienceType, string> = {
   activity:      'bg-activity-green-main border-activity-green-main',
   restaurant:    'bg-activity-orange-main border-activity-orange-main',
   entertainment: 'bg-activity-pink-main border-activity-pink-main',
+  city:          'bg-activity-sky-main border-activity-sky-main',
   other:         'bg-activity-gray-main border-activity-gray-main',
 }
 
-export function ExperienceTypePicker({ value, onChange, error }: ExperienceTypePickerProps) {
+export function ExperienceTypePicker({ value, onChange, error, types = DEFAULT_TYPES }: ExperienceTypePickerProps) {
   const { t } = useTranslation()
   return (
     <View className="gap-1">
       <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('timeline_typePicker_label')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
         <View className="flex-row gap-2 px-1 py-1">
-          {TYPES.map((type) => {
+          {types.map((type) => {
             const isSelected = value === type
             return (
               <TouchableOpacity

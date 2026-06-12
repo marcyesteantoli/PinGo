@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, interpolate } from 'react-native-reanimated'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 // TODO: import PROVIDER_GOOGLE and set provider={PROVIDER_GOOGLE} on MapView when Google Maps API key is configured
 import MapView, { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -14,17 +14,17 @@ import { useExpenses } from '@features/expenses/hooks/useExpenses'
 import { ExpenseCard } from '@features/expenses/components/ExpenseCard'
 import { useRatings } from '@features/timeline/hooks/useRatings'
 import { useUpsertRating } from '@features/timeline/hooks/useUpsertRating'
+import { useDeleteRating } from '@features/timeline/hooks/useDeleteRating'
 import { useUpdateExperience } from '@features/timeline/hooks/useUpdateExperience'
+import { useDeleteExperience } from '@features/timeline/hooks/useDeleteExperience'
 import { AddExperienceSheet } from '@features/timeline/components/AddExperienceSheet'
-import { useIsSaved } from '@features/saved/hooks/useIsSaved'
-import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExperience'
-import { useSavedNote } from '@features/saved/hooks/useSavedNote'
-import { useUpsertSavedNote } from '@features/saved/hooks/useUpsertSavedNote'
-import { AttributeRatingSection } from '@features/timeline/components/AttributeRatingSection'
-import { RateExperienceSheet } from '@features/saved/components/RateExperienceSheet'
+import { useSavedExperienceLink } from '@features/saved/hooks/useSavedExperienceLink'
+import { useSaveExperienceFromTrip } from '@features/saved/hooks/useSaveExperienceFromTrip'
 import { DocumentViewer } from '@features/documents/components/DocumentViewer'
 import { Avatar } from '@components/ui/Avatar'
 import { Badge } from '@components/ui/Badge'
+import { ConfirmDeleteSheet } from '@components/ui/ConfirmDeleteSheet'
+import { DetailActionBar } from '@components/ui/DetailActionBar'
 import { EmojiRating } from '@components/ui/EmojiRating'
 import { UndoToast } from '@components/ui/UndoToast'
 import { formatTimeRange } from '@features/timeline/types'
@@ -80,9 +80,11 @@ export default function ExperienceDetailScreen() {
   const [viewerDoc, setViewerDoc] = useState<DocumentWithExperience | null>(null)
   const [saveToast, setSaveToast] = useState(false)
   const [editSheetVisible, setEditSheetVisible] = useState(false)
-  const [ratingSheetVisible, setRatingSheetVisible] = useState(false)
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false)
+  const [newSavedId, setNewSavedId] = useState<string | null>(null)
   const [docsExpanded, setDocsExpanded] = useState(true)
   const [expensesExpanded, setExpensesExpanded] = useState(true)
+  const [isRatingExpanded, setIsRatingExpanded] = useState(false)
   const saveToastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const docsProgress = useSharedValue(1)
@@ -130,18 +132,18 @@ export default function ExperienceDetailScreen() {
   const { data: currentUser } = useCurrentUser()
   const { data: ratingsData } = useRatings(experienceId)
   const upsertRating = useUpsertRating(experienceId, tripId)
+  const deleteRating = useDeleteRating(experienceId, tripId)
   const updateExperience = useUpdateExperience(tripId)
-  const { data: isSaved = false } = useIsSaved(experienceId)
-  const toggleSave = useToggleSaveExperience(experienceId)
-  const { data: savedNote } = useSavedNote(experienceId)
-  const upsertNote = useUpsertSavedNote(experienceId)
-  const [noteText, setNoteText] = useState<string | undefined>(undefined)
-  const noteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const deleteExperience = useDeleteExperience(tripId)
+  const { data: savedLink } = useSavedExperienceLink(experienceId)
+  const isSaved = !!savedLink
+  const saveExperience = useSaveExperienceFromTrip(experienceId)
   function handleToggleSave() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    toggleSave.mutate(isSaved, {
-      onSuccess: () => {
-        if (!isSaved) {
+    saveExperience.mutate(savedLink?.experienceId ?? null, {
+      onSuccess: (newId) => {
+        if (newId) {
+          setNewSavedId(newId)
           clearTimeout(saveToastTimer.current)
           setSaveToast(true)
           saveToastTimer.current = setTimeout(() => setSaveToast(false), 4000)
@@ -181,7 +183,7 @@ export default function ExperienceDetailScreen() {
   const hasDetails = !!(experience.date || timeRange || experience.confirmation_code)
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top', 'bottom']}>
       <View className="flex-row items-center px-2 py-2.5 bg-neutral-100 dark:bg-surface-900">
         <TouchableOpacity
           onPress={() => router.back()}
@@ -191,13 +193,6 @@ export default function ExperienceDetailScreen() {
           <Ionicons name="chevron-back" size={22} color={colors.primary[500]} />
         </TouchableOpacity>
         <View className="flex-1" />
-        <TouchableOpacity
-          onPress={() => setEditSheetVisible(true)}
-          hitSlop={8}
-          className="px-3 py-1.5"
-        >
-          <Ionicons name="create-outline" size={22} color={isDark ? colors.neutral[400] : colors.neutral[500]} />
-        </TouchableOpacity>
         <TouchableOpacity
           onPress={handleToggleSave}
           hitSlop={8}
@@ -491,66 +486,66 @@ export default function ExperienceDetailScreen() {
               className="px-4 py-3 border-neutral-100 dark:border-surface-700"
               style={{ borderTopWidth: 0.5 }}
             >
-              <Text className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
-                {t('experience_myRating')}
-              </Text>
-              <EmojiRating
-                value={ratingsData?.userRating ?? null}
-                onChange={(rating) => upsertRating.mutate(rating)}
-              />
+              {ratingsData?.userRating == null && !isRatingExpanded ? (
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center gap-2.5 flex-1">
+                    <Ionicons
+                      name="star-outline"
+                      size={20}
+                      color={isDark ? colors.neutral[400] : colors.neutral[500]}
+                    />
+                    <Text className="text-[15px] text-neutral-700 dark:text-neutral-200 flex-1">
+                      {t('experience_rateThisExperience')}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setIsRatingExpanded(true)}
+                    className="px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-surface-700"
+                  >
+                    <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-100">
+                      {t('experience_rateButton')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <>
+                  <View className="flex-row items-center justify-between mb-2">
+                    <Text className="text-xs text-neutral-500 dark:text-neutral-400">
+                      {t('experience_myRating')}
+                    </Text>
+                    {ratingsData?.userRating != null && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                          deleteRating.mutate()
+                          setIsRatingExpanded(false)
+                        }}
+                        className="flex-row items-center gap-1"
+                      >
+                        <Ionicons name="trash-outline" size={14} color={colors.error} />
+                        <Text className="text-xs font-medium text-error-500">
+                          {t('experience_deleteRating')}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <EmojiRating
+                    value={ratingsData?.userRating ?? null}
+                    onChange={(rating) => upsertRating.mutate(rating)}
+                  />
+                </>
+              )}
             </View>
           </View>
         </View>
 
-        {isSaved && (
-          <AttributeRatingSection
-            experienceId={experienceId}
-            experienceType={experience.type}
-            cardBg={isDark ? colors.surface[800] : colors.white}
-            labelColor={isDark ? colors.neutral[500] : colors.neutral[400]}
-            borderColor={isDark ? colors.surface[700] : colors.neutral[100]}
-            onEditPress={() => setRatingSheetVisible(true)}
-          />
-        )}
-
-        {/* Note card */}
-        {isSaved && (
-          <View className="rounded-2xl mb-3" style={cardShadow}>
-            <View className="bg-white dark:bg-surface-800 rounded-2xl overflow-hidden">
-              <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide px-4 pt-3.5 pb-1.5">
-                {t('experience_section_note')}
-              </Text>
-              <View
-                className="px-4 py-3 border-neutral-100 dark:border-surface-700"
-                style={{ borderTopWidth: 0.5 }}
-              >
-                <TextInput
-                  value={noteText ?? savedNote ?? ''}
-                  onChangeText={(text) => {
-                    setNoteText(text)
-                    clearTimeout(noteTimer.current)
-                    noteTimer.current = setTimeout(() => upsertNote.mutate(text), 800)
-                  }}
-                  onBlur={() => {
-                    clearTimeout(noteTimer.current)
-                    upsertNote.mutate(noteText ?? savedNote ?? '')
-                  }}
-                  placeholder={t('experience_note_placeholder')}
-                  placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
-                  multiline
-                  style={{
-                    fontSize: 15,
-                    color: isDark ? colors.neutral[50] : colors.neutral[900],
-                    minHeight: 80,
-                    textAlignVertical: 'top',
-                    padding: 0,
-                  }}
-                />
-              </View>
-            </View>
-          </View>
-        )}
       </ScrollView>
+
+      <DetailActionBar
+        onEdit={() => setEditSheetVisible(true)}
+        onDelete={() => setDeleteSheetVisible(true)}
+        isDeleting={deleteExperience.isPending}
+      />
 
       <DocumentViewer
         document={viewerDoc}
@@ -585,24 +580,29 @@ export default function ExperienceDetailScreen() {
         mode="edit"
       />
 
+      <ConfirmDeleteSheet
+        visible={deleteSheetVisible}
+        title={t('timeline_deleteSheet_title')}
+        message={
+          experienceDocs.length > 0
+            ? t(experienceDocs.length === 1 ? 'timeline_deleteSheet_body_one' : 'timeline_deleteSheet_body_other', { count: experienceDocs.length })
+            : t('experience_deleteSheet_body')
+        }
+        confirmLabel={experienceDocs.length > 0 ? t('timeline_deleteSheet_confirm') : undefined}
+        isLoading={deleteExperience.isPending}
+        onClose={() => setDeleteSheetVisible(false)}
+        onConfirm={() => deleteExperience.mutate(experienceId, { onSuccess: () => router.back() })}
+      />
+
       <UndoToast
         visible={saveToast}
         message={t('experience_saved_toast')}
         actionLabel={t('experience_rate_action')}
         onAction={() => {
           setSaveToast(false)
-          setRatingSheetVisible(true)
+          if (newSavedId) router.push(`/saved-experiences/${newSavedId}`)
         }}
       />
-
-      {experience && (
-        <RateExperienceSheet
-          visible={ratingSheetVisible}
-          onClose={() => setRatingSheetVisible(false)}
-          experienceId={experienceId}
-          experienceType={experience.type}
-        />
-      )}
     </SafeAreaView>
   )
 }

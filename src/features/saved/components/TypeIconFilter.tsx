@@ -32,7 +32,7 @@ const TYPE_COLOR: Record<string, string> = {
   activity:      '#22C55E',
   restaurant:    '#F97316',
   entertainment: '#EC4899',
-  city:          '#14B8A6',
+  city:          '#0EA5E9',
   other:         '#94A3B8',
 }
 

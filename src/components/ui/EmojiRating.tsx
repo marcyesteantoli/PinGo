@@ -53,6 +53,8 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
   const thumbX = useSharedValue(0)
   const lastHapticValue = useRef<number | null>(null)
   const [displayValue, setDisplayValue] = useState<number>(value ?? 5)
+  const [hasInteracted, setHasInteracted] = useState(value !== null)
+  const hasInteractedSV = useSharedValue(value !== null)
 
   useEffect(() => {
     if (trackWidth <= 0) return
@@ -60,6 +62,10 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
     thumbX.value = valueToThumbLeft(initial, trackWidth)
     setDisplayValue(initial)
     lastHapticValue.current = initial
+    if (value !== null) {
+      setHasInteracted(true)
+      hasInteractedSV.value = true
+    }
   }, [value, trackWidth])
 
   function onDisplayValueChange(v: number) {
@@ -77,11 +83,13 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
       'worklet'
       const tw = trackWidthSV.value
       if (tw <= 0) return
+      hasInteractedSV.value = true
       const range = tw - THUMB_SIZE
       const newLeft = Math.max(0, Math.min(range, e.x - THUMB_SIZE / 2))
       thumbX.value = newLeft
       const v = thumbLeftToValue(newLeft, tw)
       runOnJS(onDisplayValueChange)(v)
+      runOnJS(setHasInteracted)(true)
       if (lastHapticValue.current !== v) {
         lastHapticValue.current = v
         runOnJS(triggerHaptic)()
@@ -108,11 +116,13 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
   })
 
   const fillAnimStyle = useAnimatedStyle(() => {
-    const fillColor = interpolateColor(
-      colorProgress.value,
-      [0, 0.25, 0.5, 0.75, 1],
-      ['#4a5568', '#2f3aa3', '#e11d48', '#F77737', '#FFC837'],
-    )
+    const fillColor = !hasInteractedSV.value
+      ? colors.neutral[300]
+      : interpolateColor(
+          colorProgress.value,
+          [0, 0.25, 0.5, 0.75, 1],
+          ['#4a5568', '#2f3aa3', '#e11d48', '#F77737', '#FFC837'],
+        )
     return {
       backgroundColor: fillColor,
       width: thumbX.value + THUMB_SIZE / 2,
@@ -124,11 +134,13 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
   }))
 
   const thumbColorStyle = useAnimatedStyle(() => {
-    const borderColor = interpolateColor(
-      colorProgress.value,
-      [0, 0.25, 0.5, 0.75, 1],
-      ['#4a5568', '#2f3aa3', '#e11d48', '#F77737', '#FFC837'],
-    )
+    const borderColor = !hasInteractedSV.value
+      ? colors.neutral[300]
+      : interpolateColor(
+          colorProgress.value,
+          [0, 0.25, 0.5, 0.75, 1],
+          ['#4a5568', '#2f3aa3', '#e11d48', '#F77737', '#FFC837'],
+        )
     return { borderColor }
   })
 
@@ -176,18 +188,28 @@ function RatingSlider({ value, onChange }: RatingSliderProps) {
               thumbColorStyle,
             ]}
           >
-            <Text className="text-xs font-bold text-neutral-700 dark:text-neutral-200">
-              {displayValue}
-            </Text>
+            {hasInteracted && (
+              <Text className="text-xs font-bold text-neutral-700 dark:text-neutral-200">
+                {displayValue}
+              </Text>
+            )}
           </Animated.View>
         </View>
       </GestureDetector>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <RatingFace level={getLevel(displayValue)} size={36} />
-        <Text className="text-base font-medium text-neutral-700 dark:text-neutral-200">
-          {t(`rating_score_${displayValue}` as any)}
-        </Text>
+        {hasInteracted ? (
+          <>
+            <RatingFace level={getLevel(displayValue)} size={36} />
+            <Text className="text-base font-medium text-neutral-700 dark:text-neutral-200">
+              {t(`rating_score_${displayValue}` as any)}
+            </Text>
+          </>
+        ) : (
+          <Text className="text-base font-medium text-neutral-500 dark:text-neutral-400">
+            {t('rating_dragToRate')}
+          </Text>
+        )}
       </View>
     </View>
   )

@@ -1,6 +1,6 @@
 import type { Ionicons } from '@expo/vector-icons'
 
-export type ExpenseCategory = 'restaurant' | 'transport' | 'accommodation' | 'activity' | 'entertainment' | 'other'
+export type ExpenseCategory = 'restaurant' | 'transport' | 'accommodation' | 'activity' | 'entertainment' | 'city' | 'other'
 
 const CATEGORY_KEYWORDS: [Exclude<ExpenseCategory, 'other'>, RegExp][] = [
   ['restaurant',    /dinner|lunch|breakfast|restaurant|cafeteria|coffee|diner|bistro|brunch|burger|sushi|pizza|tapas|food|snack|\bbar\b|cena|comida|restaurante|desayuno|almuerzo|caf[eé]|gastro/i],
@@ -24,6 +24,7 @@ export const CATEGORY_ICON: Record<ExpenseCategory, React.ComponentProps<typeof 
   accommodation: 'bed-outline',
   activity:      'compass-outline',
   entertainment: 'film-outline',
+  city:          'business-outline',
   other:         'wallet-outline',
 }
 
@@ -33,6 +34,7 @@ export const CATEGORY_BG: Record<ExpenseCategory, string> = {
   accommodation: 'bg-activity-purple-bg dark:bg-[#24064E]',
   activity:      'bg-activity-green-bg dark:bg-[#064E3B]',
   entertainment: 'bg-activity-pink-bg dark:bg-[#4E062A]',
+  city:          'bg-activity-teal-bg dark:bg-[#042F2E]',
   other:         'bg-activity-gray-bg dark:bg-[#334155]',
 }
 
@@ -42,11 +44,12 @@ export const CATEGORY_ICON_COLORS: Record<ExpenseCategory, { light: string; dark
   accommodation: { light: '#8B5CF6', dark: '#8B5CF6' },
   activity:      { light: '#22C55E', dark: '#22C55E' },
   entertainment: { light: '#EC4899', dark: '#EC4899' },
+  city:          { light: '#14B8A6', dark: '#14B8A6' },
   other:         { light: '#94A3B8', dark: '#94A3B8' },
 }
 
 export const CATEGORY_ORDER: ExpenseCategory[] = [
-  'restaurant', 'transport', 'accommodation', 'activity', 'entertainment', 'other',
+  'restaurant', 'transport', 'accommodation', 'activity', 'entertainment', 'city', 'other',
 ]
 
 export const CATEGORY_LABEL_KEY: Record<ExpenseCategory, string> = {
@@ -55,5 +58,6 @@ export const CATEGORY_LABEL_KEY: Record<ExpenseCategory, string> = {
   accommodation: 'expense_category_accommodation',
   activity:      'expense_category_activity',
   entertainment: 'expense_category_entertainment',
+  city:          'expType_city',
   other:         'expense_category_other',
 }

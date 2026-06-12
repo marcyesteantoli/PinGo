@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
-import { Alert, Platform, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Platform, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useColorScheme } from 'nativewind'
 import Animated, {
@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import { fabShadow } from '@lib/shadows'
+import { ConfirmDeleteSheet } from '@components/ui/ConfirmDeleteSheet'
 import { EmptyState } from '@components/ui/EmptyState'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { TripHeader } from '@features/trips/components/TripHeader'
@@ -187,6 +188,7 @@ export default function ExpensesScreen() {
   const { data: settlements } = useSettlements(tripId)
   const [sheetVisible, setSheetVisible] = useState(false)
   const [editingExpense, setEditingExpense] = useState<ExpenseWithSplits | null>(null)
+  const [deletingExpense, setDeletingExpense] = useState<ExpenseWithSplits | null>(null)
   const [activeTab, setActiveTab] = useState<ActiveTab>('gastos')
 
   const balances = useMemo(
@@ -281,18 +283,7 @@ export default function ExpensesScreen() {
   }
 
   const handleDelete = (expense: ExpenseWithSplits) => {
-    Alert.alert(
-      t('common_delete'),
-      t('wishlist_delete_body', { name: expense.description }),
-      [
-        { text: t('common_cancel'), style: 'cancel' },
-        {
-          text: t('common_delete'),
-          style: 'destructive',
-          onPress: () => deleteExpense.mutate({ expenseId: expense.id }),
-        },
-      ]
-    )
+    setDeletingExpense(expense)
   }
 
   return (
@@ -535,6 +526,18 @@ export default function ExpensesScreen() {
               }
             : undefined
         }
+      />
+
+      <ConfirmDeleteSheet
+        visible={!!deletingExpense}
+        title={t('expenseDetail_deleteSheet_title')}
+        message={t('expenseDetail_deleteSheet_body', { description: deletingExpense?.description ?? '' })}
+        isLoading={deleteExpense.isPending}
+        onClose={() => setDeletingExpense(null)}
+        onConfirm={() => {
+          deleteExpense.mutate({ expenseId: deletingExpense!.id })
+          setDeletingExpense(null)
+        }}
       />
     </View>
   )

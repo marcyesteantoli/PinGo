@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import Constants from 'expo-constants'
 import { useRouter } from 'expo-router'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
   Alert,
   Linking,
@@ -21,6 +21,7 @@ import { useProfile } from '@features/auth/hooks/useProfile'
 import { useSignOut } from '@features/auth/hooks/useSignOut'
 import { useUpdateProfile } from '@features/auth/hooks/useUpdateProfile'
 import { useTrips } from '@features/trips/hooks/useTrips'
+import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import { useTheme } from '@lib/theme'
@@ -34,6 +35,7 @@ export default function ProfileScreen() {
   const { data: user } = useCurrentUser()
   const { data: profile } = useProfile(user?.id)
   const { data: trips = [] } = useTrips()
+  const { data: savedExperiences = [] } = useSavedExperiences()
   const updateProfile = useUpdateProfile()
   const signOut = useSignOut()
   const [editingName, setEditingName] = useState(false)
@@ -45,16 +47,6 @@ export default function ProfileScreen() {
     ? new Intl.DateTimeFormat(language === 'es' ? 'es-ES' : 'en-US', { month: 'long', year: 'numeric' }).format(new Date(user.created_at))
     : '—'
   const appVersion = Constants.expoConfig?.version ?? '1.0.0'
-
-  const uniqueCompanions = useMemo(() => {
-    const ids = new Set<string>()
-    for (const trip of trips) {
-      for (const c of trip.collaborators) {
-        if (c.user_id !== user?.id) ids.add(c.user_id)
-      }
-    }
-    return ids.size
-  }, [trips, user?.id])
 
   const startEditName = () => {
     setNameValue(displayName)
@@ -185,10 +177,10 @@ export default function ProfileScreen() {
           <View className="w-px bg-neutral-100 dark:bg-surface-700 my-3" />
           <View className="flex-1 items-center py-4">
             <Text className="text-[24px] font-bold text-neutral-900 dark:text-neutral-50">
-              {uniqueCompanions}
+              {savedExperiences.length}
             </Text>
             <Text className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-              {t('profile_stats_companions')}
+              {t('profile_stats_saved')}
             </Text>
           </View>
         </View>

@@ -76,6 +76,7 @@ function IconBtn({
   const defaultColor = tint === 'dark' ? 'rgba(255,255,255,0.90)' : 'rgba(0,0,0,0.78)'
   const disabledColor = tint === 'dark' ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.22)'
   const iconColor = disabled ? disabledColor : (color ?? defaultColor)
+  const fillColor = tint === 'dark' ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.06)'
 
   return (
     <Pressable
@@ -94,7 +95,7 @@ function IconBtn({
       hitSlop={10}
     >
       <Animated.View style={animStyle}>
-        <BlurView intensity={60} tint={tint} style={styles.iconBtnBlur}>
+        <BlurView intensity={60} tint={tint} style={[styles.iconBtnBlur, { backgroundColor: fillColor }]}>
           <Ionicons name={iconName} size={size} color={iconColor} />
         </BlurView>
       </Animated.View>

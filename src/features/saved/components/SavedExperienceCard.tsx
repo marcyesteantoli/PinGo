@@ -36,6 +36,7 @@ const TYPE_ICON: Record<Experience['type'], React.ComponentProps<typeof Ionicons
   activity:      'compass-outline',
   restaurant:    'restaurant-outline',
   entertainment: 'film-outline',
+  city:          'business-outline',
   other:         'ellipse-outline',
 }
 
@@ -45,6 +46,7 @@ const TYPE_BG: Record<Experience['type'], string> = {
   activity:      'bg-activity-green-bg dark:bg-[#064E3B]',
   restaurant:    'bg-activity-orange-bg dark:bg-[#4E1E06]',
   entertainment: 'bg-activity-pink-bg dark:bg-[#4E062A]',
+  city:          'bg-activity-sky-bg dark:bg-[#06304E]',
   other:         'bg-activity-gray-bg dark:bg-[#334155]',
 }
 
@@ -54,6 +56,7 @@ const TYPE_ICON_COLOR: Record<Experience['type'], string> = {
   activity:      '#22C55E',
   restaurant:    '#F97316',
   entertainment: '#EC4899',
+  city:          '#0EA5E9',
   other:         '#94A3B8',
 }
 
