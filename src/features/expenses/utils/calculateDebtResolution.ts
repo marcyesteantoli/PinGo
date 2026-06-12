@@ -1,4 +1,4 @@
-import type { UserBalance } from '@types/index'
+import type { UserBalance } from '@app-types/index'
 
 export type DebtTransaction = {
   fromUserId: string

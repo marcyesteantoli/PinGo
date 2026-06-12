@@ -1,4 +1,4 @@
-import type { Collaborator, ExpenseWithSplits, Settlement, UserBalance } from '@types/index'
+import type { Collaborator, ExpenseWithSplits, Settlement, UserBalance } from '@app-types/index'
 
 // Gross algorithm:
 // paid = total expense amount I fronted as payer

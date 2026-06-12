@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Input } from '@components/ui/Input'
 import { DatePickerInput } from '@components/ui/DatePickerInput'
 import { Button } from '@components/ui/Button'
-import type { TripDestination } from '@types/index'
+import type { TripDestination } from '@app-types/index'
 import type { DestinationFormData } from '../hooks/useUpsertDestination'
 
 interface DestinationFormProps {

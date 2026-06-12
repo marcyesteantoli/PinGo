@@ -6,7 +6,7 @@ import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity,
 import { LinearGradient } from 'expo-linear-gradient'
 import { WebView } from 'react-native-webview'
 import * as FileSystem from 'expo-file-system/legacy'
-import type { Document } from '@types/index'
+import type { Document } from '@app-types/index'
 import { colors } from '@lib/colors'
 
 type DocumentWithExperience = Document & { experience_title: string | null; file_url: string | null }

@@ -7,7 +7,7 @@ import { BottomSheet } from '@components/ui/BottomSheet'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { TYPE_ICONS, TYPE_COLORS } from '@features/wishlist/constants'
-import type { WishlistItem } from '@types/index'
+import type { WishlistItem } from '@app-types/index'
 
 interface WishlistMapSheetProps {
   item: WishlistItem | null

@@ -4,7 +4,7 @@ import { queryKeys } from '@lib/queryKeys'
 import { splitEquallyAll } from '@utils/currency'
 import { DEV_MODE, DEMO_USER_ID, mockExpenses } from '@/dev/mockData'
 import type { CreateExpenseFormData } from '../types'
-import type { Collaborator, ExpenseWithSplits } from '@types/index'
+import type { Collaborator, ExpenseWithSplits } from '@app-types/index'
 
 export function useCreateExpense(tripId: string, collaborators: Collaborator[] = [], currency = 'EUR') {
   const queryClient = useQueryClient()

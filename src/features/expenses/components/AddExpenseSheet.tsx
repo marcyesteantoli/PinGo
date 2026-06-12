@@ -14,7 +14,7 @@ import { buildCreateExpenseSchema, type CreateExpenseFormData } from '../types'
 import { getCurrencySymbol } from '@utils/currencies'
 import { colors } from '@lib/colors'
 import { useErrorToast } from '@lib/errorToast'
-import type { Collaborator, Experience } from '@types/index'
+import type { Collaborator, Experience } from '@app-types/index'
 
 interface AddExpenseSheetProps {
   visible: boolean

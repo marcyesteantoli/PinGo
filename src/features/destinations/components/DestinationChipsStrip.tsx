@@ -2,7 +2,7 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { colors } from '@lib/colors'
-import type { TripDestination } from '@types/index'
+import type { TripDestination } from '@app-types/index'
 
 interface Props {
   destinations: TripDestination[]

@@ -4,7 +4,7 @@ import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { DEV_MODE } from '@/dev/mockData'
 import type { SavedExperienceDetail } from './useSavedExperienceDetail'
-import type { SavedExperienceItem } from '@types/index'
+import type { SavedExperienceItem } from '@app-types/index'
 
 export function useUpsertSavedNote(experienceId: string) {
   const { data: user } = useCurrentUser()

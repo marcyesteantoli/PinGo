@@ -8,7 +8,7 @@ import { useColorScheme } from 'nativewind'
 import { useTranslation } from 'react-i18next'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
-import type { WishlistItem } from '@types/index'
+import type { WishlistItem } from '@app-types/index'
 import { TYPE_ICONS, TYPE_COLORS, TYPE_BG_COLORS } from '../constants'
 
 const ACTION_WIDTH = 72

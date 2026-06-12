@@ -8,7 +8,7 @@ import { useAttributeRatings } from '@features/timeline/hooks/useAttributeRating
 import { EXPERIENCE_ATTRIBUTES } from '@features/timeline/config/experienceAttributes'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
-import type { Experience } from '@types/index'
+import type { Experience } from '@app-types/index'
 
 const RATING_ICONS = [
   require('../../../../assets/images/ratingIcons/1.png'),

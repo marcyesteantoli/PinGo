@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockExpenses, mockSettlements } from '@/dev/mockData'
-import type { ExpenseWithSplits, Settlement } from '@types/index'
+import type { ExpenseWithSplits, Settlement } from '@app-types/index'
 
 interface DeleteExpenseArgs {
   expenseId: string

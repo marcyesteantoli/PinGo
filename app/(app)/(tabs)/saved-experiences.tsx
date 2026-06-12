@@ -1,23 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
+import { Text, View } from 'react-native'
+import Animated from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
+import { MapFab } from '@components/ui/MapFab'
+import { SearchToolbar } from '@components/ui/SearchToolbar'
 import { Skeleton } from '@components/ui/Skeleton'
+import { AddSavedExperienceSheet } from '@features/saved/components/AddSavedExperienceSheet'
 import { SavedExperienceCard } from '@features/saved/components/SavedExperienceCard'
 import { TypeIconFilter, type FilterTypeKey } from '@features/saved/components/TypeIconFilter'
 import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
-import type { Experience } from '@types/index'
+import type { Experience } from '@app-types/index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -40,68 +39,6 @@ function SavedExperienceCardSkeleton({ index }: { index: number }) {
   )
 }
 
-// ─── Search bar ───────────────────────────────────────────────────────────────
-
-function SearchBar({
-  value,
-  onChangeText,
-  placeholder,
-  isDark,
-}: {
-  value: string
-  onChangeText: (text: string) => void
-  placeholder: string
-  isDark: boolean
-}) {
-  const hasText = value.length > 0
-  const clearOpacity = useSharedValue(hasText ? 1 : 0)
-
-  useEffect(() => {
-    clearOpacity.value = withTiming(hasText ? 1 : 0, { duration: 150 })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasText])
-
-  const clearStyle = useAnimatedStyle(() => ({ opacity: clearOpacity.value }))
-
-  return (
-    <View
-      style={[
-        styles.searchContainer,
-        { backgroundColor: isDark ? colors.neutral[700] : '#FFFFFF' },
-      ]}
-    >
-      <Ionicons
-        name="search-outline"
-        size={16}
-        color={isDark ? colors.neutral[400] : colors.neutral[500]}
-      />
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={isDark ? colors.neutral[500] : colors.neutral[400]}
-        style={[
-          styles.searchInput,
-          { color: isDark ? colors.neutral[50] : colors.neutral[900] },
-        ]}
-        returnKeyType="search"
-        autoCorrect={false}
-        autoCapitalize="none"
-        clearButtonMode="never"
-      />
-      <Animated.View pointerEvents={hasText ? 'auto' : 'none'} style={clearStyle}>
-        <TouchableOpacity onPress={() => onChangeText('')} hitSlop={8}>
-          <Ionicons
-            name="close-circle"
-            size={16}
-            color={isDark ? colors.neutral[500] : colors.neutral[400]}
-          />
-        </TouchableOpacity>
-      </Animated.View>
-    </View>
-  )
-}
-
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function SavedExperiencesScreen() {
@@ -112,6 +49,7 @@ export default function SavedExperiencesScreen() {
 
   const [activeType, setActiveType] = useState<Experience['type'] | null>(null)
   const [query, setQuery] = useState('')
+  const [addSheetVisible, setAddSheetVisible] = useState(false)
 
   const { data: saved = [], isLoading } = useSavedExperiences()
 
@@ -162,14 +100,19 @@ export default function SavedExperiencesScreen() {
     return result
   }, [saved, activeType, query])
 
+  const handleAddPress = useCallback(() => setAddSheetVisible(true), [])
+
   // Stable header — no query dep so FlatList never remounts it (TextInput keeps focus)
   const listHeader = useMemo(() => (
-    <View className="mb-2 gap-2 pt-2">
-      <SearchBar
-        value={query}
-        onChangeText={handleQueryChange}
-        placeholder={t('saved_search_placeholder')}
+    <View className="gap-2 pt-2">
+      <SearchToolbar
+        search={query}
+        onSearchChange={handleQueryChange}
+        onAddPress={handleAddPress}
         isDark={isDark}
+        placeholder={t('saved_search_placeholder')}
+        className="pb-4"
+        horizontalPadding={0}
       />
       <TypeIconFilter
         tabs={TYPE_TABS}
@@ -178,7 +121,7 @@ export default function SavedExperiencesScreen() {
         isDark={isDark}
       />
     </View>
-  ), [TYPE_TABS, activeType, handleFilterChange, isDark, t, query, handleQueryChange])
+  ), [TYPE_TABS, activeType, handleFilterChange, handleAddPress, isDark, t, query, handleQueryChange])
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
@@ -186,7 +129,6 @@ export default function SavedExperiencesScreen() {
         title={t('saved_title')}
         subtitle={headerSubtitle}
         scrollY={scrollY}
-        rightActions={[{ icon: 'map-outline', onPress: () => router.push('/saved-experiences/map'), variant: 'primary' }]}
       />
 
       {isLoading ? (
@@ -255,25 +197,13 @@ export default function SavedExperiencesScreen() {
           />
         </>
       )}
+
+      <MapFab onPress={() => router.push('/saved-experiences/map')} scrollY={scrollY} />
+
+      <AddSavedExperienceSheet
+        visible={addSheetVisible}
+        onClose={() => setAddSheetVisible(false)}
+      />
     </SafeAreaView>
   )
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    height: 36,
-    gap: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    letterSpacing: -0.2,
-    paddingVertical: 0,
-  },
-})

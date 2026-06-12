@@ -13,7 +13,7 @@ import { LocationPicker } from './LocationPicker'
 import { TimeRangePicker } from './TimeRangePicker'
 import { buildCreateExperienceSchema, type CreateExperienceFormData } from '../types'
 import { useErrorToast } from '@lib/errorToast'
-import type { TripDestination } from '@types/index'
+import type { TripDestination } from '@app-types/index'
 
 interface AddExperienceSheetProps {
   visible: boolean

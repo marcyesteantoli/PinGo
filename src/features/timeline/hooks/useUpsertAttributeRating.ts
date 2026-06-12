@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE } from '@/dev/mockData'
-import type { AttributeRatingsData } from '@types/index'
+import type { AttributeRatingsData } from '@app-types/index'
 
 export function useUpsertAttributeRating(experienceId: string) {
   const queryClient = useQueryClient()

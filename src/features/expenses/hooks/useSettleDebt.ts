@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockSettlements } from '@/dev/mockData'
-import type { Settlement } from '@types/index'
+import type { Settlement } from '@app-types/index'
 
 interface SettleDebtParams {
   fromUserId: string

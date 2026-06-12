@@ -77,7 +77,7 @@ export interface Database {
       experiences: {
         Row: {
           id: string
-          trip_id: string
+          trip_id: string | null
           type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'other'
           title: string
           location: Json | null
@@ -91,7 +91,7 @@ export interface Database {
         }
         Insert: {
           id?: string
-          trip_id: string
+          trip_id?: string | null
           type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'other'
           title: string
           location?: Json | null
@@ -266,6 +266,18 @@ export interface Database {
           rating_avg: number
           rating_count: number
         }
+      }
+    }
+    Functions: {
+      create_standalone_saved_experience: {
+        Args: {
+          p_title: string
+          p_type: string
+          p_location?: Json | null
+          p_note?: string | null
+          p_price_paid?: number | null
+        }
+        Returns: string
       }
     }
   }

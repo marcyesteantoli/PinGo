@@ -18,7 +18,7 @@ import { cardShadow } from '@lib/shadows'
 import { useTheme } from '@lib/theme'
 import { formatCurrency } from '@utils/currency'
 import { formatDate } from '@utils/date'
-import type { Collaborator, Trip, TripRole } from '@types/index'
+import type { Collaborator, Trip, TripRole } from '@app-types/index'
 import type { CreateExpenseFormData } from '@features/expenses/types'
 
 type ExpenseCategory = 'restaurant' | 'transport' | 'accommodation' | 'activity' | 'entertainment' | 'other'

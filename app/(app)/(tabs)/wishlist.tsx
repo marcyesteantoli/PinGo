@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import Animated, {
   scrollTo,
@@ -13,6 +13,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
+import { MapFab } from '@components/ui/MapFab'
+import { SearchToolbar } from '@components/ui/SearchToolbar'
 import { Skeleton } from '@components/ui/Skeleton'
 import { SegmentedTabBar } from '@components/ui/SegmentedTabBar'
 import { useWishlistItems } from '@features/wishlist/hooks/useWishlistItems'
@@ -24,11 +26,10 @@ import { AddWishlistSheet } from '@features/wishlist/components/AddWishlistSheet
 import { WISHLIST_TYPES } from '@features/wishlist/constants'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
-import { cardShadow, fabShadow } from '@lib/shadows'
+import { cardShadow } from '@lib/shadows'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
-import { useFabScroll } from '@lib/useFabScroll'
 import { EASE_OUT, DURATION } from '@lib/animations'
-import type { WishlistItem, WishlistItemType } from '@types/index'
+import type { WishlistItem, WishlistItemType } from '@app-types/index'
 
 type VisitedFilter = 'pending' | 'visited'
 
@@ -75,8 +76,6 @@ export default function WishlistScreen() {
   const router = useRouter()
   const { scrollY, scrollHandler } = useAppHeader()
   const { t } = useTranslation()
-
-  const { fabAnimStyle } = useFabScroll(scrollY)
 
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
   const contentOpacity = useSharedValue(1)
@@ -182,7 +181,6 @@ export default function WishlistScreen() {
         title={t('wishlist_title')}
         subtitle={headerSubtitle}
         scrollY={scrollY}
-        rightActions={[{ icon: 'map-outline', onPress: () => router.push('/wishlist/map' as never), variant: 'primary' }]}
       />
 
       {isLoading ? (
@@ -214,21 +212,13 @@ export default function WishlistScreen() {
               className="mx-5 mb-3"
             />
 
-            <View className="px-5 pb-4">
-              <View className="flex-row items-center bg-white dark:bg-surface-800 rounded-xl px-3 py-2.5 gap-2">
-                <Ionicons name="search" size={16} color={isDark ? colors.neutral[500] : colors.neutral[400]} />
-                <TextInput
-                  value={search}
-                  onChangeText={setSearch}
-                  placeholder={t('wishlist_search_placeholder')}
-                  placeholderTextColor={isDark ? colors.neutral[600] : colors.neutral[400]}
-                  className="flex-1 text-[15px] text-neutral-900 dark:text-neutral-50"
-                  style={{ padding: 0 }}
-                  returnKeyType="search"
-                  clearButtonMode="while-editing"
-                />
-              </View>
-            </View>
+            <SearchToolbar
+              search={search}
+              onSearchChange={setSearch}
+              onAddPress={handleOpenAdd}
+              isDark={isDark}
+              placeholder={t('wishlist_search_placeholder')}
+            />
           </View>
 
           {/* Content */}
@@ -339,17 +329,7 @@ export default function WishlistScreen() {
         </Animated.ScrollView>
       )}
 
-      {/* FAB */}
-      <Animated.View className="absolute right-5" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
-        <TouchableOpacity
-          onPress={handleOpenAdd}
-          activeOpacity={0.85}
-          className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-          style={fabShadow}
-        >
-          <Ionicons name="add" size={28} color="#ffffff" />
-        </TouchableOpacity>
-      </Animated.View>
+      <MapFab onPress={() => router.push('/wishlist/map' as never)} scrollY={scrollY} />
 
       <AddWishlistSheet
         visible={sheetVisible}

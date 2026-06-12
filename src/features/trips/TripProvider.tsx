@@ -8,7 +8,7 @@ import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, DEMO_USER_ID, mockTrips, mockCollaborators } from '@/dev/mockData'
 import { Button } from '@components/ui/Button'
 import { saveLastActiveTripId } from '@lib/lastActiveTrip'
-import type { Collaborator, TripRole, Trip } from '@types/index'
+import type { Collaborator, TripRole, Trip } from '@app-types/index'
 
 type CollaboratorRow = {
   user_id: string

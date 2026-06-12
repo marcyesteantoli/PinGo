@@ -3,7 +3,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockExperiences } from '@/dev/mockData'
 import type { CreateExperienceFormData } from '../types'
-import type { Experience } from '@types/index'
+import type { Experience } from '@app-types/index'
 
 export function useUpdateExperience(tripId: string) {
   const queryClient = useQueryClient()

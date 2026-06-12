@@ -3,7 +3,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, DEMO_USER_ID, mockTrips } from '@/dev/mockData'
 import type { CreateTripFormData } from '../types'
-import type { Trip } from '@types/index'
+import type { Trip } from '@app-types/index'
 
 export function useCreateTrip() {
   const queryClient = useQueryClient()

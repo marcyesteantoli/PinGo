@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import type { WishlistItem, WishlistItemType } from '@types/index'
+import type { WishlistItem, WishlistItemType } from '@app-types/index'
 
 interface UpdateWishlistItemInput {
   name: string

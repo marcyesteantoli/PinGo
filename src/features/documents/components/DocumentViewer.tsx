@@ -36,7 +36,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import JSZip from 'jszip'
 import QRCode from 'react-native-qrcode-svg'
 import { colors } from '@lib/colors'
-import type { Document } from '@types/index'
+import type { Document } from '@app-types/index'
 
 type DocumentWithExperience = Document & { experience_title: string | null; file_url: string | null }
 

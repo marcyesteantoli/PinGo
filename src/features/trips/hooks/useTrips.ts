@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockTrips, mockCollaborators } from '@/dev/mockData'
-import type { Trip, Collaborator } from '@types/index'
+import type { Trip, Collaborator } from '@app-types/index'
 
 export type TripWithCollaborators = Trip & { collaborators: Collaborator[] }
 

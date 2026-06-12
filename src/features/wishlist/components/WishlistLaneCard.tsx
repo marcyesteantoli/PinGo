@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { EASE_OUT, DURATION } from '@lib/animations'
 import { cardShadow } from '@lib/shadows'
 import { TYPE_ICONS, TYPE_COLORS } from '../constants'
-import type { WishlistItem } from '@types/index'
+import type { WishlistItem } from '@app-types/index'
 
 interface WishlistLaneCardProps {
   item: WishlistItem

@@ -7,7 +7,7 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
 import { Avatar } from '@components/ui/Avatar'
 import { formatCurrency } from '@utils/currency'
-import type { ExpenseWithSplits } from '@types/index'
+import type { ExpenseWithSplits } from '@app-types/index'
 import { colors } from '@lib/colors'
 import {
   getExpenseCategory,

@@ -31,7 +31,7 @@ import { ManageDestinationsSheet } from '@features/destinations/components/Manag
 import { queryKeys } from '@lib/queryKeys'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
-import type { Experience, TripDestination } from '@types/index'
+import type { Experience, TripDestination } from '@app-types/index'
 import type { CreateExperienceFormData } from '@features/timeline/types'
 
 const UNDATED_SENTINEL = '__undated__'

@@ -23,7 +23,7 @@ import { EASE_OUT, DURATION } from '@lib/animations'
 import { cardShadow } from '@lib/shadows'
 import { colors } from '@lib/colors'
 import { useToggleSaveExperience } from '@features/saved/hooks/useToggleSaveExperience'
-import type { SavedExperienceItem, Experience } from '@types/index'
+import type { SavedExperienceItem, Experience } from '@app-types/index'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

@@ -2,7 +2,7 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@components/ui/Avatar'
-import type { Collaborator } from '@types/index'
+import type { Collaborator } from '@app-types/index'
 import { colors } from '@lib/colors'
 
 interface ParticipantPickerProps {

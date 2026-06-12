@@ -3,8 +3,8 @@
 export const DEV_MODE = process.env.EXPO_PUBLIC_DEV_MODE !== 'false'
 // ────────────────────────────────────────────────────────────────────────────
 
-import type { Trip, Experience, Collaborator, Memory, Settlement, TripDestination } from '@types/index'
-import type { ExpenseWithSplits } from '@types/index'
+import type { Trip, Experience, Collaborator, Memory, Settlement, TripDestination } from '@app-types/index'
+import type { ExpenseWithSplits } from '@app-types/index'
 
 // IDs fijos para el usuario y los viajes de demo
 export const DEMO_USER_ID    = '11111111-1111-1111-1111-111111111111'

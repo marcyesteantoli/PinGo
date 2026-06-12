@@ -317,6 +317,10 @@ Page background bleeds behind the header — no distinct header background or sh
 
 On scroll down: translates 88pt down + fades out (fabAnimStyle driven by scrollY). On scroll up or at rest: returns to position. Animation: withTiming, EASE\_OUT, 280ms.
 
+### FAB Pill
+
+Horizontal variant of the FAB for screens where the primary "+" action already lives in the header (freeing the bottom-right slot for navigation). 56pt-tall capsule (rounded-full), primary-500 background, FAB Active shadow — same position, scroll behavior and animation as the circular FAB. Contains a 20px white icon + label (15px/600, white) naming the destination (e.g. "Ver mapa"). Reserved for the single most prominent navigation shortcut on the screen — never combine with a circular FAB.
+
 ### Category Icon Badge
 
 Used in ExperienceCard and WishlistCard. Fixed 44×44pt container, rounded-xl (12px), category bg-tint background. Icon: category icon color, 22px Ionicons glyph. Never mixed — each experience/wishlist type uses exactly one color pair (light and dark variant).

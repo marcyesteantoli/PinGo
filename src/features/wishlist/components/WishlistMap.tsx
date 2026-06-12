@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { useMapClusters } from '@lib/useMapClusters'
-import { PinMarker, ClusterMarker } from '@components/map/MapPin'
+import { PinMarker, ClusterMarker, useMarkerReady } from '@components/map/MapPin'
 import { TYPE_ICONS, TYPE_COLORS } from '@features/wishlist/constants'
 import { WishlistMapSheet } from './WishlistMapSheet'
-import type { WishlistItem } from '@types/index'
+import type { WishlistItem } from '@app-types/index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -86,19 +86,44 @@ function WishlistMarker({
   onPress: (e: MarkerPressEvent) => void
 }) {
   const coord = getCoord(item)!
+  const ready = useMarkerReady()
   return (
     <Marker
       coordinate={{ latitude: coord.lat, longitude: coord.lng }}
       anchor={{ x: 0.5, y: 1 }}
       calloutAnchor={{ x: 0.5, y: 0 }}
       onPress={onPress}
-      tracksViewChanges={isSelected}
+      tracksViewChanges={!ready || isSelected}
     >
       <PinMarker
         color={TYPE_COLORS[item.type]}
         icon={TYPE_ICONS[item.type]}
         isSelected={isSelected}
       />
+    </Marker>
+  )
+}
+
+// ─── Cluster marker ────────────────────────────────────────────────────────────
+
+function WishlistClusterMarker({
+  count,
+  coordinate,
+  onPress,
+}: {
+  count: number
+  coordinate: { latitude: number; longitude: number }
+  onPress: (e: MarkerPressEvent) => void
+}) {
+  const ready = useMarkerReady()
+  return (
+    <Marker
+      coordinate={coordinate}
+      anchor={{ x: 0.5, y: 0.5 }}
+      tracksViewChanges={!ready}
+      onPress={onPress}
+    >
+      <ClusterMarker count={count} />
     </Marker>
   )
 }
@@ -193,11 +218,10 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
         {clusters.map((item) => {
           if (item.type === 'cluster') {
             return (
-              <Marker
+              <WishlistClusterMarker
                 key={`cluster-${item.clusterId}-${item.count}`}
+                count={item.count}
                 coordinate={{ latitude: item.latitude, longitude: item.longitude }}
-                anchor={{ x: 0.5, y: 0.5 }}
-                tracksViewChanges={false}
                 onPress={(e) => {
                   e.stopPropagation()
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -211,9 +235,7 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
                     { duration: 400 }
                   )
                 }}
-              >
-                <ClusterMarker count={item.count} />
-              </Marker>
+              />
             )
           }
           return (

@@ -3,7 +3,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { DEV_MODE } from '@/dev/mockData'
-import type { SavedExperienceItem } from '@types/index'
+import type { SavedExperienceItem } from '@app-types/index'
 
 interface SavedMeta {
   note?: string | null

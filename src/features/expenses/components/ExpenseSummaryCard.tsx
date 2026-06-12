@@ -1,7 +1,7 @@
 import { Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { formatCurrency } from '@utils/currency'
-import type { ExpenseWithSplits, UserBalance } from '@types/index'
+import type { ExpenseWithSplits, UserBalance } from '@app-types/index'
 
 interface ExpenseSummaryCardProps {
   expenses: ExpenseWithSplits[]

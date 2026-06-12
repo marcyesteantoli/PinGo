@@ -10,7 +10,7 @@ import { useUpsertDestination } from '../hooks/useUpsertDestination'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { formatShortDate } from '@utils/date'
-import type { TripDestination } from '@types/index'
+import type { TripDestination } from '@app-types/index'
 import type { DestinationFormData } from '../hooks/useUpsertDestination'
 
 interface ManageDestinationsSheetProps {

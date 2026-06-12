@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockMemories } from '@/dev/mockData'
-import type { Memory } from '@types/index'
+import type { Memory } from '@app-types/index'
 
 // `cacheKey` is the stable storage path (or http url for seed data) — used so
 // expo-image cache survives signed URL token rotation.

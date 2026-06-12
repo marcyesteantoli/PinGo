@@ -3,7 +3,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { DEV_MODE, DEMO_USER_ID } from '@/dev/mockData'
-import type { AttributeRatingsData } from '@types/index'
+import type { AttributeRatingsData } from '@app-types/index'
 
 export function useAttributeRatings(experienceId: string) {
   const { data: user } = useCurrentUser()

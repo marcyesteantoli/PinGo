@@ -6,7 +6,7 @@ import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useTheme } from '@lib/theme'
 import { TYPE_ICONS, TYPE_COLORS, TYPE_BG_COLORS } from '../constants'
 import { WishlistLaneCard } from './WishlistLaneCard'
-import type { WishlistItem, WishlistItemType } from '@types/index'
+import type { WishlistItem, WishlistItemType } from '@app-types/index'
 
 interface WishlistSwimlaneProps {
   type: WishlistItemType

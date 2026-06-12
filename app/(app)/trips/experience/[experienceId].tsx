@@ -34,7 +34,7 @@ import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import { formatDateWithWeekday } from '@utils/date'
 import { formatCurrency } from '@utils/currency'
-import type { Document } from '@types/index'
+import type { Document } from '@app-types/index'
 import type { BadgeVariant } from '@components/ui/Badge'
 
 

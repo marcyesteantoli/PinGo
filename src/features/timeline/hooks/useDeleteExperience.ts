@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockExperiences } from '@/dev/mockData'
-import type { Experience } from '@types/index'
+import type { Experience } from '@app-types/index'
 
 export function useDeleteExperience(tripId: string) {
   const queryClient = useQueryClient()

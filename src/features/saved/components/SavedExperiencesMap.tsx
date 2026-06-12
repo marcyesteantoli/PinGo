@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { useMapClusters } from '@lib/useMapClusters'
-import { PinMarker, ClusterMarker } from '@components/map/MapPin'
+import { PinMarker, ClusterMarker, useMarkerReady } from '@components/map/MapPin'
 import { TYPE_ICON, TYPE_ICON_COLOR } from '@features/saved/constants'
 import { SavedExperienceMapSheet } from './SavedExperienceMapSheet'
-import type { SavedExperienceItem, Experience } from '@types/index'
+import type { SavedExperienceItem, Experience } from '@app-types/index'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -102,6 +102,30 @@ function ExperienceMarker({
         isSelected={isSelected}
         onImageLoadEnd={() => setReady(true)}
       />
+    </Marker>
+  )
+}
+
+// ─── Cluster marker ────────────────────────────────────────────────────────────
+
+function ExperienceClusterMarker({
+  count,
+  coordinate,
+  onPress,
+}: {
+  count: number
+  coordinate: { latitude: number; longitude: number }
+  onPress: (e: MarkerPressEvent) => void
+}) {
+  const ready = useMarkerReady()
+  return (
+    <Marker
+      coordinate={coordinate}
+      anchor={{ x: 0.5, y: 0.5 }}
+      tracksViewChanges={!ready}
+      onPress={onPress}
+    >
+      <ClusterMarker count={count} />
     </Marker>
   )
 }
@@ -212,11 +236,10 @@ export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapP
         {clusters.map((item) => {
           if (item.type === 'cluster') {
             return (
-              <Marker
+              <ExperienceClusterMarker
                 key={`cluster-${item.clusterId}-${item.count}`}
+                count={item.count}
                 coordinate={{ latitude: item.latitude, longitude: item.longitude }}
-                anchor={{ x: 0.5, y: 0.5 }}
-                tracksViewChanges={false}
                 onPress={(e) => {
                   e.stopPropagation()
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -230,9 +253,7 @@ export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapP
                     { duration: 400 }
                   )
                 }}
-              >
-                <ClusterMarker count={item.count} />
-              </Marker>
+              />
             )
           }
           return (

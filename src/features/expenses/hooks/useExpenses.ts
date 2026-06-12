@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockExpenses } from '@/dev/mockData'
-import type { Expense, Experience, ExpenseSplit, Profile, ExpenseWithSplits } from '@types/index'
+import type { Expense, Experience, ExpenseSplit, Profile, ExpenseWithSplits } from '@app-types/index'
 
 type ExpenseRow = Expense & {
   expense_splits: ExpenseSplit[]

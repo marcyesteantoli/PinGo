@@ -25,7 +25,7 @@ import { LIMITS } from '@/config/limits'
 import { DEV_MODE } from '@/dev/mockData'
 import { useErrorToast } from '@lib/errorToast'
 import { colors } from '@lib/colors'
-import type { Memory } from '@types/index'
+import type { Memory } from '@app-types/index'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const CELL_SIZE = (SCREEN_WIDTH - 40 - 3 * 2) / 3

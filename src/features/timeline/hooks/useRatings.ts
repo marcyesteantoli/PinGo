@@ -3,7 +3,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { DEV_MODE, DEMO_USER_ID } from '@/dev/mockData'
-import type { ExperienceRating } from '@types/index'
+import type { ExperienceRating } from '@app-types/index'
 
 export type RatingWithProfile = ExperienceRating & {
   profiles: { name: string; avatar_url: string | null } | null

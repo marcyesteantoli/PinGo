@@ -6,7 +6,7 @@ import { Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { EASE_OUT, DURATION } from '@lib/animations'
 import { EmojiRating } from '@components/ui/EmojiRating'
 import { formatTimeRange } from '../types'
-import type { Experience } from '@types/index'
+import type { Experience } from '@app-types/index'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 

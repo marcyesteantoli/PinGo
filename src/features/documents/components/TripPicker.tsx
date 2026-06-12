@@ -1,6 +1,6 @@
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import type { Trip } from '@types/index'
+import type { Trip } from '@app-types/index'
 
 interface TripPickerProps {
   trips: Trip[]

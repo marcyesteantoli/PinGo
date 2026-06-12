@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
-import type { Experience } from '@types/index'
+import type { Experience } from '@app-types/index'
 
 export const TYPE_ICON: Record<Experience['type'], React.ComponentProps<typeof Ionicons>['name']> = {
   transport:     'airplane-outline',

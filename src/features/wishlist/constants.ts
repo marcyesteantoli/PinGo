@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
-import type { WishlistItemType } from '@types/index'
+import type { WishlistItemType } from '@app-types/index'
 
 export const TYPE_ICONS: Record<WishlistItemType, keyof typeof Ionicons.glyphMap> = {
   city:          'business-outline',

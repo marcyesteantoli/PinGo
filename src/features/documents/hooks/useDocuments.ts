@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { DEV_MODE, mockDocuments } from '@/dev/mockData'
-import type { Document } from '@types/index'
+import type { Document } from '@app-types/index'
 
 export type DocumentWithExperience = Document & {
   experience_title: string | null

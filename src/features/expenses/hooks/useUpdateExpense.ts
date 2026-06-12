@@ -4,7 +4,7 @@ import { queryKeys } from '@lib/queryKeys'
 import { splitEquallyAll } from '@utils/currency'
 import { DEV_MODE, mockExpenses, mockSettlements } from '@/dev/mockData'
 import type { CreateExpenseFormData } from '../types'
-import type { Collaborator, ExpenseWithSplits } from '@types/index'
+import type { Collaborator, ExpenseWithSplits } from '@app-types/index'
 
 interface UpdateExpenseArgs {
   expenseId: string

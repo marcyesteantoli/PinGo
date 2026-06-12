@@ -8,7 +8,7 @@ import { Badge } from '@components/ui/Badge'
 import { TYPE_ICON, TYPE_ICON_COLOR } from '@features/saved/constants'
 import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
-import type { SavedExperienceItem, Experience } from '@types/index'
+import type { SavedExperienceItem, Experience } from '@app-types/index'
 
 function getLocationName(location: unknown): string {
   if (typeof location === 'object' && location !== null && 'name' in location) {

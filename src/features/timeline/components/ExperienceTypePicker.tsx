@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import type { Experience } from '@types/index'
+import type { Experience } from '@app-types/index'
 import { colors } from '@lib/colors'
 
 type ExperienceType = Experience['type']

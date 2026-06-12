@@ -24,7 +24,7 @@ import { useTheme } from '@lib/theme'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import type { BadgeVariant } from '@components/ui/Badge'
-import type { Experience } from '@types/index'
+import type { Experience } from '@app-types/index'
 
 
 const TYPE_BADGE_VARIANT: Record<string, BadgeVariant> = {

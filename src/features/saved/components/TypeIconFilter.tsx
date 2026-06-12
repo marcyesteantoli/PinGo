@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import { colors } from '@lib/colors'
-import type { Experience, WishlistItemType } from '@types/index'
+import type { Experience, WishlistItemType } from '@app-types/index'
 
 // ─── Maps ─────────────────────────────────────────────────────────────────────
 

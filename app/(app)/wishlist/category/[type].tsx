@@ -17,7 +17,7 @@ import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { WISHLIST_TYPES, TYPE_COLORS, TYPE_BG_COLORS } from '@features/wishlist/constants'
-import type { WishlistItem, WishlistItemType } from '@types/index'
+import type { WishlistItem, WishlistItemType } from '@app-types/index'
 
 type VisitedFilter = 'pending' | 'visited'
 

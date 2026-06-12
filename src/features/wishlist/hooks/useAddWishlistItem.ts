@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
-import type { WishlistItem } from '@types/index'
+import type { WishlistItem } from '@app-types/index'
 import type { AddWishlistItemInput } from '../types'
 
 export function useAddWishlistItem() {

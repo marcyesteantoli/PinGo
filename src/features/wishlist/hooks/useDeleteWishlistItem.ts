@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import type { WishlistItem } from '@types/index'
+import type { WishlistItem } from '@app-types/index'
 
 export function useDeleteWishlistItem() {
   const queryClient = useQueryClient()
