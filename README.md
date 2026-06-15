@@ -81,8 +81,8 @@ Row Level Security habilitado en todas las tablas: un usuario solo accede a los 
 ### Instalación
 
 ```bash
-git clone https://github.com/marcyesteantoli/TripSync.git
-cd TripSync
+git clone https://github.com/marcyesteantoli/PinGo.git
+cd PinGo
 npm install
 ```
 

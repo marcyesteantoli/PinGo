@@ -10,7 +10,7 @@ Mixed profiles sharing the same app: friend groups aged 20–35 on leisure trips
 
 ## Product Purpose
 
-TripSync is a collaborative mobile app for managing trips end-to-end: shared itinerary (Timeline), centralized documents (offline-first), shared expenses with settlement, a collective photo diary, and a personal wishlist. The job to be done is reducing coordination overhead for groups — one place instead of shared notes, separate spreadsheets, and scattered chats. Success = a group completes a trip and TripSync held everything together.
+PinGo is a collaborative mobile app for managing trips end-to-end: shared itinerary (Timeline), centralized documents (offline-first), shared expenses with settlement, a collective photo diary, and a personal wishlist. The job to be done is reducing coordination overhead for groups — one place instead of shared notes, separate spreadsheets, and scattered chats. Success = a group completes a trip and PinGo held everything together.
 
 ## Brand Personality
 
@@ -26,7 +26,7 @@ Voice is calm and direct, never cheerful-corporate. Copy earns its place. No mot
 ## Anti-references
 
 - **Generic startup aesthetic**: purple/pink gradients, blob illustrations, oversized drop shadows, glassmorphic card stacks. Any UI that could pass for a SaaS landing page is wrong here.
-- **Austere / sector-neutral**: a fully gray UI with no accent color and no distinct personality. TripSync should feel designed, not assembled.
+- **Austere / sector-neutral**: a fully gray UI with no accent color and no distinct personality. PinGo should feel designed, not assembled.
 - **Aggressive dark mode**: pure OLED black (#000) with full-brightness white text. Dark mode is a deep-navy system (surface-900 = #0a1628) with careful hierarchy — not a contrast-maxed terminal aesthetic.
 
 ## Design Principles

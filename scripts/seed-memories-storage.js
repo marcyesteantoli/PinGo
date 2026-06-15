@@ -112,7 +112,7 @@ function downloadBuffer(url, redirectCount = 0) {
   const lib = url.startsWith('https') ? https : http
   return new Promise((resolve, reject) => {
     lib
-      .get(url, { headers: { 'User-Agent': 'TripSync-Seed/1.0' } }, (res) => {
+      .get(url, { headers: { 'User-Agent': 'PinGo-Seed/1.0' } }, (res) => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           return resolve(downloadBuffer(res.headers.location, redirectCount + 1))
         }

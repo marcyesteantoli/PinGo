@@ -51,6 +51,7 @@ export default function MemoriesScreen() {
 
   const { isPro } = useIsPro()
   const photoCap = isPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
+  const displayCap = LIMITS.PRO_MAX_PHOTOS_PER_TRIP
 
   const count = memories?.length ?? 0
   const scrollY = useSharedValue(0)
@@ -218,7 +219,7 @@ export default function MemoriesScreen() {
     return err.message ?? t('common_error')
   })()
 
-  const fillPct = Math.min(count / photoCap, 1) * 100
+  const fillPct = Math.min(count / displayCap, 1) * 100
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
@@ -228,7 +229,7 @@ export default function MemoriesScreen() {
         {/* Counter bar */}
         <View className="flex-row items-center px-5 py-2">
           <Text className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-            {count} / {photoCap}
+            {count} / {displayCap}
           </Text>
           <View className="flex-1 mx-3 h-[3px] rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
             <View

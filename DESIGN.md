@@ -1,5 +1,5 @@
 ---
-name: TripSync
+name: PinGo
 description: Collaborative travel management app — plan, share, and remember every trip together.
 colors:
   primary: "#0046de"
@@ -132,13 +132,13 @@ components:
     padding: "11px 16px"
 ---
 
-# Design System: TripSync
+# Design System: PinGo
 
 ## 1. Overview
 
 **Creative North Star: "The Trusted Companion"**
 
-TripSync earns trust by being ruthlessly clean and reliable — the travel app that feels like it was made by Apple for people who actually travel. Every screen is iOS-native in its bones: large-title navigation, physical scroll physics, predictable gestures, a color vocabulary that communicates state rather than personality. The interface disappears into the task.
+PinGo earns trust by being ruthlessly clean and reliable — the travel app that feels like it was made by Apple for people who actually travel. Every screen is iOS-native in its bones: large-title navigation, physical scroll physics, predictable gestures, a color vocabulary that communicates state rather than personality. The interface disappears into the task.
 
 The visual anchor is a deep navy dark mode and a cool-gray light mode, both organized around a single confident blue. Color earns its place — the primary blue appears on primary actions, active selections, and meaningful states. Category icons add a controlled semantic burst (each activity type has its own hue), but their role is classification, not decoration. The palette is restrained because trust is built through consistency, not novelty.
 
@@ -271,7 +271,7 @@ Horizontal scroll row, no scrollbar. Active: primary-500 fill, white semibold te
 
 ### Cards (Swipeable List Item)
 
-The signature content pattern of TripSync. Rounded rectangle (16px), white/surface-800, Card Ambient shadow.
+The signature content pattern of PinGo. Rounded rectangle (16px), white/surface-800, Card Ambient shadow.
 
 Internal structure: 44×44pt type icon badge (category bg-tint, rounded-xl=12px) + title (17px/600) + subtitle (location, 13–14px/400) + optional footer row separated by 1px hairline (neutral-100/surface-700). Footer carries time range, confirmation code, note excerpt, and status badge.
 
