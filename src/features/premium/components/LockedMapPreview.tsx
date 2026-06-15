@@ -22,33 +22,36 @@ export function LockedMapPreview({ visible, onUnlockPress }: LockedMapPreviewPro
   }
 
   return (
-    <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
-      <BlurView
-        intensity={50}
-        tint={isDark ? 'dark' : 'light'}
-        style={StyleSheet.absoluteFillObject}
-        pointerEvents="auto"
-      />
-      <View
-        style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.25)' }]}
-        pointerEvents="auto"
-      />
+    <View
+      style={StyleSheet.absoluteFillObject}
+      onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
+    >
+      {/* Bottom blur strip only */}
+      <View style={styles.blurStrip} pointerEvents="none">
+        <BlurView
+          intensity={12}
+          tint={isDark ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </View>
 
-      <View className="flex-1 items-center justify-center px-8" pointerEvents="box-none">
-        <View className="items-center gap-3">
-          <View className="w-14 h-14 rounded-full bg-white/90 dark:bg-neutral-900/80 items-center justify-center">
-            <Ionicons name="lock-closed" size={26} color={colors.primary[500]} />
-          </View>
-          <Text className="text-base font-semibold text-white text-center" style={styles.shadow}>
+      {/* Bottom floating card */}
+      <View style={styles.card}>
+        <View
+          className="flex-row items-center bg-white/90 dark:bg-neutral-900/85 rounded-2xl px-5 py-4"
+          style={styles.cardShadow}
+        >
+          <Ionicons name="lock-closed" size={20} color={colors.primary[500]} />
+          <Text className="flex-1 mx-3 font-semibold text-sm text-neutral-800 dark:text-white">
             {t('premium_locked_map_label')}
           </Text>
-
           <Pressable
             onPress={handlePress}
-            className="flex-row items-center gap-1.5 bg-primary-500 rounded-full px-5 py-2.5 mt-1 active:opacity-80"
+            className="flex-row items-center gap-1.5 bg-primary-500 rounded-full px-4 py-2 active:opacity-80"
           >
-            <Ionicons name="sparkles" size={16} color="white" />
-            <Text className="text-[15px] font-semibold text-white">
+            <Ionicons name="sparkles" size={14} color="white" />
+            <Text className="text-sm font-semibold text-white">
               {t('premium_locked_map_unlock')}
             </Text>
           </Pressable>
@@ -59,9 +62,25 @@ export function LockedMapPreview({ visible, onUnlockPress }: LockedMapPreviewPro
 }
 
 const styles = StyleSheet.create({
-  shadow: {
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+  blurStrip: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 160,
+    overflow: 'hidden',
+  },
+  card: {
+    position: 'absolute',
+    bottom: 24,
+    left: 16,
+    right: 16,
+  },
+  cardShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
   },
 })

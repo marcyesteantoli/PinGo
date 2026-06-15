@@ -403,14 +403,7 @@ export default function TimelineScreen() {
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
-      <TripHeader
-        scrollY={scrollY}
-        rightAction={{
-          icon: 'share-outline',
-          onPress: handleExportPdf,
-          accessibilityLabel: t('timeline_export_pdf'),
-        }}
-      />
+      <TripHeader scrollY={scrollY} />
       <View style={{ flex: 1 }}>
       {showSkeleton ? (
         <View className="px-5 pt-4 gap-3">
@@ -441,6 +434,7 @@ export default function TimelineScreen() {
               destinations={destinations}
               onManage={() => setDestSheetVisible(true)}
               onDestinationPress={scrollToDestination}
+              onExportPdf={handleExportPdf}
             />
           }
           ListEmptyComponent={

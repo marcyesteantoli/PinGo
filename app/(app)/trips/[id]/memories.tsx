@@ -24,7 +24,7 @@ import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { LIMITS } from '@/config/limits'
 import { useErrorToast } from '@lib/errorToast'
 import { colors } from '@lib/colors'
-import { useTripProStatus } from '@features/premium/hooks/useTripProStatus'
+import { useIsPro } from '@features/premium/hooks/useIsPro'
 import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 import type { Memory } from '@app-types/index'
 
@@ -49,8 +49,8 @@ export default function MemoriesScreen() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [paywallVisible, setPaywallVisible] = useState(false)
 
-  const { data: isTripPro } = useTripProStatus(tripId)
-  const photoCap = isTripPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
+  const { isPro } = useIsPro()
+  const photoCap = isPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
 
   const count = memories?.length ?? 0
   const scrollY = useSharedValue(0)

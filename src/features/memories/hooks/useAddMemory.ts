@@ -6,7 +6,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { compressImage } from '@utils/image'
 import { LIMITS } from '@/config/limits'
-import { fetchTripProStatus } from '@features/premium/hooks/useTripProStatus'
+import { fetchUserProStatus } from '@features/premium/hooks/useIsPro'
 import type { MemoryWithUrl } from './useMemories'
 
 export type AddMemoryParams = {
@@ -99,8 +99,8 @@ export function useAddMemories() {
 
       if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' } satisfies AddMemoryError
 
-      const isTripPro = await fetchTripProStatus(tripId)
-      const cap = isTripPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
+      const isUserPro = await fetchUserProStatus(user.id)
+      const cap = isUserPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
 
       if ((count ?? 0) + assets.length > cap) {
         throw {
@@ -138,6 +138,9 @@ export function useAddMemory() {
 
   return useMutation({
     mutationFn: async ({ tripId, caption, asset }: AddMemoryParams): Promise<MemoryWithUrl> => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw { code: 'DB_FAILED', message: 'No hay sesión activa.' } satisfies AddMemoryError
+
       // Double-check del límite antes del upload (el screen ya lo verifica antes de abrir el picker)
       const { count, error: countError } = await supabase
         .from('memories')
@@ -146,8 +149,8 @@ export function useAddMemory() {
 
       if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' } satisfies AddMemoryError
 
-      const isTripPro = await fetchTripProStatus(tripId)
-      const cap = isTripPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
+      const isUserPro = await fetchUserProStatus(user.id)
+      const cap = isUserPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
 
       if ((count ?? 0) >= cap) {
         throw {
@@ -155,9 +158,6 @@ export function useAddMemory() {
           message: `Este viaje ha alcanzado el límite de ${cap} fotos.`,
         } satisfies AddMemoryError
       }
-
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw { code: 'DB_FAILED', message: 'No hay sesión activa.' } satisfies AddMemoryError
 
       // El asset llega ya seleccionado desde el screen
       if (!asset) throw { code: 'DB_FAILED', message: 'No se ha seleccionado ninguna imagen.' } satisfies AddMemoryError

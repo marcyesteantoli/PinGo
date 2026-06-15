@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { LIMITS } from '@/config/limits'
-import { fetchTripProStatus } from '@features/premium/hooks/useTripProStatus'
+import { fetchUserProStatus } from '@features/premium/hooks/useIsPro'
 import type { UploadDocumentFormData } from '../types'
 
 type UploadDocumentParams = UploadDocumentFormData & { tripId: string; asset?: DocumentPickerAsset }
@@ -31,12 +31,13 @@ export function useUploadDocument() {
 
       if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de documentos.' } satisfies UploadDocumentError
 
-      const isTripPro = await fetchTripProStatus(tripId)
+      const isUserPro = await fetchUserProStatus(user.id)
+      const docLimit = isUserPro ? LIMITS.PRO_MAX_DOCUMENTS_PER_TRIP : LIMITS.FREE_MAX_DOCUMENTS_PER_TRIP
 
-      if (!isTripPro && (count ?? 0) >= LIMITS.FREE_MAX_DOCUMENTS_PER_TRIP) {
+      if ((count ?? 0) >= docLimit) {
         throw {
           code: 'LIMIT_REACHED',
-          message: `Este viaje ha alcanzado el límite de ${LIMITS.FREE_MAX_DOCUMENTS_PER_TRIP} documentos.`,
+          message: `Este viaje ha alcanzado el límite de ${docLimit} documentos.`,
         } satisfies UploadDocumentError
       }
 

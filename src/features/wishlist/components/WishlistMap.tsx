@@ -194,11 +194,23 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
 
   const mapRef = useRef<MapView>(null)
   const hasCenteredRef = useRef(false)
+  const mapReadyRef = useRef(false)
 
-  useEffect(() => {
+  const centerOnItems = () => {
     if (hasCenteredRef.current || locatedItems.length === 0) return
     hasCenteredRef.current = true
     mapRef.current?.setCamera(initialCamera)
+  }
+
+  const handleMapReady = () => {
+    mapReadyRef.current = true
+    centerOnItems()
+  }
+
+  useEffect(() => {
+    if (!mapReadyRef.current) return
+    centerOnItems()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locatedItems, initialCamera])
 
   useEffect(() => {
@@ -222,6 +234,7 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
         userInterfaceStyle={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
         customMapStyle={Platform.OS === 'android' ? (isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT) : undefined}
         camera={initialCamera}
+        onMapReady={handleMapReady}
         onRegionChangeComplete={setCurrentRegion}
         onPress={() => setSelectedId(null)}
         showsCompass={false}
