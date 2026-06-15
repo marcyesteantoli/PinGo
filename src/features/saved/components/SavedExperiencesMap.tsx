@@ -211,6 +211,13 @@ export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapP
   const { clusters, getExpansionRegion } = useMapClusters<SavedExperienceItem>(clusterItems, currentRegion)
 
   const mapRef = useRef<MapView>(null)
+  const hasCenteredRef = useRef(false)
+
+  useEffect(() => {
+    if (hasCenteredRef.current || locatedItems.length === 0) return
+    hasCenteredRef.current = true
+    mapRef.current?.setCamera(initialCamera)
+  }, [locatedItems, initialCamera])
 
   useEffect(() => {
     if (!selectedItem) return

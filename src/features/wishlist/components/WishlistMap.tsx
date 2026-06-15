@@ -193,6 +193,13 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
   const { clusters, getExpansionRegion } = useMapClusters<WishlistItem>(clusterItems, currentRegion)
 
   const mapRef = useRef<MapView>(null)
+  const hasCenteredRef = useRef(false)
+
+  useEffect(() => {
+    if (hasCenteredRef.current || locatedItems.length === 0) return
+    hasCenteredRef.current = true
+    mapRef.current?.setCamera(initialCamera)
+  }, [locatedItems, initialCamera])
 
   useEffect(() => {
     if (!selectedItem) return
