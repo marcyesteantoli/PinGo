@@ -1,4 +1,4 @@
-import type { Collaborator, ExpenseWithSplits, Settlement, UserBalance } from '@types/index'
+import type { Collaborator, ExpenseWithSplits, Settlement, UserBalance } from '@app-types/index'
 
 // Gross algorithm:
 // paid = total expense amount I fronted as payer
@@ -16,7 +16,7 @@ export function calculateBalances(
   }
 
   for (const expense of expenses) {
-    if (map[expense.payer_id]) {
+    if (expense.payer_id && map[expense.payer_id]) {
       map[expense.payer_id].paid += expense.amount
     }
     for (const split of expense.splits) {

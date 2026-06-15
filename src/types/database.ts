@@ -12,17 +12,20 @@ export interface Database {
           name: string
           avatar_url: string | null
           updated_at: string
+          deleted_at: string | null
         }
         Insert: {
           id: string
           name: string
           avatar_url?: string | null
           updated_at?: string
+          deleted_at?: string | null
         }
         Update: {
           name?: string
           avatar_url?: string | null
           updated_at?: string
+          deleted_at?: string | null
         }
       }
       trips: {
@@ -31,7 +34,8 @@ export interface Database {
           title: string
           start_date: string
           end_date: string
-          created_by: string
+          currency: string
+          created_by: string | null
           join_code: string
           created_at: string
         }
@@ -40,6 +44,7 @@ export interface Database {
           title: string
           start_date: string
           end_date: string
+          currency?: string
           created_by: string
           join_code?: string
           created_at?: string
@@ -48,6 +53,7 @@ export interface Database {
           title?: string
           start_date?: string
           end_date?: string
+          currency?: string
         }
       }
       trip_collaborators: {
@@ -55,51 +61,60 @@ export interface Database {
           trip_id: string
           user_id: string
           role: 'owner' | 'member'
+          status: 'active' | 'left'
+          joined_at: string
         }
         Insert: {
           trip_id: string
           user_id: string
           role?: 'owner' | 'member'
+          status?: 'active' | 'left'
+          joined_at?: string
         }
         Update: {
           role?: 'owner' | 'member'
+          status?: 'active' | 'left'
+          joined_at?: string
         }
       }
       experiences: {
         Row: {
           id: string
-          trip_id: string
-          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'other'
+          trip_id: string | null
+          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'city' | 'other'
           title: string
           location: Json | null
           confirmation_code: string | null
           start_time: string | null
           end_time: string | null
           date: string | null
-          created_by: string
+          destination_id: string | null
+          created_by: string | null
           updated_at: string
         }
         Insert: {
           id?: string
-          trip_id: string
-          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'other'
+          trip_id?: string | null
+          type: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'city' | 'other'
           title: string
           location?: Json | null
           confirmation_code?: string | null
           start_time?: string | null
           end_time?: string | null
           date?: string | null
+          destination_id?: string | null
           created_by: string
           updated_at?: string
         }
         Update: {
-          type?: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'other'
+          type?: 'transport' | 'accommodation' | 'activity' | 'restaurant' | 'entertainment' | 'city' | 'other'
           title?: string
           location?: Json | null
           confirmation_code?: string | null
           start_time?: string | null
           end_time?: string | null
           date?: string | null
+          destination_id?: string | null
           updated_at?: string
         }
       }
@@ -109,9 +124,11 @@ export interface Database {
           experience_id: string
           trip_id: string
           name: string
-          file_url: string
+          file_path: string | null
           file_type: string | null
-          uploaded_by: string
+          document_type: 'file' | 'link' | 'pass'
+          url: string | null
+          uploaded_by: string | null
           created_at: string
         }
         Insert: {
@@ -119,8 +136,10 @@ export interface Database {
           experience_id: string
           trip_id: string
           name: string
-          file_url: string
+          file_path?: string | null
           file_type?: string | null
+          document_type?: 'file' | 'link' | 'pass'
+          url?: string | null
           uploaded_by: string
           created_at?: string
         }
@@ -136,7 +155,7 @@ export interface Database {
           amount: number
           currency: string
           description: string
-          payer_id: string
+          payer_id: string | null
           created_at: string
         }
         Insert: {
@@ -159,16 +178,14 @@ export interface Database {
           expense_id: string
           user_id: string
           amount: number
-          is_settled: boolean
         }
         Insert: {
           expense_id: string
           user_id: string
           amount: number
-          is_settled?: boolean
         }
         Update: {
-          is_settled?: boolean
+          amount?: number
         }
       }
       experience_ratings: {
@@ -192,7 +209,7 @@ export interface Database {
         Row: {
           id: string
           trip_id: string
-          user_id: string
+          user_id: string | null
           image_url: string
           caption: string | null
           created_at: string
@@ -209,6 +226,41 @@ export interface Database {
           caption?: string | null
         }
       }
+      trip_destinations: {
+        Row: {
+          id: string
+          trip_id: string
+          name: string
+          country: string | null
+          lat: number | null
+          lng: number | null
+          start_date: string
+          end_date: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          name: string
+          country?: string | null
+          lat?: number | null
+          lng?: number | null
+          start_date: string
+          end_date: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          name?: string
+          country?: string | null
+          lat?: number | null
+          lng?: number | null
+          start_date?: string
+          end_date?: string
+          sort_order?: number
+        }
+      }
     }
     Views: {
       experience_ratings_avg: {
@@ -217,6 +269,18 @@ export interface Database {
           rating_avg: number
           rating_count: number
         }
+      }
+    }
+    Functions: {
+      create_standalone_saved_experience: {
+        Args: {
+          p_title: string
+          p_type: string
+          p_location?: Json | null
+          p_note?: string | null
+          p_price_paid?: number | null
+        }
+        Returns: string
       }
     }
   }

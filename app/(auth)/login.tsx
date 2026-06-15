@@ -1,30 +1,59 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
+import {
+  AppleAuthenticationButton,
+  AppleAuthenticationButtonStyle,
+  AppleAuthenticationButtonType,
+} from 'expo-apple-authentication'
 import { useRouter } from 'expo-router'
-import { useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { useSignIn } from '@features/auth/hooks/useSignIn'
-import { loginSchema, type LoginFormData } from '@features/auth/types'
+import { useSignInWithApple } from '@features/auth/hooks/useSignInWithApple'
+import { useSignInWithGoogle } from '@features/auth/hooks/useSignInWithGoogle'
+import { buildLoginSchema, type LoginFormData } from '@features/auth/types'
+import { colors } from '@lib/colors'
+import { cardShadow, ctaShadow } from '@lib/shadows'
+import { useErrorToast } from '@lib/errorToast'
 
 export default function LoginScreen() {
   const router = useRouter()
   const signIn = useSignIn()
+  const signInWithGoogle = useSignInWithGoogle()
+  const signInWithApple = useSignInWithApple()
   const passwordRef = useRef<TextInput>(null)
+  const showError = useErrorToast()
+  const { t } = useTranslation()
+
+  const schema = useMemo(() => buildLoginSchema(), [t])
+
+  useEffect(() => {
+    if (signIn.error) showError(signIn.error.message)
+  }, [signIn.error])
+
+  useEffect(() => {
+    if (signInWithGoogle.error) showError(signInWithGoogle.error.message)
+  }, [signInWithGoogle.error])
+
+  useEffect(() => {
+    if (signInWithApple.error) showError(signInWithApple.error.message)
+  }, [signInWithApple.error])
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(schema),
   })
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       await signIn.mutateAsync(data)
+      router.replace('/(app)/(tabs)/trips')
     } catch {
-      // El error se muestra via signIn.error
+      // error shown via signIn.error
     }
   }
 
@@ -38,34 +67,39 @@ export default function LoginScreen() {
           contentContainerClassName="flex-grow px-6 py-8 justify-center"
           keyboardShouldPersistTaps="handled"
         >
-          <View className="items-center mb-10 gap-3">
-            <LinearGradient
-              colors={['#4f56e8', '#f43f5e']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ width: 64, height: 64, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
+          <View className="items-center mb-10 gap-2">
+            <View
+              className="w-[80px] h-[80px] rounded-[22px] items-center justify-center bg-white dark:bg-surface-800"
+              style={cardShadow}
             >
-              <Ionicons name="airplane" size={32} color="#ffffff" />
-            </LinearGradient>
-            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50">Bienvenido</Text>
-            <Text className="text-[17px] text-neutral-500 dark:text-neutral-400">Inicia sesión para continuar</Text>
+              <Image
+                source={require('../../assets/images/icon.png')}
+                style={{ width: 56, height: 56, borderRadius: 14 }}
+              />
+            </View>
+            <Text className="text-[28px] font-bold text-neutral-900 dark:text-neutral-50 mt-2">{t('auth_login_title')}</Text>
+            <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">{t('auth_login_subtitle')}</Text>
           </View>
 
-          <View className="gap-4">
+          <View
+            className="rounded-2xl bg-white dark:bg-surface-800 p-6 gap-5"
+            style={cardShadow}
+          >
             <Controller
               control={control}
               name="email"
               render={({ field: { onChange, value } }) => (
                 <Input
-                  label="Email"
-                  placeholder="tu@email.com"
+                  label={t('auth_login_emailLabel')}
+                  placeholder={t('auth_login_emailPlaceholder')}
+                  leftIcon="mail-outline"
                   value={value}
                   onChangeText={onChange}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
                   error={errors.email?.message}
-                  accessibilityLabel="Campo de email"
+                  accessibilityLabel={t('auth_login_emailA11y')}
                   returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   blurOnSubmit={false}
@@ -79,40 +113,73 @@ export default function LoginScreen() {
               render={({ field: { onChange, value } }) => (
                 <Input
                   ref={passwordRef}
-                  label="Contraseña"
-                  placeholder="••••••••"
+                  label={t('auth_login_passwordLabel')}
+                  placeholder={t('auth_login_passwordPlaceholder')}
+                  leftIcon="lock-closed-outline"
                   value={value}
                   onChangeText={onChange}
                   secureTextEntry
                   autoComplete="current-password"
                   error={errors.password?.message}
-                  accessibilityLabel="Campo de contraseña"
+                  accessibilityLabel={t('auth_login_passwordA11y')}
                   returnKeyType="done"
                   onSubmitEditing={handleSubmit(onSubmit)}
                 />
               )}
             />
 
-            {signIn.error && (
-              <Text className="text-sm text-error text-center">
-                {signIn.error.message}
-              </Text>
-            )}
+            <View style={ctaShadow}>
+              <Button
+                onPress={handleSubmit(onSubmit)}
+                isLoading={signIn.isPending}
+                size="lg"
+              >
+                {t('auth_login_submit')}
+              </Button>
+            </View>
+          </View>
 
-            <Button
-              onPress={handleSubmit(onSubmit)}
-              isLoading={signIn.isPending}
-              size="lg"
-              className="mt-2"
+          <View className="flex-row items-center gap-3 my-6">
+            <View className="flex-1 h-px bg-neutral-200 dark:bg-surface-700" />
+            <Text className="text-sm text-neutral-500 dark:text-neutral-400">{t('auth_social_divider')}</Text>
+            <View className="flex-1 h-px bg-neutral-200 dark:bg-surface-700" />
+          </View>
+
+          <View className="gap-3">
+            <Pressable
+              onPress={() => signInWithGoogle.mutate()}
+              disabled={signInWithGoogle.isPending}
+              className="flex-row items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-neutral-300 bg-white dark:bg-surface-800 dark:border-neutral-600"
+              accessibilityRole="button"
+              accessibilityLabel={t('auth_social_google')}
             >
-              Iniciar sesión
-            </Button>
+              {signInWithGoogle.isPending ? (
+                <ActivityIndicator color={colors.neutral[600]} />
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={20} color={colors.neutral[700]} />
+                  <Text className="text-[17px] font-semibold text-neutral-700 dark:text-neutral-200">
+                    {t('auth_social_google')}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+
+            {Platform.OS === 'ios' && (
+              <AppleAuthenticationButton
+                buttonType={AppleAuthenticationButtonType.SIGN_IN}
+                buttonStyle={AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={16}
+                style={{ height: 52 }}
+                onPress={() => signInWithApple.mutate()}
+              />
+            )}
           </View>
 
           <View className="flex-row items-center justify-center mt-8 gap-1">
-            <Text className="text-sm text-neutral-500 dark:text-neutral-400">¿Sin cuenta?</Text>
+            <Text className="text-sm text-neutral-500 dark:text-neutral-400">{t('auth_login_noAccount')}</Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-              <Text className="text-sm font-semibold text-secondary-600 dark:text-secondary-400">Regístrate</Text>
+              <Text className="text-sm font-semibold text-secondary-600 dark:text-secondary-400">{t('auth_login_registerLink')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

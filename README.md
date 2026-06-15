@@ -1,4 +1,4 @@
-# TripSync
+# PinGo
 
 App móvil colaborativa para gestión de viajes. Permite organizar itinerarios, centralizar documentación, gestionar gastos compartidos y construir un diario colectivo.
 
@@ -70,47 +70,7 @@ Storage buckets:
 
 Row Level Security habilitado en todas las tablas: un usuario solo accede a los datos de viajes en los que es colaborador.
 
-## Modo demo (sin cuenta de Supabase)
-
-La app incluye un modo demo que permite probarla completamente sin configurar ningún backend. Ideal para evaluación o presentación.
-
-### Activar
-
-El modo demo está **activado por defecto**. El flag está en `src/dev/mockData.ts`:
-
-```ts
-export const DEV_MODE = true  // ← cambiar a false para usar Supabase real
-```
-
-### Qué incluye
-
-La app arranca directamente en el dashboard (sin pantalla de login) con datos de ejemplo:
-
-| Sección | Contenido de ejemplo |
-|---------|----------------------|
-| Viajes | *Ruta por Japón* (próximo) · *Escapada a Lisboa* (pasado) |
-| Timeline | 5 experiencias en Japón · 4 en Lisboa |
-| Gastos | 4 gastos con splits entre 3 colaboradores |
-| Documentos | 3 documentos adjuntos a experiencias |
-| Recuerdos | 3 fotos con captions |
-| Colaboradores | 3 miembros: Usuario Demo (owner), Ana García, Carlos López |
-
-Las acciones de escritura (crear experiencia, añadir gasto, subir documento, añadir recuerdo) funcionan en memoria durante la sesión.
-
-### Pasos para probarlo
-
-```bash
-git clone https://github.com/marcyesteantoli/TripSync.git
-cd TripSync
-npm install
-npm start
-```
-
-Escanea el QR con la app **Expo Go** en tu móvil. No se necesitan variables de entorno ni cuenta de Supabase.
-
----
-
-## Puesta en marcha (modo real)
+## Puesta en marcha
 
 ### Requisitos
 

@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
+import Constants from 'expo-constants'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import {
   Alert,
+  Linking,
   ScrollView,
   Switch,
   Text,
@@ -12,26 +14,41 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from '@components/ui/Avatar'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useProfile } from '@features/auth/hooks/useProfile'
 import { useSignOut } from '@features/auth/hooks/useSignOut'
+import { DeleteAccountSheet } from '@features/auth/components/DeleteAccountSheet'
 import { useUpdateProfile } from '@features/auth/hooks/useUpdateProfile'
+import { useTrips } from '@features/trips/hooks/useTrips'
+import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
+import { colors } from '@lib/colors'
+import { cardShadow } from '@lib/shadows'
 import { useTheme } from '@lib/theme'
+import { useLanguage, type SupportedLanguage } from '@lib/language'
 
 export default function ProfileScreen() {
   const router = useRouter()
   const { isDark, toggleTheme } = useTheme()
+  const { language, changeLanguage } = useLanguage()
+  const { t } = useTranslation()
   const { data: user } = useCurrentUser()
   const { data: profile } = useProfile(user?.id)
+  const { data: trips = [] } = useTrips()
+  const { data: savedExperiences = [] } = useSavedExperiences()
   const updateProfile = useUpdateProfile()
   const signOut = useSignOut()
-
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState('')
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false)
 
   const displayName = profile?.name ?? user?.user_metadata?.name ?? '—'
   const email = user?.email ?? '—'
+  const memberSince = user?.created_at
+    ? new Intl.DateTimeFormat(language === 'es' ? 'es-ES' : 'en-US', { month: 'long', year: 'numeric' }).format(new Date(user.created_at))
+    : '—'
+  const appVersion = Constants.expoConfig?.version ?? '1.0.0'
 
   const startEditName = () => {
     setNameValue(displayName)
@@ -61,23 +78,51 @@ export default function ProfileScreen() {
     }
   }
 
+  const removeAvatar = async () => {
+    if (!user?.id) return
+    await updateProfile.mutateAsync({ userId: user.id, avatar_url: null })
+  }
+
+  const handleAvatarPress = () => {
+    if (profile?.avatar_url) {
+      Alert.alert(t('profile_avatar_title'), undefined, [
+        { text: t('profile_avatar_change'), onPress: pickAvatar },
+        { text: t('profile_avatar_remove'), style: 'destructive', onPress: removeAvatar },
+        { text: t('common_cancel'), style: 'cancel' },
+      ])
+    } else {
+      pickAvatar()
+    }
+  }
+
+  const handleReplayOnboarding = () => {
+    router.back()
+    setTimeout(() => router.push('/(app)/onboarding?replay=1'), 50)
+  }
+
   const handleSignOut = () => {
-    Alert.alert('Cerrar sesión', '¿Seguro que quieres salir?', [
-      { text: 'Cancelar', style: 'cancel' },
+    Alert.alert(t('profile_signout_title'), t('profile_signout_confirm'), [
+      { text: t('common_cancel'), style: 'cancel' },
       {
-        text: 'Cerrar sesión',
+        text: t('profile_signout'),
         style: 'destructive',
         onPress: () => signOut.mutate(),
       },
     ])
   }
 
-  const rowBase = 'flex-row items-center px-4 py-[13px]'
+  const iconColor = isDark ? colors.neutral[500] : colors.neutral[400]
+  const rowBase = 'flex-row items-center px-4 py-3.5'
   const labelBase = 'text-[17px] text-neutral-900 dark:text-neutral-50'
-  const valueBase = 'text-[17px] text-neutral-400 dark:text-neutral-500'
+  const valueBase = 'text-[17px] text-neutral-500 dark:text-neutral-400'
   const sectionCard = 'rounded-2xl overflow-hidden bg-white dark:bg-surface-800 mx-4'
   const sectionLabel = 'text-[13px] font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mx-4 mb-2 mt-6'
-  const divider = 'h-px bg-neutral-100 dark:bg-surface-700 ml-4'
+  const divider = 'h-px bg-neutral-100 dark:bg-surface-700 ml-[52px]'
+
+  const LANGUAGES: { key: SupportedLanguage; label: string; flag: string }[] = [
+    { key: 'es', label: t('lang_es'), flag: '🇪🇸' },
+    { key: 'en', label: t('lang_en'), flag: '🇬🇧' },
+  ]
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top', 'bottom']}>
@@ -88,20 +133,20 @@ export default function ProfileScreen() {
           className="w-9 h-9 items-center justify-center"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="chevron-back" size={24} color={isDark ? '#e2e8f0' : '#1e293b'} />
+          <Ionicons name="chevron-back" size={24} color={colors.primary[500]} />
         </TouchableOpacity>
         <Text className="text-[17px] font-semibold text-neutral-900 dark:text-neutral-50">
-          Perfil
+          {t('profile_title')}
         </Text>
         <View className="w-9" />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-12">
         {/* Avatar hero */}
-        <View className="items-center pt-6 pb-8">
-          <TouchableOpacity onPress={pickAvatar} activeOpacity={0.75}>
+        <View className="items-center pt-6 pb-6">
+          <TouchableOpacity onPress={handleAvatarPress} activeOpacity={0.75}>
             <View className="relative">
-              <View className="w-24 h-24 rounded-full bg-primary-100 items-center justify-center overflow-hidden">
+              <View className="items-center justify-center">
                 <Avatar
                   uri={profile?.avatar_url}
                   name={displayName}
@@ -116,17 +161,39 @@ export default function ProfileScreen() {
           <Text className="mt-3 text-[22px] font-bold text-neutral-900 dark:text-neutral-50">
             {displayName}
           </Text>
-          <Text className="text-[15px] text-neutral-400 dark:text-neutral-500 mt-0.5">
+          <Text className="text-[15px] text-neutral-500 dark:text-neutral-400 mt-0.5">
             {email}
           </Text>
         </View>
 
+        {/* Stats bar */}
+        <View className="flex-row mx-4 mb-2 rounded-2xl overflow-hidden bg-white dark:bg-surface-800" style={cardShadow}>
+          <View className="flex-1 items-center py-4">
+            <Text className="text-[24px] font-bold text-neutral-900 dark:text-neutral-50">
+              {trips.length}
+            </Text>
+            <Text className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+              {t('profile_stats_trips')}
+            </Text>
+          </View>
+          <View className="w-px bg-neutral-100 dark:bg-surface-700 my-3" />
+          <View className="flex-1 items-center py-4">
+            <Text className="text-[24px] font-bold text-neutral-900 dark:text-neutral-50">
+              {savedExperiences.length}
+            </Text>
+            <Text className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+              {t('profile_stats_saved')}
+            </Text>
+          </View>
+        </View>
+
         {/* Sección: Cuenta */}
-        <Text className={sectionLabel}>Cuenta</Text>
-        <View className={sectionCard}>
+        <Text className={sectionLabel}>{t('profile_section_account')}</Text>
+        <View className={sectionCard} style={cardShadow}>
           {/* Nombre */}
           <View className={rowBase}>
-            <Text className={`${labelBase} flex-1`}>Nombre</Text>
+            <Ionicons name="person-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
+            <Text className={`${labelBase} flex-1`}>{t('profile_field_name')}</Text>
             {editingName ? (
               <View className="flex-row items-center gap-2">
                 <TextInput
@@ -136,13 +203,13 @@ export default function ProfileScreen() {
                   returnKeyType="done"
                   onSubmitEditing={saveName}
                   className="text-[17px] text-neutral-900 dark:text-neutral-50 text-right min-w-[120px]"
-                  style={{ color: isDark ? '#f1f5f9' : '#0f172a' }}
+                  style={{ color: isDark ? colors.neutral[50] : colors.neutral[900] }}
                 />
                 <TouchableOpacity onPress={saveName} className="ml-1">
-                  <Ionicons name="checkmark-circle" size={24} color="#06b6d4" />
+                  <Ionicons name="checkmark-circle" size={24} color={colors.primary[500]} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={cancelEditName}>
-                  <Ionicons name="close-circle" size={24} color={isDark ? '#64748b' : '#94a3b8'} />
+                  <Ionicons name="close-circle" size={24} color={iconColor} />
                 </TouchableOpacity>
               </View>
             ) : (
@@ -151,11 +218,7 @@ export default function ProfileScreen() {
                 className="flex-row items-center gap-1"
               >
                 <Text className={valueBase}>{displayName}</Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color={isDark ? '#64748b' : '#94a3b8'}
-                />
+                <Ionicons name="chevron-forward" size={16} color={iconColor} />
               </TouchableOpacity>
             )}
           </View>
@@ -164,22 +227,32 @@ export default function ProfileScreen() {
 
           {/* Email */}
           <View className={rowBase}>
-            <Text className={`${labelBase} flex-1`}>Email</Text>
+            <Ionicons name="mail-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
+            <Text className={`${labelBase} flex-1`}>{t('profile_field_email')}</Text>
             <Text className={valueBase}>{email}</Text>
+          </View>
+
+          <View className={divider} />
+
+          {/* Miembro desde */}
+          <View className={rowBase}>
+            <Ionicons name="calendar-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
+            <Text className={`${labelBase} flex-1`}>{t('profile_field_member')}</Text>
+            <Text className={valueBase} style={{ textTransform: 'capitalize' }}>{memberSince}</Text>
           </View>
         </View>
 
         {/* Sección: Apariencia */}
-        <Text className={sectionLabel}>Apariencia</Text>
-        <View className={sectionCard}>
+        <Text className={sectionLabel}>{t('profile_section_appearance')}</Text>
+        <View className={sectionCard} style={cardShadow}>
           <View className={rowBase}>
             <Ionicons
               name={isDark ? 'moon' : 'sunny'}
               size={20}
-              color={isDark ? '#7b82f5' : '#f59e0b'}
+              color={isDark ? colors.primary[400] : colors.tertiary[400]}
               style={{ marginRight: 12 }}
             />
-            <Text className={`${labelBase} flex-1`}>Modo oscuro</Text>
+            <Text className={`${labelBase} flex-1`}>{t('profile_darkMode')}</Text>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
@@ -187,35 +260,124 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Sección: Idioma */}
+        <Text className={sectionLabel}>{t('profile_section_language')}</Text>
+        <View
+          className="mx-4 rounded-2xl bg-white dark:bg-surface-800 px-2 py-2"
+          style={cardShadow}
+        >
+          {LANGUAGES.map((lang) => {
+            const isActive = language === lang.key
+            return (
+              <TouchableOpacity
+                key={lang.key}
+                onPress={() => changeLanguage(lang.key)}
+                activeOpacity={0.7}
+                className="rounded-xl px-3 py-3 flex-row items-center"
+                style={isActive ? { backgroundColor: `${colors.primary[500]}1a` } : undefined}
+              >
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 16,
+                    fontWeight: isActive ? '600' : '400',
+                    color: isActive
+                      ? colors.primary[500]
+                      : isDark ? colors.neutral[300] : colors.neutral[700],
+                  }}
+                >
+                  {lang.label}
+                </Text>
+                <View
+                  className="rounded-md px-2 py-0.5"
+                  style={{
+                    backgroundColor: isActive
+                      ? colors.primary[500]
+                      : isDark ? colors.surface[700] : colors.neutral[100],
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '700',
+                      letterSpacing: 0.5,
+                      textTransform: 'uppercase',
+                      color: isActive
+                        ? colors.white
+                        : isDark ? colors.neutral[500] : colors.neutral[400],
+                    }}
+                  >
+                    {lang.key}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+
         {/* Sección: App */}
-        <Text className={sectionLabel}>App</Text>
-        <View className={sectionCard}>
+        <Text className={sectionLabel}>{t('profile_section_app')}</Text>
+        <View className={sectionCard} style={cardShadow}>
           <View className={rowBase}>
             <Ionicons
               name="information-circle-outline"
               size={20}
-              color={isDark ? '#64748b' : '#94a3b8'}
+              color={iconColor}
               style={{ marginRight: 12 }}
             />
-            <Text className={`${labelBase} flex-1`}>Versión</Text>
-            <Text className={valueBase}>1.0.0</Text>
+            <Text className={`${labelBase} flex-1`}>{t('profile_field_version')}</Text>
+            <Text className={valueBase}>{appVersion}</Text>
           </View>
           <View className={divider} />
-          <View className={rowBase}>
+          <TouchableOpacity
+            onPress={handleReplayOnboarding}
+            className={rowBase}
+            activeOpacity={0.7}
+          >
             <Ionicons
-              name="school-outline"
+              name="play-circle-outline"
               size={20}
-              color={isDark ? '#64748b' : '#94a3b8'}
+              color={iconColor}
               style={{ marginRight: 12 }}
             />
-            <Text className={`${labelBase} flex-1`}>TripSync</Text>
-            <Text className={valueBase}>TFM 2026</Text>
-          </View>
+            <Text className={`${labelBase} flex-1`}>{t('profile_replay_onboarding')}</Text>
+            <Ionicons name="chevron-forward" size={16} color={iconColor} />
+          </TouchableOpacity>
+          <View className={divider} />
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://pingo.app/terminos')}
+            className={rowBase}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="document-text-outline"
+              size={20}
+              color={iconColor}
+              style={{ marginRight: 12 }}
+            />
+            <Text className={`${labelBase} flex-1`}>{t('profile_terms')}</Text>
+            <Ionicons name="chevron-forward" size={16} color={iconColor} />
+          </TouchableOpacity>
+          <View className={divider} />
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://pingo.app/privacidad')}
+            className={rowBase}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={20}
+              color={iconColor}
+              style={{ marginRight: 12 }}
+            />
+            <Text className={`${labelBase} flex-1`}>{t('profile_privacy')}</Text>
+            <Ionicons name="chevron-forward" size={16} color={iconColor} />
+          </TouchableOpacity>
         </View>
 
-        {/* Sección: Sesión */}
-        <Text className={sectionLabel}>Sesión</Text>
-        <View className={sectionCard}>
+        {/* Sección: Gestión de cuenta */}
+        <Text className={sectionLabel}>{t('profile_section_accountActions')}</Text>
+        <View className={sectionCard} style={cardShadow}>
           <TouchableOpacity
             onPress={handleSignOut}
             className={rowBase}
@@ -224,15 +386,39 @@ export default function ProfileScreen() {
             <Ionicons
               name="log-out-outline"
               size={20}
-              color="#ef4444"
+              color={colors.error}
               style={{ marginRight: 12 }}
             />
             <Text className="text-[17px] text-error font-medium">
-              Cerrar sesión
+              {t('profile_signout')}
             </Text>
+          </TouchableOpacity>
+
+          <View className={divider} />
+
+          <TouchableOpacity
+            onPress={() => setDeleteSheetVisible(true)}
+            className={rowBase}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="person-remove-outline"
+              size={20}
+              color={iconColor}
+              style={{ marginRight: 12 }}
+            />
+            <View className="flex-1">
+              <Text className={labelBase}>{t('profile_deleteAccount')}</Text>
+              <Text className="text-[13px] text-neutral-400 dark:text-neutral-500 mt-0.5">
+                {t('profile_deleteAccount_subtitle')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={iconColor} />
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <DeleteAccountSheet visible={deleteSheetVisible} onClose={() => setDeleteSheetVisible(false)} />
     </SafeAreaView>
   )
 }

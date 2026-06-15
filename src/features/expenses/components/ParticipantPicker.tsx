@@ -1,7 +1,8 @@
 import { Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from '@components/ui/Avatar'
-import type { Collaborator } from '@types/index'
+import type { Collaborator } from '@app-types/index'
 import { colors } from '@lib/colors'
 
 interface ParticipantPickerProps {
@@ -12,6 +13,7 @@ interface ParticipantPickerProps {
 }
 
 export function ParticipantPicker({ collaborators, selectedIds, onChange, error }: ParticipantPickerProps) {
+  const { t } = useTranslation()
   const allSelected = collaborators.length > 0 && selectedIds.length === collaborators.length
 
   const toggle = (userId: string) => {
@@ -34,16 +36,16 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
     <View className="gap-2">
       <View className="flex-row items-center justify-between">
         <Text className="text-sm font-medium text-neutral-700">
-          Participantes{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
+          {t('expenses_participants_label')}{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
         </Text>
-        <TouchableOpacity onPress={toggleAll} className="flex-row items-center gap-1 px-2 py-1 rounded-lg active:bg-neutral-100">
+        <TouchableOpacity onPress={toggleAll} hitSlop={8} className="flex-row items-center gap-1 px-3 py-2 rounded-lg active:bg-neutral-100">
           <Ionicons
             name={allSelected ? 'checkbox' : 'checkbox-outline'}
-            size={14}
+            size={16}
             color={allSelected ? colors.primary[500] : colors.neutral[400]}
           />
-          <Text className={`text-xs font-medium ${allSelected ? 'text-secondary-600' : 'text-neutral-500'}`}>
-            {allSelected ? 'Deseleccionar todo' : 'Seleccionar todo'}
+          <Text className={`text-sm font-medium ${allSelected ? 'text-primary-600' : 'text-neutral-500'}`}>
+            {allSelected ? t('expenses_participants_deselectAll') : t('expenses_participants_selectAll')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -57,16 +59,16 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
               onPress={() => toggle(c.user_id)}
               activeOpacity={0.7}
               className={`flex-row items-center gap-3 p-3 rounded-xl border ${
-                isSelected ? 'border-secondary-400 bg-secondary-50' : 'border-neutral-200 bg-white'
+                isSelected ? 'border-primary-300 bg-primary-50' : 'border-neutral-200 bg-white'
               }`}
             >
               <Avatar uri={c.avatar_url} name={c.name} size="sm" />
-              <Text className={`flex-1 text-sm font-medium ${isSelected ? 'text-secondary-700' : 'text-neutral-700'}`}>
+              <Text className={`flex-1 text-sm font-medium ${isSelected ? 'text-primary-700' : 'text-neutral-700'}`}>
                 {c.name}
               </Text>
               <View
                 className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
-                  isSelected ? 'border-secondary-500 bg-secondary-500' : 'border-neutral-300 bg-white'
+                  isSelected ? 'border-primary-500 bg-primary-500' : 'border-neutral-300 bg-white'
                 }`}
               >
                 {isSelected && <Ionicons name="checkmark" size={12} color={colors.white} />}

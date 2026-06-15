@@ -16,7 +16,7 @@
       "@lib/*": [
         "./src/lib/*"
       ],
-      "@types/*": [
+      "@app-types/*": [
         "./src/types/*"
       ],
       "@utils/*": [

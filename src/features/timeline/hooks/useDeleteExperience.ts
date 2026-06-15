@@ -1,21 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, mockExperiences } from '@/dev/mockData'
-import type { Experience } from '@types/index'
+import type { Experience } from '@app-types/index'
 
 export function useDeleteExperience(tripId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (experienceId: string) => {
-      if (DEV_MODE) {
-        if (mockExperiences[tripId]) {
-          mockExperiences[tripId] = mockExperiences[tripId].filter((e) => e.id !== experienceId)
-        }
-        return
-      }
-
       const { error } = await supabase
         .from('experiences')
         .delete()
@@ -40,7 +32,6 @@ export function useDeleteExperience(tripId: string) {
       }
     },
     onSettled: () => {
-      if (DEV_MODE) return
       queryClient.invalidateQueries({ queryKey: queryKeys.experiences.all(tripId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.all(tripId) })
     },

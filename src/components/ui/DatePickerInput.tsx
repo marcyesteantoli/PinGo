@@ -15,8 +15,8 @@ interface DatePickerInputProps {
   maximumDate?: Date
 }
 
-function parseDate(s?: string): Date {
-  if (!s) return new Date()
+function parseDate(s?: string, fallback?: Date): Date {
+  if (!s) return fallback ?? new Date()
   const [y, m, d] = s.split('-').map(Number)
   return new Date(y, m - 1, d)
 }
@@ -43,8 +43,13 @@ export function DatePickerInput({
   maximumDate,
 }: DatePickerInputProps) {
   const [show, setShow] = useState(false)
-  const pickerDate = parseDate(value)
+  const pickerDate = parseDate(value, minimumDate)
   const { isDark } = useTheme()
+
+  const handleOpen = () => {
+    onChange(dateToString(pickerDate))
+    setShow(true)
+  }
 
   const handleChange = (_event: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === 'android') setShow(false)
@@ -57,7 +62,7 @@ export function DatePickerInput({
         <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</Text>
       )}
       <Pressable
-        onPress={() => setShow(true)}
+        onPress={handleOpen}
         className={`border rounded-xl px-4 flex-row items-center justify-between bg-white dark:bg-surface-800 ${error ? 'border-error' : 'border-neutral-200 dark:border-surface-600'}`}
         style={{ paddingVertical: 12 }}
       >
@@ -69,7 +74,7 @@ export function DatePickerInput({
       {error && <Text className="text-xs text-error">{error}</Text>}
 
       {Platform.OS === 'ios' ? (
-        <Modal visible={show} transparent animationType="slide">
+        <Modal visible={show} transparent animationType="none">
           <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
             <View style={{ backgroundColor: isDark ? colors.surface[800] : colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
               <View className="flex-row justify-end px-4 pt-3 pb-1">
@@ -77,16 +82,18 @@ export function DatePickerInput({
                   <Text className="text-base font-semibold" style={{ color: colors.primary[500] }}>Listo</Text>
                 </TouchableOpacity>
               </View>
-              <DateTimePicker
-                value={pickerDate}
-                mode="date"
-                display="spinner"
-                onChange={handleChange}
-                minimumDate={minimumDate}
-                maximumDate={maximumDate}
-                locale="es-ES"
-                themeVariant={isDark ? 'dark' : 'light'}
-              />
+              {show && (
+                <DateTimePicker
+                  value={pickerDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleChange}
+                  minimumDate={minimumDate}
+                  maximumDate={maximumDate}
+                  locale="es-ES"
+                  themeVariant={isDark ? 'dark' : 'light'}
+                />
+              )}
             </View>
           </View>
         </Modal>

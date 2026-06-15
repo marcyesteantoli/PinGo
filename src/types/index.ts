@@ -9,6 +9,7 @@ export type Expense = Database['public']['Tables']['expenses']['Row']
 export type ExpenseSplit = Database['public']['Tables']['expense_splits']['Row']
 export type ExperienceRating = Database['public']['Tables']['experience_ratings']['Row']
 export type Memory = Database['public']['Tables']['memories']['Row']
+export type TripDestination = Database['public']['Tables']['trip_destinations']['Row']
 
 export type ExperienceRatingAvg = Database['public']['Views']['experience_ratings_avg']['Row']
 
@@ -19,21 +20,58 @@ export type TripWithCollaborators = Trip & {
   collaborators: Array<TripCollaborator & { profile: Profile }>
 }
 
+export type CollaboratorStatus = 'active' | 'left'
+
 export type Collaborator = {
   user_id: string
   name: string
   avatar_url: string | null
   role: TripRole
+  status: CollaboratorStatus
+  joined_at: string
 }
 
 export type ExpenseWithSplits = Expense & {
   splits: ExpenseSplit[]
   payer: Profile
+  experience?: Pick<Experience, 'type' | 'title'> | null
 }
 
 export type ExperienceWithRating = Experience & {
   rating_avg: number | null
   rating_count: number
+}
+
+export type AttributeRating = {
+  experience_id: string
+  user_id: string
+  attribute: string
+  value: number
+}
+
+export type AttributeRatingsData = {
+  userValues: Record<string, number>
+  groupAvg: Record<string, number>
+  count: number
+}
+
+export type UserSavedExperience = {
+  user_id: string
+  experience_id: string
+  saved_at: string
+  price_paid: number | null
+  cover_photo_url: string | null
+}
+
+export type SavedExperienceItem = {
+  saved_at: string
+  note: string | null
+  coverPhotoUrl: string | null
+  price_paid: number | null
+  experience: Experience & {
+    trip: { name: string } | null
+    attribute_ratings: Array<{ attribute: string; value: number }>
+  }
 }
 
 // Balance calculado por usuario en un viaje
@@ -44,6 +82,7 @@ export type UserBalance = {
   paid: number
   owes: number
   balance: number // positivo = le deben, negativo = debe
+  status: CollaboratorStatus
 }
 
 export type Settlement = {
@@ -52,5 +91,25 @@ export type Settlement = {
   from_user_id: string
   to_user_id: string
   amount: number
+  settled_by: string | null
   created_at: string
+}
+
+export type WishlistItemType = 'city' | 'restaurant' | 'activity' | 'accommodation' | 'entertainment' | 'other'
+
+export interface WishlistItem {
+  id: string
+  user_id: string
+  name: string
+  type: WishlistItemType
+  location: {
+    address?: string
+    lat?: number
+    lng?: number
+    city?: string
+    country?: string
+  } | null
+  note: string | null
+  added_at: string
+  visited_at: string | null
 }

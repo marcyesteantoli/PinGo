@@ -1,16 +1,19 @@
-import { createContext, useContext, ReactNode } from 'react'
+import { createContext, useContext, useEffect, ReactNode } from 'react'
 import { ActivityIndicator, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
-import { DEV_MODE, DEMO_USER_ID, mockTrips, mockCollaborators } from '@/dev/mockData'
 import { Button } from '@components/ui/Button'
-import type { Collaborator, TripRole, Trip } from '@types/index'
+import { saveLastActiveTripId } from '@lib/lastActiveTrip'
+import type { Collaborator, TripRole, Trip } from '@app-types/index'
 
 type CollaboratorRow = {
   user_id: string
   role: TripRole
+  status: 'active' | 'left'
+  joined_at: string
   profiles: { name: string; avatar_url: string | null } | null
 }
 
@@ -18,6 +21,7 @@ type TripContextValue = {
   tripId: string
   trip: Trip
   collaborators: Collaborator[]
+  activeCollaborators: Collaborator[]
   currentUserRole: 'owner' | 'member'
   isOwner: boolean
   isLoading: boolean
@@ -33,15 +37,14 @@ export function useTripContext() {
 }
 
 export function TripProvider({ tripId, children }: { tripId: string; children: ReactNode }) {
+  const { t } = useTranslation()
+  useEffect(() => {
+    saveLastActiveTripId(tripId)
+  }, [tripId])
+
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.collaborators.byTrip(tripId),
     queryFn: async () => {
-      if (DEV_MODE) {
-        const trip = mockTrips.find((t) => t.id === tripId) ?? null
-        const collaborators = mockCollaborators[tripId] ?? []
-        return { trip, collaborators: collaborators.map((c) => ({ ...c, profiles: { name: c.name, avatar_url: c.avatar_url } })), userId: DEMO_USER_ID }
-      }
-
       const [
         { data: trip },
         { data: collaborators },
@@ -50,7 +53,7 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
         supabase.from('trips').select('*').eq('id', tripId).single(),
         supabase
           .from('trip_collaborators')
-          .select('user_id, role, profiles(name, avatar_url)')
+          .select('user_id, role, status, joined_at, profiles(name, avatar_url)')
           .eq('trip_id', tripId),
         supabase.auth.getUser(),
       ])
@@ -62,20 +65,20 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#00b4d8" />
+      <View className="flex-1 items-center justify-center bg-neutral-100 dark:bg-surface-900">
+        <ActivityIndicator size="large" color="#0046de" />
       </View>
     )
   }
 
   if (error || !data?.trip) {
     return (
-      <View className="flex-1 items-center justify-center px-6 gap-4 bg-neutral-100">
-        <Text className="text-base text-neutral-600 text-center">
-          {error ? 'Error al cargar el viaje.' : 'Este viaje no está disponible.'}
+      <View className="flex-1 items-center justify-center px-6 gap-4 bg-neutral-100 dark:bg-surface-900">
+        <Text className="text-base text-neutral-600 dark:text-neutral-300 text-center">
+          {error ? t('trips_error_title') : t('trips_notFound')}
         </Text>
         <Button onPress={() => router.back()} variant="ghost">
-          Volver
+          {t('common_back')}
         </Button>
       </View>
     )
@@ -87,10 +90,14 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
       name: c.profiles?.name ?? '',
       avatar_url: c.profiles?.avatar_url ?? null,
       role: c.role,
+      status: c.status,
+      joined_at: c.joined_at,
     }))
 
+  const activeCollaborators = collaborators.filter((c) => c.status === 'active')
+
   const currentUserRole =
-    collaborators.find((c) => c.user_id === data.userId)?.role ?? 'member'
+    activeCollaborators.find((c) => c.user_id === data.userId)?.role ?? 'member'
 
   return (
     <TripContext.Provider
@@ -98,6 +105,7 @@ export function TripProvider({ tripId, children }: { tripId: string; children: R
         tripId,
         trip: data.trip,
         collaborators,
+        activeCollaborators,
         currentUserRole,
         isOwner: currentUserRole === 'owner',
         isLoading,

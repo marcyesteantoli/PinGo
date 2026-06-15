@@ -1,21 +1,34 @@
+import { memo, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
-import { Text, TouchableOpacity, View } from 'react-native'
-import { Card } from '@components/ui/Card'
+import { GestureDetector, Gesture } from 'react-native-gesture-handler'
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated'
+import { Dimensions, ScrollView, Share, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { Avatar } from '@components/ui/Avatar'
 import { Badge } from '@components/ui/Badge'
+import { BottomSheet } from '@components/ui/BottomSheet'
+import { Button } from '@components/ui/Button'
+import { DateRangePicker } from '@components/ui/DateRangePicker'
 import { formatDateRange } from '@utils/date'
+import { SUPPORTED_CURRENCIES } from '@utils/currencies'
 import { useTheme } from '@lib/theme'
 import type { TripWithCollaborators } from '@features/trips/hooks/useTrips'
+import { useLeaveTrip } from '../hooks/useLeaveTrip'
+import { useUpdateTrip } from '../hooks/useUpdateTrip'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
+import { useErrorToast } from '@lib/errorToast'
 
 interface TripCardProps {
   trip: TripWithCollaborators
   onPress: () => void
 }
 
+
 type TripStatus = 'upcoming' | 'active' | 'past'
+
+const ACTION_WIDTH = 72
+const ACTIONS_WIDTH = ACTION_WIDTH * 2
 
 function getTripStatus(startDate: string, endDate: string): TripStatus {
   const today = new Date().toISOString().split('T')[0]
@@ -36,29 +49,117 @@ function getTripDays(start: string, end: string): number {
   return Math.max(1, Math.round(diff / (1000 * 60 * 60 * 24)) + 1)
 }
 
-export function TripCard({ trip, onPress }: TripCardProps) {
+export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps) {
   const { isDark } = useTheme()
+  const { t, i18n } = useTranslation()
   const { collaborators } = trip
   const days = getTripDays(trip.start_date, trip.end_date)
   const status = getTripStatus(trip.start_date, trip.end_date)
   const daysUntil = status === 'upcoming' ? getDaysUntil(trip.start_date) : 0
 
+  const leaveTrip = useLeaveTrip()
+  const updateTrip = useUpdateTrip()
+  const showError = useErrorToast()
+
+  useEffect(() => {
+    if (updateTrip.error) showError(updateTrip.error.message)
+  }, [updateTrip.error])
+
+  const [containerWidth, setContainerWidth] = useState(() => Dimensions.get('window').width - 40)
+  const [renameVisible, setRenameVisible] = useState(false)
+  const [leaveVisible, setLeaveVisible] = useState(false)
+  const [newTitle, setNewTitle] = useState(trip.title)
+  const [newStartDate, setNewStartDate] = useState(trip.start_date)
+  const [newEndDate, setNewEndDate] = useState(trip.end_date)
+  const [newCurrency, setNewCurrency] = useState(trip.currency)
+
+  const translateX = useSharedValue(0)
+  const savedX = useSharedValue(0)
+
+  const pan = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-5, 5])
+    .onBegin(() => {
+      savedX.value = translateX.value
+    })
+    .onUpdate((e) => {
+      translateX.value = Math.min(0, Math.max(-ACTIONS_WIDTH, savedX.value + e.translationX))
+    })
+    .onEnd(() => {
+      translateX.value = translateX.value < -ACTIONS_WIDTH / 2
+        ? withTiming(-ACTIONS_WIDTH, { duration: 240, easing: Easing.out(Easing.cubic) })
+        : withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
+    })
+
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }))
+
+  const closeSwipe = () => {
+    translateX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
+  }
+
+  const handleEditPress = () => {
+    closeSwipe()
+    setNewTitle(trip.title)
+    setNewStartDate(trip.start_date)
+    setNewEndDate(trip.end_date)
+    setNewCurrency(trip.currency)
+    setRenameVisible(true)
+  }
+
+  const handleLeavePress = () => {
+    closeSwipe()
+    setLeaveVisible(true)
+  }
+
+  const handleRenameConfirm = () => {
+    const trimmed = newTitle.trim()
+    if (!trimmed) return
+    const titleChanged = trimmed !== trip.title
+    const startChanged = newStartDate !== trip.start_date
+    const endChanged = newEndDate !== trip.end_date
+    const currencyChanged = newCurrency !== trip.currency
+    if (!titleChanged && !startChanged && !endChanged && !currencyChanged) {
+      setRenameVisible(false)
+      return
+    }
+    updateTrip.mutate(
+      {
+        tripId: trip.id,
+        title: trimmed,
+        start_date: startChanged ? newStartDate : undefined,
+        end_date: endChanged ? newEndDate : undefined,
+        currency: currencyChanged ? newCurrency : undefined,
+      },
+      { onSuccess: () => setRenameVisible(false) }
+    )
+  }
+
+  const handleLeaveConfirm = () => {
+    leaveTrip.mutate(trip.id, {
+      onSuccess: () => setLeaveVisible(false),
+    })
+  }
+
   const statusConfig: Record<TripStatus, { label: string; variant: 'active' | 'primary' | 'neutral' }> = {
-    active:   { label: 'En curso',             variant: 'active'  },
-    upcoming: { label: `En ${daysUntil} días`, variant: 'primary' },
-    past:     { label: 'Completado',           variant: 'neutral' },
+    active:   { label: t('tripCard_status_active'),                             variant: 'active'  },
+    upcoming: { label: t('tripCard_status_upcoming', { count: daysUntil }),     variant: 'primary' },
+    past:     { label: t('tripCard_status_past'),                               variant: 'neutral' },
   }
 
   const { label, variant } = statusConfig[status]
   const borderColor = isDark ? colors.surface[700] : colors.white
-  const subtleColor = isDark ? colors.neutral[400] : colors.neutral[400]
+  const subtleColor = colors.neutral[400]
+
+  const rowWidth = containerWidth > 0 ? containerWidth + ACTIONS_WIDTH : undefined
+  const cardWidth = containerWidth > 0 ? containerWidth : undefined
 
   const cardBody = (
     <>
-      {/* Title + Status badge */}
-      <View className="flex-row items-start justify-between gap-2 mb-2">
+      <View className="flex-row items-start justify-between gap-3 mb-2.5">
         <Text
-          className="flex-1 text-[17px] font-semibold text-neutral-900 dark:text-neutral-50"
+          className="flex-1 text-[20px] font-bold text-neutral-900 dark:text-neutral-50"
           numberOfLines={1}
         >
           {trip.title}
@@ -66,19 +167,19 @@ export function TripCard({ trip, onPress }: TripCardProps) {
         <Badge label={label} variant={variant} />
       </View>
 
-      {/* Date range + days */}
-      <View className="flex-row items-center gap-1.5 mb-3">
-        <Ionicons name="calendar-outline" size={13} color={subtleColor} />
+      <View className="flex-row items-center gap-1.5 mb-3.5">
+        <Ionicons name="calendar-outline" size={14} color={subtleColor} />
         <Text className="text-[13px] text-neutral-500 dark:text-neutral-400">
-          {formatDateRange(trip.start_date, trip.end_date)}
+          {formatDateRange(trip.start_date, trip.end_date, i18n.language)}
         </Text>
-        <Text className="text-[13px] text-neutral-400 dark:text-neutral-500">
-          · {days} {days === 1 ? 'día' : 'días'}
-        </Text>
+        <View className="rounded bg-neutral-100 dark:bg-surface-700 px-1.5 py-0.5">
+          <Text className="text-[12px] font-medium text-neutral-500 dark:text-neutral-400">
+            {t('tripCard_days', { count: days })}
+          </Text>
+        </View>
       </View>
 
-      {/* Collaborators + chevron */}
-      <View className="flex-row items-center justify-between">
+      <View className="flex-row items-center justify-between pt-3 mt-1 border-t border-neutral-100 dark:border-surface-700">
         {collaborators.length > 0 ? (
           <View className="flex-row items-center gap-2">
             <View className="flex-row">
@@ -86,10 +187,10 @@ export function TripCard({ trip, onPress }: TripCardProps) {
                 <View
                   key={c.user_id}
                   style={{
-                    marginLeft: i > 0 ? -8 : 0,
+                    marginLeft: i > 0 ? -9 : 0,
                     zIndex: 10 - i,
-                    borderRadius: 17,
-                    borderWidth: 2,
+                    borderRadius: 18,
+                    borderWidth: 1.5,
                     borderColor,
                   }}
                 >
@@ -99,61 +200,229 @@ export function TripCard({ trip, onPress }: TripCardProps) {
               {collaborators.length > 4 && (
                 <View
                   style={{
-                    marginLeft: -8,
+                    marginLeft: -9,
                     zIndex: 6,
                     width: 32,
                     height: 32,
                     borderRadius: 16,
-                    borderWidth: 2,
+                    borderWidth: 1.5,
                     borderColor,
-                    backgroundColor: isDark ? colors.surface[700] : colors.neutral[200],
+                    backgroundColor: isDark ? colors.surface[700] : '#F2F2F7',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Text className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '500',
+                      color: isDark ? '#EBEBF5' : '#3C3C43',
+                      letterSpacing: -0.2,
+                    }}
+                  >
                     +{collaborators.length - 4}
                   </Text>
                 </View>
               )}
             </View>
-            <Text className="text-[13px] text-neutral-400 dark:text-neutral-500">
-              {collaborators.length} {collaborators.length === 1 ? 'persona' : 'personas'}
+            <Text className="text-[12px] font-medium text-neutral-500 dark:text-neutral-400">
+              {t('tripCard_persons', { count: collaborators.length })}
             </Text>
           </View>
         ) : (
           <View />
         )}
-        <Ionicons name="chevron-forward" size={16} color={subtleColor} />
+        <TouchableOpacity
+          onPress={() =>
+            Share.share({
+              message: t('tripCard_share_message', { title: trip.title, code: trip.join_code }),
+            })
+          }
+          activeOpacity={0.7}
+          className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-surface-700 items-center justify-center"
+        >
+          <Ionicons name="share-outline" size={18} color={subtleColor} />
+        </TouchableOpacity>
       </View>
     </>
   )
 
-  if (status === 'active') {
-    return (
-      <View style={[{ borderRadius: 12, overflow: 'hidden' }, cardShadow]}>
-        <TouchableOpacity
-          onPress={onPress}
-          activeOpacity={0.8}
-          style={{ backgroundColor: isDark ? colors.surface[800] : colors.white }}
-        >
-          <LinearGradient
-            colors={[colors.primary[500], colors.secondary[500]]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ height: 3, width: '100%' }}
-          />
-          <View style={{ padding: 16 }}>
-            {cardBody}
-          </View>
-        </TouchableOpacity>
-      </View>
-    )
-  }
+  const cardContent = (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      className="rounded-2xl p-4"
+      style={{
+        backgroundColor: isDark ? colors.surface[800] : colors.white,
+      }}
+    >
+      {cardBody}
+    </TouchableOpacity>
+  )
 
   return (
-    <Card onPress={onPress}>
-      {cardBody}
-    </Card>
+    <>
+      <View
+        className="rounded-2xl"
+        style={[
+          { opacity: containerWidth > 0 ? 1 : 0 },
+          status === 'active'
+            ? {
+                shadowColor: colors.primary[500],
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.18,
+                shadowRadius: 10,
+              }
+            : cardShadow,
+        ]}
+        onLayout={(e) => {
+          const w = e.nativeEvent.layout.width
+          if (w > 0 && w !== containerWidth) setContainerWidth(w)
+        }}
+      >
+        <View
+          className="overflow-hidden rounded-2xl"
+          style={status === 'active' && {
+            borderWidth: 1.5,
+            borderColor: isDark ? colors.primary[400] : colors.primary[500],
+          }}
+        >
+          <Animated.View style={[{ flexDirection: 'row', width: rowWidth }, cardStyle]}>
+            <GestureDetector gesture={pan}>
+              <View style={{ width: cardWidth, flex: cardWidth === undefined ? 1 : undefined }}>
+                {cardContent}
+              </View>
+            </GestureDetector>
+
+            {/* Edit action */}
+            <TouchableOpacity
+              onPress={handleEditPress}
+              style={{ width: ACTION_WIDTH, backgroundColor: colors.primary[500] }}
+              className="items-center justify-center gap-1"
+              activeOpacity={0.8}
+            >
+              <Ionicons name="pencil-outline" size={20} color={colors.white} />
+              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>{t('common_edit')}</Text>
+            </TouchableOpacity>
+
+            {/* Leave action */}
+            <TouchableOpacity
+              onPress={handleLeavePress}
+              style={{ width: ACTION_WIDTH, backgroundColor: colors.error }}
+              className="items-center justify-center gap-1"
+              activeOpacity={0.8}
+            >
+              <Ionicons name="exit-outline" size={20} color={colors.white} />
+              <Text style={{ color: colors.white, fontSize: 12, fontWeight: '600' }}>{t('common_leave')}</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </View>
+
+      {/* Edit sheet */}
+      <BottomSheet
+        visible={renameVisible}
+        onClose={() => setRenameVisible(false)}
+        title={t('tripCard_editSheet_title')}
+        scrollable
+      >
+        <View className="gap-4 mb-2">
+          <View className="gap-1">
+            <Text className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
+              {t('newTrip_name_label')}
+            </Text>
+            <TextInput
+              value={newTitle}
+              onChangeText={setNewTitle}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleRenameConfirm}
+              className="rounded-xl px-4 py-2.5 text-[17px] text-neutral-900 dark:text-neutral-50 bg-neutral-100 dark:bg-surface-700"
+              placeholderTextColor={colors.neutral[400]}
+              placeholder={t('newTrip_name_placeholder')}
+            />
+          </View>
+          <DateRangePicker
+            startDate={newStartDate}
+            endDate={newEndDate}
+            onStartDateChange={setNewStartDate}
+            onEndDateChange={setNewEndDate}
+            minDate=""
+          />
+          <View className="gap-2">
+            <Text className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
+              {t('newTrip_currency_label')}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {SUPPORTED_CURRENCIES.map((c) => {
+                const isSelected = newCurrency === c.code
+                return (
+                  <TouchableOpacity
+                    key={c.code}
+                    onPress={() => setNewCurrency(c.code)}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 5,
+                      paddingHorizontal: 12,
+                      paddingVertical: 7,
+                      borderRadius: 20,
+                      borderWidth: 1.5,
+                      borderColor: isSelected ? colors.primary[500] : colors.neutral[200],
+                      backgroundColor: isSelected ? '#e8f0fe' : 'transparent',
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: isSelected ? colors.primary[500] : colors.neutral[500] }}>
+                      {c.symbol}
+                    </Text>
+                    <Text style={{ fontSize: 13, fontWeight: isSelected ? '600' : '400', color: isSelected ? colors.primary[600] : colors.neutral[700] }}>
+                      {c.code}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </ScrollView>
+          </View>
+          <Button
+            onPress={handleRenameConfirm}
+            isLoading={updateTrip.isPending}
+          >
+            {t('common_saveNew')}
+          </Button>
+        </View>
+      </BottomSheet>
+
+      {/* Leave confirm sheet */}
+      <BottomSheet
+        visible={leaveVisible}
+        onClose={() => setLeaveVisible(false)}
+        title={t('tripCard_leaveSheet_title')}
+      >
+        <View className="gap-4 mb-2">
+          <View className="flex-row items-start gap-3 bg-error/10 rounded-2xl p-4">
+            <Ionicons name="warning-outline" size={20} color={colors.error} />
+            <Text className="text-sm text-neutral-700 dark:text-neutral-300 flex-1">
+              {t('tripCard_leaveSheet_body', { title: trip.title })}
+            </Text>
+          </View>
+          <Button
+            variant="destructive"
+            onPress={handleLeaveConfirm}
+            isLoading={leaveTrip.isPending}
+          >
+            {t('tripCard_leaveSheet_title')}
+          </Button>
+          <TouchableOpacity onPress={() => setLeaveVisible(false)} className="py-3 items-center">
+            <Text className="text-neutral-500 font-medium">{t('common_cancel')}</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheet>
+    </>
   )
-}
+})

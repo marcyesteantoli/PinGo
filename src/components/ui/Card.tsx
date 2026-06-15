@@ -11,11 +11,11 @@ interface CardProps {
 export function Card({ children, onPress, className = '' }: CardProps) {
   if (onPress) {
     return (
-      <View className="rounded-[12px]" style={cardShadow}>
+      <View className="rounded-2xl" style={cardShadow}>
         <TouchableOpacity
           onPress={onPress}
           activeOpacity={0.8}
-          className={`bg-white dark:bg-surface-800 rounded-[12px] p-4 ${className}`}
+          className={`bg-white dark:bg-surface-800 rounded-2xl p-4 ${className}`}
         >
           {children}
         </TouchableOpacity>
@@ -24,8 +24,8 @@ export function Card({ children, onPress, className = '' }: CardProps) {
   }
 
   return (
-    <View className="rounded-[12px]" style={cardShadow}>
-      <View className={`bg-white dark:bg-surface-800 rounded-[12px] p-4 ${className}`}>
+    <View className="rounded-2xl" style={cardShadow}>
+      <View className={`bg-white dark:bg-surface-800 rounded-2xl p-4 ${className}`}>
         {children}
       </View>
     </View>

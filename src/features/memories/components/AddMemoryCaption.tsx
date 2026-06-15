@@ -1,8 +1,11 @@
+import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Image, Text, View } from 'react-native'
+import { Image, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
+import { useErrorToast } from '@lib/errorToast'
 
 interface AddMemoryCaptionProps {
   visible: boolean
@@ -21,9 +24,15 @@ export function AddMemoryCaption({
   error,
   imageUri,
 }: AddMemoryCaptionProps) {
+  const showError = useErrorToast()
+  const { t } = useTranslation()
   const { control, handleSubmit, reset } = useForm<{ caption: string }>({
     defaultValues: { caption: '' },
   })
+
+  useEffect(() => {
+    if (error) showError(error)
+  }, [error])
 
   const handleClose = () => {
     reset()
@@ -36,12 +45,12 @@ export function AddMemoryCaption({
   }
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose} title="Añadir recuerdo">
+    <BottomSheet visible={visible} onClose={handleClose} title={t('memories_addCaption_title')}>
       <View className="gap-4 pb-4">
         {imageUri && (
           <Image
             source={{ uri: imageUri }}
-            style={{ width: '100%', height: 200, borderRadius: 12 }}
+            style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 12 }}
             resizeMode="cover"
           />
         )}
@@ -51,8 +60,8 @@ export function AddMemoryCaption({
           name="caption"
           render={({ field: { onChange, value } }) => (
             <Input
-              label="Descripción (opcional)"
-              placeholder="¿Qué estás recordando?"
+              label={t('memories_addCaption_label')}
+              placeholder={t('memories_addCaption_placeholder')}
               value={value}
               onChangeText={onChange}
               maxLength={200}
@@ -63,12 +72,9 @@ export function AddMemoryCaption({
           )}
         />
 
-        {error && (
-          <Text className="text-sm text-error text-center">{error}</Text>
-        )}
 
         <Button onPress={handleSubmit(handleSubmitForm)} isLoading={isLoading} size="lg">
-          {imageUri ? 'Añadir recuerdo' : 'Seleccionar foto'}
+          {imageUri ? t('memories_addCaption_submitWithImage') : t('memories_addCaption_submitNoImage')}
         </Button>
       </View>
     </BottomSheet>

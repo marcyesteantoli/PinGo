@@ -1,16 +1,22 @@
+import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
+import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { compressImage } from '@utils/image'
 import { LIMITS } from '@/config/limits'
-import { DEV_MODE, DEMO_USER_ID, mockMemories } from '@/dev/mockData'
-import type { Memory } from '@types/index'
+import type { MemoryWithUrl } from './useMemories'
 
 export type AddMemoryParams = {
   tripId: string
   caption?: string
-  asset?: ImagePicker.ImagePickerAsset // undefined en DEV_MODE
+  asset?: ImagePicker.ImagePickerAsset
+}
+
+export type AddMemoriesParams = {
+  tripId: string
+  assets: ImagePicker.ImagePickerAsset[]
 }
 
 type AddMemoryError =
@@ -23,7 +29,7 @@ async function uploadMemory(
   tripId: string,
   userId: string,
   caption?: string
-): Promise<Memory> {
+): Promise<MemoryWithUrl> {
   // 1. Comprimir
   const compressed = await compressImage(asset.uri)
 
@@ -31,13 +37,20 @@ async function uploadMemory(
   const filename = `${userId}_${Date.now()}.jpg`
   const storagePath = `memories/${tripId}/${filename}`
 
-  const response = await fetch(compressed.uri)
-  const blob = await response.blob()
+  // fetch(file://).blob() returns empty blob on iOS — read as base64 instead
+  const base64 = await FileSystem.readAsStringAsync(compressed.uri, {
+    encoding: 'base64',
+  })
+  const byteCharacters = atob(base64)
+  const byteArray = new Uint8Array(byteCharacters.length)
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteArray[i] = byteCharacters.charCodeAt(i)
+  }
 
   // 3. Subir a Storage
   const { error: uploadError } = await supabase.storage
     .from('memories')
-    .upload(storagePath, blob, { contentType: 'image/jpeg', upsert: false })
+    .upload(storagePath, byteArray, { contentType: 'image/jpeg', upsert: false })
 
   if (uploadError) {
     throw {
@@ -46,15 +59,11 @@ async function uploadMemory(
     } satisfies AddMemoryError
   }
 
-  // 4. Obtener URL pública
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from('memories').getPublicUrl(storagePath)
-
-  // 5. Insertar en BD — si falla, limpiar el archivo subido
+  // 4. Insertar en BD con storage path — si falla, limpiar el archivo subido
+  // Guardamos el path (no la URL pública) para generar signed URLs al leer
   const { data, error: dbError } = await supabase
     .from('memories')
-    .insert({ trip_id: tripId, user_id: userId, image_url: publicUrl, caption })
+    .insert({ trip_id: tripId, user_id: userId, image_url: storagePath, caption })
     .select()
     .single()
 
@@ -67,31 +76,50 @@ async function uploadMemory(
     } satisfies AddMemoryError
   }
 
-  return data
+  return { ...data, cacheKey: data.image_url }
+}
+
+export function useAddMemories() {
+  const queryClient = useQueryClient()
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+
+  const mutation = useMutation({
+    mutationFn: async ({ tripId, assets }: AddMemoriesParams): Promise<number> => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user)
+        throw { code: 'DB_FAILED', message: 'No hay sesión activa.' } satisfies AddMemoryError
+
+      setProgress({ done: 0, total: assets.length })
+      let uploaded = 0
+
+      for (const asset of assets) {
+        const memory = await uploadMemory(asset, tripId, user.id)
+        queryClient.setQueryData<MemoryWithUrl[]>(
+          queryKeys.memories.all(tripId),
+          (old = []) => [memory, ...old]
+        )
+        uploaded++
+        setProgress({ done: uploaded, total: assets.length })
+      }
+
+      return uploaded
+    },
+    onSettled: (_, __, variables) => {
+      setProgress(null)
+      queryClient.invalidateQueries({ queryKey: queryKeys.memories.all(variables.tripId) })
+    },
+  })
+
+  return { ...mutation, progress }
 }
 
 export function useAddMemory() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ tripId, caption, asset }: AddMemoryParams): Promise<Memory> => {
-      // DEV_MODE: genera imagen mock aleatoria, ignora el asset real
-      if (DEV_MODE) {
-        const seeds = ['tokyo', 'kyoto', 'osaka', 'hiroshima', 'nara', 'nikko', 'hakone']
-        const seed = seeds[Math.floor(Math.random() * seeds.length)]
-        const newMemory: Memory = {
-          id: `demo-mem-${Date.now()}`,
-          trip_id: tripId,
-          user_id: DEMO_USER_ID,
-          image_url: `https://picsum.photos/seed/${seed}${Date.now()}/800/600`,
-          caption: caption ?? null,
-          created_at: new Date().toISOString(),
-        }
-        if (!mockMemories[tripId]) mockMemories[tripId] = []
-        mockMemories[tripId].unshift(newMemory)
-        return newMemory
-      }
-
+    mutationFn: async ({ tripId, caption, asset }: AddMemoryParams): Promise<MemoryWithUrl> => {
       // Double-check del límite antes del upload (el screen ya lo verifica antes de abrir el picker)
       const { count, error: countError } = await supabase
         .from('memories')
@@ -116,13 +144,12 @@ export function useAddMemory() {
       return uploadMemory(asset, tripId, user.id, caption)
     },
     onSuccess: (newMemory) => {
-      queryClient.setQueryData<Memory[]>(
+      queryClient.setQueryData<MemoryWithUrl[]>(
         queryKeys.memories.all(newMemory.trip_id),
         (old = []) => [newMemory, ...old]
       )
     },
     onSettled: (_, __, variables) => {
-      if (DEV_MODE) return
       queryClient.invalidateQueries({ queryKey: queryKeys.memories.all(variables.tripId) })
     },
   })

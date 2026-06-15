@@ -1,45 +1,202 @@
-import { Dimensions, FlatList, Image, TouchableOpacity, View } from 'react-native'
-import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
+import { useEffect, useState } from 'react'
+import { Dimensions, FlatList, Pressable, View } from 'react-native'
+import { Image } from 'expo-image'
+import Animated, {
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 import type { SharedValue } from 'react-native-reanimated'
-import type { Memory } from '@types/index'
+import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
+import { Skeleton } from '@components/ui/Skeleton'
+import { useStaggerEnter } from '@lib/useStaggerEnter'
+import { EASE_OUT, DURATION } from '@lib/animations'
+import type { MemoryWithUrl } from '../hooks/useMemories'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
-const ITEM_SIZE = (SCREEN_WIDTH - 40 - 8) / 3 // px-5 on each side + 2 gaps
+const CELL_GAP = 3
+const CELL_SIZE = (SCREEN_WIDTH - 40 - CELL_GAP * 2) / 3 // px-5 each side + 2 gaps
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
 
-interface MemoryGridProps {
-  memories: Memory[]
-  onPress: (memory: Memory) => void
+export interface MemoryGridProps {
+  memories: MemoryWithUrl[]
+  onPress: (memory: MemoryWithUrl, index: number) => void
+  onLongPress?: (memory: MemoryWithUrl) => void
   scrollY?: SharedValue<number>
+  selectionMode?: boolean
+  selectedIds?: Set<string>
+  onToggleSelect?: (memory: MemoryWithUrl) => void
 }
 
-export function MemoryGrid({ memories, onPress, scrollY }: MemoryGridProps) {
-  const scrollHandler = useAnimatedScrollHandler(e => {
-    if (scrollY) {
-      scrollY.value = e.contentOffset.y
+type ImageStatus = 'loading' | 'loaded' | 'error'
+
+interface MemoryCellProps {
+  memory: MemoryWithUrl
+  index: number
+  onPress: (m: MemoryWithUrl, i: number) => void
+  onLongPress?: (m: MemoryWithUrl) => void
+  selectionMode: boolean
+  selected: boolean
+  onToggleSelect?: (m: MemoryWithUrl) => void
+}
+
+function MemoryCell({
+  memory,
+  index,
+  onPress,
+  onLongPress,
+  selectionMode,
+  selected,
+  onToggleSelect,
+}: MemoryCellProps) {
+  const [status, setStatus] = useState<ImageStatus>('loading')
+  const size = { width: CELL_SIZE, height: CELL_SIZE }
+
+  // Press scale feedback
+  const scale = useSharedValue(1)
+  const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
+
+  // Animated selection overlay
+  const selectionOpacity = useSharedValue(selectionMode ? 1 : 0)
+  const checkScale = useSharedValue(selected ? 1 : 0.6)
+
+  useEffect(() => {
+    selectionOpacity.value = withTiming(selectionMode ? 1 : 0, {
+      duration: DURATION.micro,
+      easing: EASE_OUT,
+    })
+  }, [selectionMode])
+
+  useEffect(() => {
+    checkScale.value = withTiming(selected ? 1 : 0.6, {
+      duration: DURATION.micro,
+      easing: EASE_OUT,
+    })
+  }, [selected])
+
+  const overlayStyle = useAnimatedStyle(() => ({ opacity: selectionOpacity.value }))
+  const checkStyle = useAnimatedStyle(() => ({ transform: [{ scale: checkScale.value }] }))
+
+  // Per-cell stagger entrance
+  const staggerStyle = useStaggerEnter(index, { delay: 45, duration: 260 })
+
+  const handlePress = () => {
+    if (selectionMode) {
+      onToggleSelect?.(memory)
+    } else {
+      onPress(memory, index)
     }
+  }
+
+  const handleLongPress = () => {
+    if (!selectionMode) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      onLongPress?.(memory)
+    }
+  }
+
+  return (
+    <Animated.View style={staggerStyle}>
+      <Pressable
+        onPress={handlePress}
+        onLongPress={handleLongPress}
+        onPressIn={() => {
+          scale.value = withTiming(0.96, { duration: DURATION.press, easing: EASE_OUT })
+        }}
+        onPressOut={() => {
+          scale.value = withTiming(1, { duration: 180, easing: EASE_OUT })
+        }}
+        delayLongPress={350}
+        style={{ overflow: 'hidden', borderRadius: 10 }}
+      >
+        <Animated.View style={[size, pressStyle]}>
+          {/* Image */}
+          <Image
+            source={{ uri: memory.image_url, cacheKey: memory.cacheKey }}
+            style={size}
+            contentFit="cover"
+            cachePolicy="disk"
+            onLoad={() => setStatus('loaded')}
+            onError={() => setStatus('error')}
+          />
+
+          {/* Skeleton while loading */}
+          {status === 'loading' && (
+            <Skeleton width={CELL_SIZE} height={CELL_SIZE} className="absolute top-0 left-0" />
+          )}
+
+          {/* Error state */}
+          {status === 'error' && (
+            <View
+              style={[size, { position: 'absolute', top: 0, left: 0 }]}
+              className="bg-neutral-200 dark:bg-neutral-700 items-center justify-center"
+            >
+              <Ionicons name="image-outline" size={28} color="#9ca3af" />
+            </View>
+          )}
+
+          {/* Caption indicator */}
+          {memory.caption && !selectionMode && (
+            <View className="absolute bottom-1.5 left-1.5 bg-black/50 rounded-full px-1.5 py-[3px] flex-row items-center gap-[3px]">
+              <Ionicons name="chatbubble-ellipses" size={9} color="#fff" />
+            </View>
+          )}
+
+          {/* Selection overlay — animated */}
+          <Animated.View
+            style={[size, { position: 'absolute', top: 0, left: 0 }, overlayStyle]}
+            className={selected ? 'bg-primary-500/35' : 'bg-black/20'}
+            pointerEvents="none"
+          >
+            <Animated.View className="absolute top-1.5 right-1.5" style={checkStyle}>
+              {selected ? (
+                <View className="w-6 h-6 rounded-full bg-primary-500 items-center justify-center border-2 border-white">
+                  <Ionicons name="checkmark" size={14} color="#fff" />
+                </View>
+              ) : (
+                <View className="w-6 h-6 rounded-full border-2 border-white/80 bg-black/20" />
+              )}
+            </Animated.View>
+          </Animated.View>
+        </Animated.View>
+      </Pressable>
+    </Animated.View>
+  )
+}
+
+export function MemoryGrid({
+  memories,
+  onPress,
+  onLongPress,
+  scrollY,
+  selectionMode = false,
+  selectedIds = new Set(),
+  onToggleSelect,
+}: MemoryGridProps) {
+  const scrollHandler = useAnimatedScrollHandler((e) => {
+    if (scrollY) scrollY.value = e.contentOffset.y
   })
 
   return (
     <AnimatedFlatList
       data={memories}
-      keyExtractor={(item) => (item as Memory).id}
+      keyExtractor={(item) => (item as MemoryWithUrl).id}
       numColumns={3}
       contentContainerClassName="px-5 pb-24"
-      columnWrapperClassName="gap-1 mb-1"
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          onPress={() => onPress(item as Memory)}
-          activeOpacity={0.85}
-          style={{ width: ITEM_SIZE, height: ITEM_SIZE }}
-        >
-          <Image
-            source={{ uri: (item as Memory).image_url }}
-            style={{ width: ITEM_SIZE, height: ITEM_SIZE, borderRadius: 8 }}
-            resizeMode="cover"
-          />
-        </TouchableOpacity>
+      columnWrapperStyle={{ gap: CELL_GAP, marginBottom: CELL_GAP }}
+      renderItem={({ item, index }) => (
+        <MemoryCell
+          memory={item as MemoryWithUrl}
+          index={index}
+          onPress={onPress}
+          onLongPress={onLongPress}
+          selectionMode={selectionMode}
+          selected={selectedIds.has((item as MemoryWithUrl).id)}
+          onToggleSelect={onToggleSelect}
+        />
       )}
       initialNumToRender={12}
       maxToRenderPerBatch={12}

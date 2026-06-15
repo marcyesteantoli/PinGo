@@ -1,9 +1,11 @@
 # TFM — App de Gestión de Viajes Colaborativa
 
 ## Proyecto
-MVP de app móvil colaborativa para gestión de viajes. Permite organizar itinerarios, centralizar documentación, gestionar gastos compartidos y construir un diario colectivo.
+App móvil colaborativa para gestión de viajes. Permite organizar itinerarios, centralizar documentación, gestionar gastos compartidos, construir un diario colectivo y guardar una lista de deseos personal.
 
 **Stack:** Expo + React Native · Supabase · TanStack Query · NativeWind
+
+**Estado:** Proyecto con intención de salir a producción. No existe modo demo ni datos mock — todo el código asume Supabase real (Auth, BD, Storage). No reintroducir flags `DEV_MODE`/`DEMO_*` ni datos hardcodeados de prueba.
 
 ---
 
@@ -40,6 +42,7 @@ Eres el agente principal de este proyecto. Tu rol es analizar cada tarea que lle
 - Todos los módulos viven dentro de un `trip_id`
 - La entidad central es `Experience` — casi todo se relaciona con ella
 - Offline-first para el módulo de Documentos
+- **Wishlist** (`app/(app)/(tabs)/wishlist.tsx`) es un módulo **user-scoped** (no trip-scoped): tabla `wishlist_items` con RLS por `user_id`. Tipos: `city | restaurant | activity | accommodation | other`. Feature en `src/features/wishlist/`.
 - **iOS-first** en todo el diseño — aplicar siempre los estándares iOS HIG de este documento
 
 ---

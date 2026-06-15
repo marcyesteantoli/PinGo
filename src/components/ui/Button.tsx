@@ -1,8 +1,10 @@
 import { ReactNode } from 'react'
-import { ActivityIndicator, Text, TouchableOpacity } from 'react-native'
+import { ActivityIndicator, Pressable, Text } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { colors } from '@lib/colors'
+import { EASE_OUT, DURATION } from '@lib/animations'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive'
+type ButtonVariant = 'primary' | 'ghost' | 'outline' | 'destructive'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 interface ButtonProps {
@@ -17,22 +19,22 @@ interface ButtonProps {
 
 const variantClasses: Record<ButtonVariant, { container: string; text: string; spinner: string }> = {
   primary: {
-    container: 'bg-primary-500 active:bg-primary-600',
-    text: 'text-white',
-    spinner: colors.white,
-  },
-  secondary: {
-    container: 'bg-secondary-500 active:bg-secondary-600',
+    container: 'bg-primary-500',
     text: 'text-white',
     spinner: colors.white,
   },
   ghost: {
-    container: 'border border-neutral-300 bg-transparent active:bg-neutral-100 dark:border-neutral-600 dark:active:bg-neutral-800',
+    container: 'border border-neutral-300 bg-transparent dark:border-neutral-600',
     text: 'text-neutral-700 dark:text-neutral-200',
     spinner: colors.neutral[600],
   },
+  outline: {
+    container: 'border-2 border-primary-500 bg-white dark:bg-surface-900',
+    text: 'text-primary-500',
+    spinner: colors.primary[500],
+  },
   destructive: {
-    container: 'bg-error active:opacity-90',
+    container: 'bg-error',
     text: 'text-white',
     spinner: colors.white,
   },
@@ -40,8 +42,8 @@ const variantClasses: Record<ButtonVariant, { container: string; text: string; s
 
 const sizeClasses: Record<ButtonSize, { container: string; text: string }> = {
   sm: { container: 'px-4 py-2 rounded-full', text: 'text-[15px] font-medium' },
-  md: { container: 'px-5 py-[11px] rounded-[10px]', text: 'text-[17px] font-semibold' },
-  lg: { container: 'px-6 py-[13px] rounded-[14px]', text: 'text-[17px] font-semibold' },
+  md: { container: 'px-5 py-2.5 rounded-xl', text: 'text-[17px] font-semibold' },
+  lg: { container: 'px-6 py-3.5 rounded-2xl', text: 'text-[17px] font-semibold' },
 }
 
 export function Button({
@@ -57,20 +59,38 @@ export function Button({
   const s = sizeClasses[size]
   const isDisabled = disabled || isLoading
 
+  const scale = useSharedValue(1)
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }))
+
+  const handlePressIn = () => {
+    scale.value = withTiming(0.97, { duration: DURATION.press, easing: EASE_OUT })
+  }
+
+  const handlePressOut = () => {
+    scale.value = withTiming(1, { duration: DURATION.press, easing: EASE_OUT })
+  }
+
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={isDisabled}
-      activeOpacity={0.7}
-      className={`flex-row items-center justify-center ${v.container} ${s.container} ${isDisabled ? 'opacity-50' : ''} ${className}`}
     >
-      {isLoading ? (
-        <ActivityIndicator size="small" color={v.spinner} />
-      ) : typeof children === 'string' ? (
-        <Text className={`${v.text} ${s.text}`}>{children}</Text>
-      ) : (
-        children
-      )}
-    </TouchableOpacity>
+      <Animated.View
+        style={animStyle}
+        className={`flex-row items-center justify-center ${v.container} ${s.container} ${isDisabled ? 'opacity-50' : ''} ${className}`}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color={v.spinner} />
+        ) : typeof children === 'string' ? (
+          <Text className={`${v.text} ${s.text}`}>{children}</Text>
+        ) : (
+          children
+        )}
+      </Animated.View>
+    </Pressable>
   )
 }

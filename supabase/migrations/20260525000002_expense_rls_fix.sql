@@ -1,0 +1,8 @@
+-- Las policies UPDATE/DELETE para expenses y expense_splits ya existían en la BD
+-- (probablemente añadidas vía Supabase dashboard). Este archivo documenta su estado.
+--
+-- expenses_update:       USING (payer_id = auth.uid())
+-- expenses_delete:       USING (payer_id = auth.uid())
+-- expense_splits_delete: USING (expense_id IN (SELECT e.id FROM expenses e JOIN trip_collaborators tc ...))
+--
+-- No se aplica SQL aquí para evitar conflicto de nombres.

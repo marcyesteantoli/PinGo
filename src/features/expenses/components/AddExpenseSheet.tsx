@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { Input } from '@components/ui/Input'
 import { Avatar } from '@components/ui/Avatar'
-import { useTripContext } from '@features/trips/TripProvider'
+import { ExperiencePicker } from '@features/documents/components/ExperiencePicker'
 import { ParticipantPicker } from './ParticipantPicker'
-import { createExpenseSchema, type CreateExpenseFormData } from '../types'
+import { buildCreateExpenseSchema, type CreateExpenseFormData } from '../types'
+import { getCurrencySymbol } from '@utils/currencies'
 import { colors } from '@lib/colors'
+import { useErrorToast } from '@lib/errorToast'
+import type { Collaborator, Experience } from '@app-types/index'
 
 interface AddExpenseSheetProps {
   visible: boolean
@@ -18,14 +23,22 @@ interface AddExpenseSheetProps {
   isLoading?: boolean
   error?: string | null
   currentUserId?: string
+  experiences?: Experience[]
+  initialData?: CreateExpenseFormData
+  collaborators: Collaborator[]
+  tripCurrency?: string
 }
 
-export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, currentUserId }: AddExpenseSheetProps) {
-  const { collaborators } = useTripContext()
+export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, currentUserId, experiences, initialData, collaborators, tripCurrency = 'EUR' }: AddExpenseSheetProps) {
+  const showError = useErrorToast()
   const [amountText, setAmountText] = useState('')
+  const isEditMode = !!initialData
+  const { t } = useTranslation()
 
-  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<CreateExpenseFormData>({
-    resolver: zodResolver(createExpenseSchema),
+  const schema = useMemo(() => buildCreateExpenseSchema(), [t])
+
+  const { control, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<CreateExpenseFormData>({
+    resolver: zodResolver(schema),
     defaultValues: {
       participant_ids: [],
       payer_id: currentUserId,
@@ -33,43 +46,50 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
   })
 
   useEffect(() => {
-    if (currentUserId && visible) {
-      setValue('payer_id', currentUserId)
+    if (!visible) return
+    if (initialData) {
+      reset(initialData)
+      setAmountText(String(initialData.amount).replace('.', ','))
+    } else {
+      reset({ participant_ids: collaborators.map((c) => c.user_id), payer_id: currentUserId, experience_id: undefined })
+      setAmountText('')
     }
-  }, [currentUserId, visible, setValue])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible])
 
-  const selectedPayerId = watch('payer_id')
+  useEffect(() => {
+    if (error) showError(error)
+  }, [error])
 
   const handleClose = () => {
-    reset({ participant_ids: [], payer_id: currentUserId })
+    reset({ participant_ids: collaborators.map((c) => c.user_id), payer_id: currentUserId, experience_id: undefined })
     setAmountText('')
     onClose()
   }
 
   const handleSubmitForm = async (data: CreateExpenseFormData) => {
     await onSubmit(data)
-    reset({ participant_ids: [], payer_id: currentUserId })
+    reset({ participant_ids: collaborators.map((c) => c.user_id), payer_id: currentUserId, experience_id: undefined })
     setAmountText('')
   }
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose} title="Nuevo gasto">
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+    <BottomSheet visible={visible} onClose={handleClose} title={isEditMode ? t('expenses_addSheet_edit') : t('expenses_addSheet_create')}>
+      <KeyboardAwareScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" bottomOffset={16}>
           <View className="gap-5 pb-4">
 
             {/* Amount - big and prominent */}
             <View className="items-center py-2">
-              <Text className="text-xs text-neutral-400 mb-3 uppercase tracking-wide">Importe</Text>
+              <Text className="text-[13px] text-neutral-400 mb-3 uppercase tracking-wide">{t('expenses_field_amount')}</Text>
               <Controller
                 control={control}
                 name="amount"
                 render={({ field: { onChange, value } }) => (
                   <View className="items-center gap-1">
                     <View className="flex-row items-baseline gap-1">
-                      <Text style={{ fontSize: 28, color: colors.neutral[400], fontWeight: '300' }}>€</Text>
+                      <Text style={{ fontSize: 28, color: colors.neutral[400], fontWeight: '300' }}>{getCurrencySymbol(tripCurrency)}</Text>
                       <TextInput
-                        placeholder="0,00"
+                        placeholder={t('expenses_field_amount_placeholder')}
                         placeholderTextColor={colors.neutral[300]}
                         value={amountText}
                         onChangeText={(text) => {
@@ -98,14 +118,36 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
               />
             </View>
 
+            {/* Experience picker — optional */}
+            {experiences && experiences.length > 0 && (
+              <Controller
+                control={control}
+                name="experience_id"
+                render={({ field: { onChange, value } }) => (
+                  <ExperiencePicker
+                    experiences={experiences}
+                    value={value}
+                    onChange={(id) => {
+                      const newId = id === value ? undefined : id
+                      onChange(newId)
+                      if (newId && !getValues('description')?.trim()) {
+                        const experience = experiences.find((e) => e.id === newId)
+                        if (experience) setValue('description', experience.title)
+                      }
+                    }}
+                  />
+                )}
+              />
+            )}
+
             {/* Description */}
             <Controller
               control={control}
               name="description"
               render={({ field: { onChange, value } }) => (
                 <Input
-                  label="Descripción"
-                  placeholder="ej. Cena en restaurante"
+                  label={t('expenses_field_description')}
+                  placeholder={t('expenses_field_description_placeholder')}
                   value={value}
                   onChangeText={onChange}
                   error={errors.description?.message}
@@ -114,34 +156,46 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
             />
 
             {/* Payer selector */}
-            <View className="gap-2">
-              <Text className="text-sm font-medium text-neutral-700">¿Quién pagó?</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-2">
-                {collaborators.map((c) => {
-                  const isSelected = selectedPayerId === c.user_id
-                  return (
-                    <TouchableOpacity
-                      key={c.user_id}
-                      onPress={() => setValue('payer_id', c.user_id)}
-                      activeOpacity={0.7}
-                      className={`items-center gap-1.5 px-3 py-2.5 rounded-2xl border min-w-16 ${
-                        isSelected ? 'border-secondary-400 bg-secondary-50' : 'border-neutral-200 bg-white'
-                      }`}
-                    >
-                      <View style={isSelected ? { borderWidth: 2, borderColor: colors.primary[400], borderRadius: 22, padding: 1 } : {}}>
-                        <Avatar uri={c.avatar_url} name={c.name} size="sm" />
-                      </View>
-                      <Text className={`text-xs font-medium text-center max-w-16 ${isSelected ? 'text-secondary-700' : 'text-neutral-600'}`} numberOfLines={1}>
-                        {c.user_id === currentUserId ? 'Tú' : c.name.split(' ')[0]}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                })}
-              </ScrollView>
-              {errors.payer_id && (
-                <Text className="text-xs text-error">{errors.payer_id.message}</Text>
+            <Controller
+              control={control}
+              name="payer_id"
+              render={({ field: { onChange, value } }) => (
+                <View className="gap-3">
+                  <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('expenses_field_payer')}</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-4 px-1" keyboardShouldPersistTaps="handled">
+                    {collaborators.map((c) => {
+                      const isSelected = value === c.user_id
+                      return (
+                        <TouchableOpacity
+                          key={c.user_id}
+                          onPress={() => onChange(c.user_id)}
+                          activeOpacity={0.7}
+                          className="items-center gap-1.5"
+                        >
+                          <View style={{
+                            borderWidth: 2.5,
+                            borderColor: isSelected ? colors.primary[500] : 'transparent',
+                            borderRadius: 26,
+                            padding: 2,
+                          }}>
+                            <Avatar uri={c.avatar_url} name={c.name} size="sm" />
+                          </View>
+                          <Text
+                            className={`text-xs text-center max-w-[64px] ${isSelected ? 'text-primary-600 font-semibold' : 'text-neutral-500 font-medium'}`}
+                            numberOfLines={1}
+                          >
+                            {c.user_id === currentUserId ? t('common_youLabel') : c.name.split(' ')[0]}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </ScrollView>
+                  {errors.payer_id && (
+                    <Text className="text-xs text-error">{errors.payer_id.message}</Text>
+                  )}
+                </View>
               )}
-            </View>
+            />
 
             {/* Participants */}
             <Controller
@@ -157,23 +211,17 @@ export function AddExpenseSheet({ visible, onClose, onSubmit, isLoading, error, 
               )}
             />
 
-            {error && (
-              <View className="bg-red-50 rounded-xl px-4 py-3">
-                <Text className="text-sm text-error text-center">{error}</Text>
-              </View>
-            )}
 
             <Button
               onPress={handleSubmit(handleSubmitForm)}
               isLoading={isLoading}
-              variant="secondary"
+              variant="primary"
               size="lg"
             >
-              Añadir gasto
+              {isEditMode ? t('expenses_addSheet_submitEdit') : t('expenses_addSheet_submitCreate')}
             </Button>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </BottomSheet>
   )
 }
