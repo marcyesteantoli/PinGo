@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { ImageBackground, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Animated, {
   Easing,
+  FadeInDown,
+  FadeOut,
+  LinearTransition,
   runOnJS,
   useAnimatedProps,
   useAnimatedReaction,
@@ -17,7 +20,7 @@ import * as Haptics from 'expo-haptics'
 import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { RadarChart } from '@components/ui/RadarChart'
-import { useStaggerEnter } from '@lib/useStaggerEnter'
+import { EditSavedExperienceSheet } from '@features/saved/components/EditSavedExperienceSheet'
 import { useTheme } from '@lib/theme'
 import { EASE_OUT, DURATION } from '@lib/animations'
 import { cardShadow } from '@lib/shadows'
@@ -29,6 +32,7 @@ import type { SavedExperienceItem, Experience } from '@app-types/index'
 
 const IMAGE_HEIGHT = 150
 const ACTION_WIDTH = 72
+const ACTIONS_WIDTH = ACTION_WIDTH * 2
 
 const TYPE_ICON: Record<Experience['type'], React.ComponentProps<typeof Ionicons>['name']> = {
   transport:     'airplane-outline',
@@ -78,6 +82,22 @@ function getLocationText(location: unknown): string | null {
     typeof (location as { name: unknown }).name === 'string'
   ) {
     return (location as { name: string }).name
+  }
+  return null
+}
+
+type PickedLocation = { name: string; lat: number; lng: number; city?: string }
+
+function getPickedLocation(location: unknown): PickedLocation | null {
+  if (
+    typeof location === 'object' &&
+    location !== null &&
+    'name' in location && typeof (location as { name: unknown }).name === 'string' &&
+    'lat' in location && typeof (location as { lat: unknown }).lat === 'number' &&
+    'lng' in location && typeof (location as { lng: unknown }).lng === 'number'
+  ) {
+    const loc = location as { name: string; lat: number; lng: number; city?: string }
+    return { name: loc.name, lat: loc.lat, lng: loc.lng, ...(loc.city ? { city: loc.city } : {}) }
   }
   return null
 }
@@ -357,7 +377,7 @@ export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCar
   const [containerWidth, setContainerWidth] = useState(0)
   const translateX = useSharedValue(0)
   const savedX = useSharedValue(0)
-  const rowWidth = containerWidth > 0 ? containerWidth + ACTION_WIDTH : undefined
+  const rowWidth = containerWidth > 0 ? containerWidth + ACTIONS_WIDTH : undefined
   const cardWidth = containerWidth > 0 ? containerWidth : undefined
 
   // Photo error fallback
@@ -365,21 +385,15 @@ export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCar
   const showPhoto = !!coverPhotoUrl && !photoError
 
   // Animations
-  const staggerStyle = useStaggerEnter(index, { delay: 50 })
   const pressScale = useSharedValue(1)
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }))
-  const cardOpacity = useSharedValue(1)
-  const exitStyle = useAnimatedStyle(() => ({ opacity: cardOpacity.value }))
   const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }))
 
-  // Unsave / delete
+  // Unsave / delete — FadeOut + LinearTransition on the outer view handle the exit + reflow
   const toggle = useToggleSaveExperience(experience.id)
   function handleUnsave() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    cardOpacity.value = withTiming(0, { duration: 200, easing: EASE_OUT })
-    setTimeout(() => {
-      toggle.mutate(true)
-    }, 220)
+    toggle.mutate(true)
   }
 
   // Long-press preview
@@ -391,7 +405,11 @@ export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCar
     }
   }
 
-  // Swipe-to-delete gesture
+  // Edit sheet
+  const [editVisible, setEditVisible] = useState(false)
+  const pickedLocation = getPickedLocation(experience.location)
+
+  // Swipe-to-reveal actions gesture
   const pan = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .failOffsetY([-5, 5])
@@ -399,11 +417,11 @@ export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCar
       savedX.value = translateX.value
     })
     .onUpdate((e) => {
-      translateX.value = Math.min(0, Math.max(-ACTION_WIDTH, savedX.value + e.translationX))
+      translateX.value = Math.min(0, Math.max(-ACTIONS_WIDTH, savedX.value + e.translationX))
     })
     .onEnd(() => {
-      translateX.value = translateX.value < -ACTION_WIDTH / 2
-        ? withTiming(-ACTION_WIDTH, { duration: 240, easing: Easing.out(Easing.cubic) })
+      translateX.value = translateX.value < -ACTIONS_WIDTH / 2
+        ? withTiming(-ACTIONS_WIDTH, { duration: 240, easing: Easing.out(Easing.cubic) })
         : withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) })
     })
 
@@ -425,7 +443,10 @@ export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCar
   return (
     <>
       <Animated.View
-        style={[staggerStyle, exitStyle, cardShadow, { borderRadius: 20 }]}
+        style={[cardShadow, { borderRadius: 20 }]}
+        entering={FadeInDown.duration(280).delay(Math.min(index, 8) * 60).easing(Easing.out(Easing.cubic))}
+        exiting={FadeOut.duration(160)}
+        layout={LinearTransition.duration(280).easing(Easing.out(Easing.cubic))}
         onLayout={(e) => {
           const w = e.nativeEvent.layout.width
           if (w > 0 && w !== containerWidth) setContainerWidth(w)
@@ -522,6 +543,24 @@ export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCar
               </Pressable>
             </GestureDetector>
 
+            {/* ── Edit action panel ── */}
+            <TouchableOpacity
+              onPress={() => { closeSwipe(); setEditVisible(true) }}
+              style={{
+                width: ACTION_WIDTH,
+                backgroundColor: colors.primary[500],
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 5,
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="create-outline" size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
+                {t('common_edit')}
+              </Text>
+            </TouchableOpacity>
+
             {/* ── Delete action panel ── */}
             <TouchableOpacity
               onPress={() => { closeSwipe(); handleUnsave() }}
@@ -552,6 +591,16 @@ export function SavedExperienceCard({ item, onPress, index }: SavedExperienceCar
           title={experience.title}
         />
       )}
+
+      {/* Swipe-to-edit sheet */}
+      <EditSavedExperienceSheet
+        visible={editVisible}
+        onClose={() => setEditVisible(false)}
+        experienceId={experience.id}
+        initialTitle={experience.title}
+        initialType={type}
+        initialLocation={pickedLocation}
+      />
     </>
   )
 }

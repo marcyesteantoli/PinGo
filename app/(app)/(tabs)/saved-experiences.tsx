@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
-import Animated from 'react-native-reanimated'
+import Animated, { Easing, FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { AppHeader, useAppHeader } from '@components/ui/AppHeader'
@@ -151,7 +151,10 @@ export default function SavedExperiencesScreen() {
             ListHeaderComponent={listHeader}
             ListEmptyComponent={
               saved.length === 0 ? (
-                <View className="flex-1 items-center justify-center px-8 pt-16">
+                <Animated.View
+                  entering={FadeInDown.duration(280).easing(Easing.out(Easing.cubic))}
+                  className="flex-1 items-center justify-center px-8 pt-16"
+                >
                   <Ionicons
                     name="bookmark-outline"
                     size={52}
@@ -164,9 +167,13 @@ export default function SavedExperiencesScreen() {
                   <Text className="text-[15px] text-neutral-500 dark:text-neutral-400 text-center leading-[22px]">
                     {t('saved_empty_subtitle')}
                   </Text>
-                </View>
+                </Animated.View>
               ) : query.trim() ? (
-                <View className="items-center justify-center px-8 pt-10">
+                <Animated.View
+                  key="no-query"
+                  entering={FadeInDown.duration(220).easing(Easing.out(Easing.cubic))}
+                  className="items-center justify-center px-8 pt-10"
+                >
                   <Ionicons
                     name="search-outline"
                     size={36}
@@ -176,9 +183,13 @@ export default function SavedExperiencesScreen() {
                   <Text className="text-[16px] font-semibold text-neutral-600 dark:text-neutral-300 text-center">
                     {t('saved_filtered_noQuery', { query: query.trim() })}
                   </Text>
-                </View>
+                </Animated.View>
               ) : (
-                <View className="items-center justify-center px-8 pt-10">
+                <Animated.View
+                  key="no-type"
+                  entering={FadeInDown.duration(220).easing(Easing.out(Easing.cubic))}
+                  className="items-center justify-center px-8 pt-10"
+                >
                   <Ionicons
                     name="filter-outline"
                     size={36}
@@ -188,7 +199,7 @@ export default function SavedExperiencesScreen() {
                   <Text className="text-[16px] font-semibold text-neutral-600 dark:text-neutral-300 text-center">
                     {t('saved_filtered_noType', { type: activeType })}
                   </Text>
-                </View>
+                </Animated.View>
               )
             }
             contentContainerClassName="px-5 pb-10 gap-3"
