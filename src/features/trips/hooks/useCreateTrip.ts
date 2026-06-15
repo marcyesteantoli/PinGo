@@ -4,6 +4,13 @@ import { queryKeys } from '@lib/queryKeys'
 import type { CreateTripFormData } from '../types'
 import type { Trip } from '@app-types/index'
 
+export class ActiveTripLimitReachedError extends Error {
+  constructor() {
+    super('active_trip_limit_reached')
+    this.name = 'ActiveTripLimitReachedError'
+  }
+}
+
 export function useCreateTrip() {
   const queryClient = useQueryClient()
 
@@ -18,7 +25,12 @@ export function useCreateTrip() {
         })
         .single()
 
-      if (tripError) throw new Error(tripError.message)
+      if (tripError) {
+        if (tripError.message.includes('active_trip_limit_reached')) {
+          throw new ActiveTripLimitReachedError()
+        }
+        throw new Error(tripError.message)
+      }
 
       return trip as Trip
     },

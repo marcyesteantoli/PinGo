@@ -32,6 +32,9 @@ import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
 import { EASE_OUT, DURATION } from '@lib/animations'
 import type { TripWithCollaborators } from '@features/trips/hooks/useTrips'
+import { useIsPro } from '@features/premium/hooks/useIsPro'
+import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
+import { LIMITS } from '@/config/limits'
 
 //TODO: monitorizacion de la app reel insta 
 
@@ -84,6 +87,8 @@ export default function TripsScreen() {
   const [joinSheetVisible, setJoinSheetVisible] = useState(false)
   const [segment, setSegment] = useState<Segment>('upcoming')
   const [fabOpen, setFabOpen] = useState(false)
+  const [tripsPaywallVisible, setTripsPaywallVisible] = useState(false)
+  const { isPro, isLoading: isProLoading } = useIsPro()
   const { scrollY, scrollHandler } = useAppHeader()
   const { t } = useTranslation()
 
@@ -161,6 +166,14 @@ export default function TripsScreen() {
   const pastTrips    = trips?.filter(t => t.end_date <  today) ?? []
   const displayedTrips = segment === 'upcoming' ? upcomingTrips : pastTrips
 
+  const handleCreateTripPress = () => {
+    if (!isPro && !isProLoading && upcomingTrips.length >= LIMITS.FREE_MAX_ACTIVE_TRIPS) {
+      setTripsPaywallVisible(true)
+      return
+    }
+    router.push('/(app)/trips/new')
+  }
+
   const headerSubtitle = !trips?.length
     ? t('trips_header_empty')
     : segment === 'upcoming'
@@ -224,7 +237,7 @@ export default function TripsScreen() {
                   title={t('trips_empty_upcoming_title')}
                   subtitle={t('trips_empty_upcoming_subtitle')}
                   actionLabel={t('trips_empty_upcoming_action')}
-                  onAction={() => router.push('/(app)/trips/new')}
+                  onAction={handleCreateTripPress}
                 />
               ) : (
                 <EmptyState
@@ -272,7 +285,7 @@ export default function TripsScreen() {
 
         {/* Opción Crear viaje */}
         <Animated.View style={option1Style} pointerEvents={fabOpen ? 'auto' : 'none'}>
-          <FabOption onPress={() => { toggleFab(); router.push('/(app)/trips/new') }}>
+          <FabOption onPress={() => { toggleFab(); handleCreateTripPress() }}>
             <View className="px-4 py-2 bg-white dark:bg-surface-700 rounded-full" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 }}>
               <Text className="text-[15px] font-semibold text-neutral-900 dark:text-neutral-50">{t('trips_fab_create')}</Text>
             </View>
@@ -329,6 +342,12 @@ export default function TripsScreen() {
           </View>
         </View>
       </BottomSheet>
+
+      <ProPaywallSheet
+        visible={tripsPaywallVisible}
+        onClose={() => setTripsPaywallVisible(false)}
+        feature="trips"
+      />
     </SafeAreaView>
   )
 }

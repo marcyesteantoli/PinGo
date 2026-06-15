@@ -24,6 +24,8 @@ import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { LIMITS } from '@/config/limits'
 import { useErrorToast } from '@lib/errorToast'
 import { colors } from '@lib/colors'
+import { useTripProStatus } from '@features/premium/hooks/useTripProStatus'
+import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 import type { Memory } from '@app-types/index'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -45,6 +47,10 @@ export default function MemoriesScreen() {
 
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [paywallVisible, setPaywallVisible] = useState(false)
+
+  const { data: isTripPro } = useTripProStatus(tripId)
+  const photoCap = isTripPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
 
   const count = memories?.length ?? 0
   const scrollY = useSharedValue(0)
@@ -143,8 +149,11 @@ export default function MemoriesScreen() {
   // ─── Add photo flow ──────────────────────────────────────────────────────────
 
   const handlePickImage = async () => {
-    const remaining = LIMITS.MAX_PHOTOS_PER_TRIP - count
-    if (remaining <= 0) return
+    const remaining = photoCap - count
+    if (remaining <= 0) {
+      setPaywallVisible(true)
+      return
+    }
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
@@ -173,7 +182,10 @@ export default function MemoriesScreen() {
       addMemories.mutate(
         { tripId, assets: result.assets },
         {
-          onError: () => Alert.alert(t('common_error'), t('memories_upload_error')),
+          onError: (err: any) => {
+            if (err?.code === 'LIMIT_REACHED') setPaywallVisible(true)
+            else Alert.alert(t('common_error'), t('memories_upload_error'))
+          },
         }
       )
     }
@@ -184,8 +196,12 @@ export default function MemoriesScreen() {
       await addMemory.mutateAsync({ tripId, caption, asset: pendingAsset ?? undefined })
       setCaptionSheetVisible(false)
       setPendingAsset(null)
-    } catch {
-      // error shown in sheet via errorMessage
+    } catch (err: any) {
+      if (err?.code === 'LIMIT_REACHED') {
+        handleCloseSheet()
+        setPaywallVisible(true)
+      }
+      // otros errores se muestran en el sheet via errorMessage
     }
   }
 
@@ -202,7 +218,7 @@ export default function MemoriesScreen() {
     return err.message ?? t('common_error')
   })()
 
-  const fillPct = Math.min(count / LIMITS.MAX_PHOTOS_PER_TRIP, 1) * 100
+  const fillPct = Math.min(count / photoCap, 1) * 100
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
@@ -212,7 +228,7 @@ export default function MemoriesScreen() {
         {/* Counter bar */}
         <View className="flex-row items-center px-5 py-2">
           <Text className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-            {count} / {LIMITS.MAX_PHOTOS_PER_TRIP}
+            {count} / {photoCap}
           </Text>
           <View className="flex-1 mx-3 h-[3px] rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
             <View
@@ -264,15 +280,13 @@ export default function MemoriesScreen() {
                 </Text>
               </View>
             ) : (
-              count < LIMITS.MAX_PHOTOS_PER_TRIP && (
-                <TouchableOpacity
-                  onPress={handlePickImage}
-                  className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
-                  style={fabShadow}
-                >
-                  <Ionicons name="add" size={28} color="#ffffff" />
-                </TouchableOpacity>
-              )
+              <TouchableOpacity
+                onPress={handlePickImage}
+                className="w-14 h-14 rounded-full bg-primary-500 items-center justify-center"
+                style={fabShadow}
+              >
+                <Ionicons name="add" size={28} color="#ffffff" />
+              </TouchableOpacity>
             )
           )}
         </Animated.View>
@@ -313,6 +327,12 @@ export default function MemoriesScreen() {
           }}
           getUploaderName={(userId) => getUploader(userId)?.name ?? t('common_someone')}
           getUploaderAvatar={(userId) => getUploader(userId)?.avatar_url}
+        />
+
+        <ProPaywallSheet
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          feature="photos"
         />
       </View>
     </View>

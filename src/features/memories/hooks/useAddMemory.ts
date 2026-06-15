@@ -6,6 +6,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { compressImage } from '@utils/image'
 import { LIMITS } from '@/config/limits'
+import { fetchTripProStatus } from '@features/premium/hooks/useTripProStatus'
 import type { MemoryWithUrl } from './useMemories'
 
 export type AddMemoryParams = {
@@ -19,7 +20,7 @@ export type AddMemoriesParams = {
   assets: ImagePicker.ImagePickerAsset[]
 }
 
-type AddMemoryError =
+export type AddMemoryError =
   | { code: 'LIMIT_REACHED'; message: string }
   | { code: 'UPLOAD_FAILED'; message: string }
   | { code: 'DB_FAILED'; message: string }
@@ -91,6 +92,23 @@ export function useAddMemories() {
       if (!user)
         throw { code: 'DB_FAILED', message: 'No hay sesión activa.' } satisfies AddMemoryError
 
+      const { count, error: countError } = await supabase
+        .from('memories')
+        .select('*', { count: 'exact', head: true })
+        .eq('trip_id', tripId)
+
+      if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' } satisfies AddMemoryError
+
+      const isTripPro = await fetchTripProStatus(tripId)
+      const cap = isTripPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
+
+      if ((count ?? 0) + assets.length > cap) {
+        throw {
+          code: 'LIMIT_REACHED',
+          message: `Este viaje ha alcanzado el límite de ${cap} fotos.`,
+        } satisfies AddMemoryError
+      }
+
       setProgress({ done: 0, total: assets.length })
       let uploaded = 0
 
@@ -126,12 +144,15 @@ export function useAddMemory() {
         .select('*', { count: 'exact', head: true })
         .eq('trip_id', tripId)
 
-      if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' }
+      if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' } satisfies AddMemoryError
 
-      if ((count ?? 0) >= LIMITS.MAX_PHOTOS_PER_TRIP) {
+      const isTripPro = await fetchTripProStatus(tripId)
+      const cap = isTripPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
+
+      if ((count ?? 0) >= cap) {
         throw {
           code: 'LIMIT_REACHED',
-          message: `Este viaje ha alcanzado el límite de ${LIMITS.MAX_PHOTOS_PER_TRIP} fotos.`,
+          message: `Este viaje ha alcanzado el límite de ${cap} fotos.`,
         } satisfies AddMemoryError
       }
 

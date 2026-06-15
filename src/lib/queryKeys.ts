@@ -49,4 +49,7 @@ export const queryKeys = {
   destinations: {
     byTrip: (tripId: string) => ['destinations', tripId] as const,
   },
+  premium: {
+    tripStatus: (tripId: string) => ['premium', 'tripStatus', tripId] as const,
+  },
 }

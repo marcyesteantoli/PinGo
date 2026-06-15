@@ -7,6 +7,8 @@ export type Profile = {
   name: string
   avatar_url: string | null
   updated_at: string
+  is_pro: boolean
+  pro_expires_at: string | null
 }
 
 export function useProfile(userId?: string) {

@@ -31,40 +31,19 @@ import { ManageDestinationsSheet } from '@features/destinations/components/Manag
 import { queryKeys } from '@lib/queryKeys'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
+import { useErrorToast } from '@lib/errorToast'
+import { groupByDate, UNDATED_SENTINEL, type Section } from '@features/timeline/utils/groupByDate'
+import { buildItineraryHtml } from '@features/timeline/utils/itineraryHtml'
+import { useExportItineraryPdf } from '@features/timeline/hooks/useExportItineraryPdf'
+import { useIsPro } from '@features/premium/hooks/useIsPro'
+import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 import type { Experience, TripDestination } from '@app-types/index'
 import type { CreateExperienceFormData } from '@features/timeline/types'
-
-const UNDATED_SENTINEL = '__undated__'
-
-type Section = { title: string; data: Experience[] }
 
 type TimelineEntry =
   | { type: 'header'; title: string; count: number; isFirst: boolean; followsBanner: boolean; isToday: boolean }
   | { type: 'item'; experience: Experience; isUndated: boolean; sectionIndex: number }
   | { type: 'city_banner'; destination: TripDestination; lineAbove?: boolean }
-
-function groupByDate(experiences: Experience[]): Section[] {
-  const groups: Record<string, Experience[]> = {}
-  for (const exp of experiences) {
-    const key = exp.date ?? UNDATED_SENTINEL
-    if (!groups[key]) groups[key] = []
-    groups[key].push(exp)
-  }
-  const sortByTime = (exps: Experience[]) =>
-    exps.sort((a, b) => {
-      if (!a.start_time && !b.start_time) return 0
-      if (!a.start_time) return 1
-      if (!b.start_time) return -1
-      return a.start_time.localeCompare(b.start_time)
-    })
-
-  const dated = Object.entries(groups)
-    .filter(([k]) => k !== UNDATED_SENTINEL)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([title, data]) => ({ title, data: sortByTime(data) }))
-  const undated = groups[UNDATED_SENTINEL] ?? []
-  return undated.length > 0 ? [...dated, { title: UNDATED_SENTINEL, data: undated }] : dated
-}
 
 function getDestinationForDate(date: string, destinations: TripDestination[]): TripDestination | null {
   return destinations.find(d => d.start_date <= date && date <= d.end_date) ?? null
@@ -179,11 +158,15 @@ export default function TimelineScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { tripId, trip, isOwner } = useTripContext()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const showError = useErrorToast()
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y })
 
   const { fabAnimStyle } = useFabScroll(scrollY)
+  const { isPro } = useIsPro()
+  const [pdfPaywallVisible, setPdfPaywallVisible] = useState(false)
+  const exportPdf = useExportItineraryPdf()
 
   const queryClient = useQueryClient()
   const { data: experiences, isLoading, error, refetch } = useExperiences(tripId)
@@ -311,6 +294,20 @@ export default function TimelineScreen() {
     }
   }
 
+  const handleExportPdf = () => {
+    if (!isPro) {
+      setPdfPaywallVisible(true)
+      return
+    }
+    if (!trip) return
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    const html = buildItineraryHtml(trip, groupByDate(experiences ?? []), i18n.language, t('timeline_undated'))
+    exportPdf.mutate(html, {
+      onError: () => showError(t('timeline_export_error')),
+    })
+  }
+
   const experienceToFormData = (exp: Experience): CreateExperienceFormData => ({
     title: exp.title,
     type: exp.type,
@@ -406,7 +403,14 @@ export default function TimelineScreen() {
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-surface-900">
-      <TripHeader scrollY={scrollY} />
+      <TripHeader
+        scrollY={scrollY}
+        rightAction={{
+          icon: 'share-outline',
+          onPress: handleExportPdf,
+          accessibilityLabel: t('timeline_export_pdf'),
+        }}
+      />
       <View style={{ flex: 1 }}>
       {showSkeleton ? (
         <View className="px-5 pt-4 gap-3">
@@ -511,6 +515,12 @@ export default function TimelineScreen() {
           tripEndDate={trip.end_date}
         />
       )}
+
+      <ProPaywallSheet
+        visible={pdfPaywallVisible}
+        onClose={() => setPdfPaywallVisible(false)}
+        feature="pdf"
+      />
       </View>
     </View>
   )

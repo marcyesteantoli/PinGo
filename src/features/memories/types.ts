@@ -14,4 +14,4 @@ export type AddMemoryErrorCode =
   | 'UPLOAD_FAILED'
   | 'DB_FAILED'
 
-export const PHOTO_LIMIT = LIMITS.MAX_PHOTOS_PER_TRIP
+export const PHOTO_LIMIT = LIMITS.FREE_MAX_PHOTOS_PER_TRIP
