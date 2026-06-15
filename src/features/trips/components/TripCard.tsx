@@ -24,7 +24,6 @@ interface TripCardProps {
   onPress: () => void
 }
 
-// TODO: Design a first-run flow onboarding
 
 type TripStatus = 'upcoming' | 'active' | 'past'
 

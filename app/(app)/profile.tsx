@@ -19,6 +19,7 @@ import { Avatar } from '@components/ui/Avatar'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
 import { useProfile } from '@features/auth/hooks/useProfile'
 import { useSignOut } from '@features/auth/hooks/useSignOut'
+import { DeleteAccountSheet } from '@features/auth/components/DeleteAccountSheet'
 import { useUpdateProfile } from '@features/auth/hooks/useUpdateProfile'
 import { useTrips } from '@features/trips/hooks/useTrips'
 import { useSavedExperiences } from '@features/saved/hooks/useSavedExperiences'
@@ -40,6 +41,7 @@ export default function ProfileScreen() {
   const signOut = useSignOut()
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState('')
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false)
 
   const displayName = profile?.name ?? user?.user_metadata?.name ?? '—'
   const email = user?.email ?? '—'
@@ -373,8 +375,8 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Sección: Sesión */}
-        <Text className={sectionLabel}>{t('profile_section_session')}</Text>
+        {/* Sección: Gestión de cuenta */}
+        <Text className={sectionLabel}>{t('profile_section_accountActions')}</Text>
         <View className={sectionCard} style={cardShadow}>
           <TouchableOpacity
             onPress={handleSignOut}
@@ -391,8 +393,32 @@ export default function ProfileScreen() {
               {t('profile_signout')}
             </Text>
           </TouchableOpacity>
+
+          <View className={divider} />
+
+          <TouchableOpacity
+            onPress={() => setDeleteSheetVisible(true)}
+            className={rowBase}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="person-remove-outline"
+              size={20}
+              color={iconColor}
+              style={{ marginRight: 12 }}
+            />
+            <View className="flex-1">
+              <Text className={labelBase}>{t('profile_deleteAccount')}</Text>
+              <Text className="text-[13px] text-neutral-400 dark:text-neutral-500 mt-0.5">
+                {t('profile_deleteAccount_subtitle')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={iconColor} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <DeleteAccountSheet visible={deleteSheetVisible} onClose={() => setDeleteSheetVisible(false)} />
     </SafeAreaView>
   )
 }

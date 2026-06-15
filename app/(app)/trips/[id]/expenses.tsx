@@ -520,7 +520,7 @@ export default function ExpensesScreen() {
             ? {
                 description: editingExpense.description,
                 amount: editingExpense.amount,
-                payer_id: editingExpense.payer_id,
+                payer_id: editingExpense.payer_id ?? undefined,
                 experience_id: editingExpense.experience_id ?? undefined,
                 participant_ids: editingExpense.splits.map((s) => s.user_id),
               }

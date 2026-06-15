@@ -306,7 +306,7 @@ export default function ExpenseDetailScreen() {
         initialData={{
           description: expense.description,
           amount: expense.amount,
-          payer_id: expense.payer_id,
+          payer_id: expense.payer_id ?? undefined,
           experience_id: expense.experience_id ?? undefined,
           participant_ids: expense.splits.map((s) => s.user_id),
         }}

@@ -50,7 +50,7 @@ export default function MemoriesScreen() {
   const scrollY = useSharedValue(0)
   const { fabAnimStyle } = useFabScroll(scrollY)
 
-  const getUploader = (userId: string) => collaborators.find((c) => c.user_id === userId)
+  const getUploader = (userId: string | null) => collaborators.find((c) => c.user_id === userId)
 
   // ─── Selection helpers ──────────────────────────────────────────────────────
 

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { i18n } from '@/i18n'
 import type { Expense, Experience, ExpenseSplit, Profile, ExpenseWithSplits } from '@app-types/index'
 
 type ExpenseRow = Expense & {
@@ -24,7 +25,7 @@ export function useExpenses(tripId: string) {
       return (data ?? [] as ExpenseRow[]).map((e) => ({
         ...e,
         splits: e.expense_splits ?? [],
-        payer: e.payer ?? { name: 'Desconocido', avatar_url: null },
+        payer: e.payer ?? { name: i18n.t('common_deletedUser'), avatar_url: null },
         experience: e.experience ?? null,
       })) as ExpenseWithSplits[]
     },

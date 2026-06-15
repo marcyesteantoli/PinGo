@@ -12,17 +12,20 @@ export interface Database {
           name: string
           avatar_url: string | null
           updated_at: string
+          deleted_at: string | null
         }
         Insert: {
           id: string
           name: string
           avatar_url?: string | null
           updated_at?: string
+          deleted_at?: string | null
         }
         Update: {
           name?: string
           avatar_url?: string | null
           updated_at?: string
+          deleted_at?: string | null
         }
       }
       trips: {
@@ -32,7 +35,7 @@ export interface Database {
           start_date: string
           end_date: string
           currency: string
-          created_by: string
+          created_by: string | null
           join_code: string
           created_at: string
         }
@@ -86,7 +89,7 @@ export interface Database {
           end_time: string | null
           date: string | null
           destination_id: string | null
-          created_by: string
+          created_by: string | null
           updated_at: string
         }
         Insert: {
@@ -125,7 +128,7 @@ export interface Database {
           file_type: string | null
           document_type: 'file' | 'link' | 'pass'
           url: string | null
-          uploaded_by: string
+          uploaded_by: string | null
           created_at: string
         }
         Insert: {
@@ -152,7 +155,7 @@ export interface Database {
           amount: number
           currency: string
           description: string
-          payer_id: string
+          payer_id: string | null
           created_at: string
         }
         Insert: {
@@ -206,7 +209,7 @@ export interface Database {
         Row: {
           id: string
           trip_id: string
-          user_id: string
+          user_id: string | null
           image_url: string
           caption: string | null
           created_at: string

@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { useTrips } from '@features/trips/hooks/useTrips'
 import { useExperiences } from '@features/timeline/hooks/useExperiences'
 import { useDocuments, type DocumentWithExperience } from '@features/documents/hooks/useDocuments'
 import { useExpenses } from '@features/expenses/hooks/useExpenses'
@@ -75,6 +76,8 @@ function DetailRow({ icon, label, value, isDark, isFirst }: DetailRowProps) {
 export default function ExperienceDetailScreen() {
   const router = useRouter()
   const { experienceId, tripId } = useLocalSearchParams<{ experienceId: string; tripId: string }>()
+  const { data: trips } = useTrips()
+  const tripCurrency = trips?.find(t => t.id === tripId)?.currency ?? 'EUR'
   const { isDark } = useTheme()
   const { t } = useTranslation()
   const [viewerDoc, setViewerDoc] = useState<DocumentWithExperience | null>(null)
@@ -393,7 +396,7 @@ export default function ExperienceDetailScreen() {
                   {t('experience_section_expenses', { count: linkedExpenses.length })}
                 </Text>
                 <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-200 mr-1.5">
-                  {formatCurrency(linkedExpensesTotal)}
+                  {formatCurrency(linkedExpensesTotal, tripCurrency)}
                 </Text>
                 <Animated.View style={expensesChevronStyle}>
                   <Ionicons

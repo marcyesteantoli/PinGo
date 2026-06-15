@@ -223,8 +223,8 @@ export interface MemoryDetailProps {
   onClose: () => void
   canDelete: (memory: MemoryWithUrl) => boolean
   onDelete: (id: string) => void
-  getUploaderName: (userId: string) => string
-  getUploaderAvatar: (userId: string) => string | null | undefined
+  getUploaderName: (userId: string | null) => string
+  getUploaderAvatar: (userId: string | null) => string | null | undefined
 }
 
 export function MemoryDetail({
