@@ -54,6 +54,10 @@ export const es = {
   auth_validation_password_strong: 'Mínimo 8 caracteres, con mayúscula, minúscula y número',
   auth_validation_name: 'El nombre es obligatorio',
   auth_register_passwordHint: 'Mínimo 8 caracteres, con mayúscula, minúscula y número',
+  auth_register_consent_prefix: 'Acepto los',
+  auth_register_consent_terms: 'Términos y Condiciones',
+  auth_register_consent_and: 'y la',
+  auth_register_consent_privacy: 'Política de Privacidad',
 
   // ─── PROFILE ───────────────────────────────────────────────────────────────
   profile_title: 'Perfil',

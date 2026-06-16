@@ -1,0 +1,149 @@
+POLÍTICA DE PRIVACIDAD — PINGO
+Última actualización: 16 de junio de 2025
+
+
+En PinGo nos tomamos muy en serio la privacidad de nuestros usuarios. Esta Política de Privacidad explica qué datos personales recogemos, cómo los utilizamos, con quién los compartimos y qué derechos tienes sobre ellos.
+
+Al crear una cuenta en PinGo aceptas el tratamiento de tus datos conforme a esta política.
+
+
+──────────────────────────────────────────────────
+1. RESPONSABLE DEL TRATAMIENTO
+──────────────────────────────────────────────────
+
+Nombre: Marc Yeste Antoli
+Email de contacto: pingotravelapp@gmail.com
+País: España
+
+
+──────────────────────────────────────────────────
+2. DATOS QUE RECOGEMOS
+──────────────────────────────────────────────────
+
+Recogemos únicamente los datos necesarios para prestar el servicio:
+
+DATO                          | MOTIVO                                                        | OBLIGATORIO
+------------------------------|---------------------------------------------------------------|------------------------------
+Nombre completo               | Identificarte ante otros colaboradores de viaje               | Sí
+Dirección de email            | Autenticación y comunicaciones del servicio                   | Sí
+Contraseña                    | Autenticación (almacenada cifrada, nunca en texto plano)      | Sí (si no usas login social)
+Foto de perfil                | Identificación visual en viajes compartidos                   | No
+Fotos de viajes y recuerdos   | Construir el diario colectivo del viaje                       | No
+Documentos subidos            | Centralizar documentación del viaje (PDFs, imágenes)          | No
+Datos de gastos               | Calcular y liquidar gastos compartidos entre viajeros         | No
+Ubicaciones de experiencias   | Guardar el lugar de actividades del viaje                     | No
+Lista de deseos (Wishlist)    | Guardar lugares y experiencias personales                     | No
+
+Importante: PinGo NO accede a la ubicación GPS de tu dispositivo. Las ubicaciones que aparecen en la app son introducidas manualmente por el usuario mediante búsqueda de texto.
+
+
+──────────────────────────────────────────────────
+3. CÓMO RECOGEMOS LOS DATOS
+──────────────────────────────────────────────────
+
+- Directamente del usuario: al registrarte, crear viajes, subir fotos o documentos e introducir gastos.
+- A través de Apple Sign-In: si eliges autenticarte con Apple, recibimos tu nombre y dirección de email con tu consentimiento.
+- A través de Google Sign-In: si eliges autenticarte con Google, recibimos tu nombre, email y foto de perfil con tu consentimiento.
+
+No recogemos datos de forma automática, no usamos cookies de seguimiento ni herramientas de analítica de usuarios.
+
+
+──────────────────────────────────────────────────
+4. FINALIDAD Y BASE LEGAL DEL TRATAMIENTO
+──────────────────────────────────────────────────
+
+FINALIDAD                                                    | BASE LEGAL (RGPD)
+-------------------------------------------------------------|-------------------------------
+Prestar el servicio de gestión de viajes colaborativa        | Ejecución del contrato (Art. 6.1.b)
+Gestionar tu cuenta de usuario                               | Ejecución del contrato (Art. 6.1.b)
+Permitir la colaboración entre viajeros                      | Ejecución del contrato (Art. 6.1.b)
+Enviarte comunicaciones esenciales del servicio              | Interés legítimo (Art. 6.1.f)
+
+No utilizamos tus datos para publicidad, marketing ni los cedemos a terceros con fines comerciales.
+
+
+──────────────────────────────────────────────────
+5. TERCEROS QUE RECIBEN DATOS
+──────────────────────────────────────────────────
+
+Para prestar el servicio utilizamos los siguientes proveedores. Todos actúan como encargados del tratamiento bajo nuestras instrucciones:
+
+PROVEEDOR              | FUNCIÓN                                                        | DATOS QUE RECIBE                      | POLÍTICA DE PRIVACIDAD
+-----------------------|----------------------------------------------------------------|---------------------------------------|-------------------------------
+Supabase               | Infraestructura: base de datos, autenticación y almacenamiento  | Todos los datos almacenados en la app | supabase.com/privacy
+Google Maps / Places   | Autocompletado de búsquedas de ubicación                       | Texto de búsqueda (sin datos personales) | policies.google.com/privacy
+Google Sign-In         | Autenticación mediante cuenta de Google                        | Nombre y email en el momento del login | policies.google.com/privacy
+Apple Sign-In          | Autenticación mediante Apple ID (solo iOS)                     | Nombre y email en el momento del login | apple.com/legal/privacy
+
+No vendemos, alquilamos ni cedemos tus datos personales a ningún otro tercero.
+
+
+──────────────────────────────────────────────────
+6. TRANSFERENCIAS INTERNACIONALES DE DATOS
+──────────────────────────────────────────────────
+
+Supabase puede almacenar datos en servidores ubicados fuera del Espacio Económico Europeo (EEE). En tal caso, Supabase garantiza un nivel de protección adecuado mediante las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea. Puedes consultar los detalles en supabase.com/privacy.
+
+
+──────────────────────────────────────────────────
+7. CONSERVACIÓN DE LOS DATOS
+──────────────────────────────────────────────────
+
+Conservamos tus datos personales mientras tu cuenta esté activa. Cuando eliminas tu cuenta desde la app:
+
+- Tu perfil se anonimiza de forma inmediata (nombre y foto de perfil se eliminan).
+- Se te impide volver a iniciar sesión.
+- Tus datos personales (wishlist, recuerdos, experiencias guardadas) se eliminan en cascada.
+- La eliminación definitiva de tu cuenta en los sistemas de autenticación se completa en el siguiente ciclo de purga programado.
+- Los datos de viajes compartidos (gastos, experiencias) permanecen anonimizados para no afectar a otros viajeros del grupo.
+
+
+──────────────────────────────────────────────────
+8. SEGURIDAD
+──────────────────────────────────────────────────
+
+Aplicamos medidas técnicas y organizativas para proteger tus datos:
+
+- Todas las comunicaciones entre la app y los servidores se realizan mediante HTTPS / TLS.
+- Las contraseñas se almacenan cifradas y nunca en texto plano.
+- El acceso a los datos está restringido mediante políticas de seguridad a nivel de fila (Row Level Security), de forma que cada usuario solo puede acceder a sus propios datos y a los de los viajes en los que participa.
+- Los archivos almacenados (fotos, documentos) son accesibles únicamente a través de URLs firmadas con tiempo de expiración.
+
+
+──────────────────────────────────────────────────
+9. MENORES DE EDAD
+──────────────────────────────────────────────────
+
+PinGo no está dirigida a menores de 16 años. No recogemos conscientemente datos de menores de 16 años. Si tenemos conocimiento de que un usuario es menor de dicha edad, procederemos a eliminar su cuenta y los datos asociados. Si eres padre, madre o tutor y crees que tu hijo/a ha creado una cuenta, contáctanos en pingotravelapp@gmail.com.
+
+
+──────────────────────────────────────────────────
+10. TUS DERECHOS (RGPD)
+──────────────────────────────────────────────────
+
+Si eres residente en el Espacio Económico Europeo, tienes los siguientes derechos sobre tus datos personales:
+
+- Acceso: puedes solicitar una copia de los datos que tenemos sobre ti.
+- Rectificación: puedes corregir tus datos desde la pantalla de perfil de la app o contactando con nosotros.
+- Supresión: puedes eliminar tu cuenta desde la app en Perfil → Gestión de cuenta → Eliminar cuenta.
+- Portabilidad: puedes solicitar tus datos en un formato estructurado y legible por máquina.
+- Oposición o limitación: puedes oponerte a determinados tratamientos o solicitar su limitación.
+- Retirada del consentimiento: si el tratamiento se basa en tu consentimiento, puedes retirarlo en cualquier momento sin que ello afecte a la licitud del tratamiento anterior.
+
+Para ejercer cualquiera de estos derechos, escríbenos a pingotravelapp@gmail.com. Responderemos en un plazo máximo de 30 días. También tienes derecho a presentar una reclamación ante la Agencia Española de Protección de Datos (AEPD) en aepd.es.
+
+
+──────────────────────────────────────────────────
+11. CAMBIOS EN ESTA POLÍTICA
+──────────────────────────────────────────────────
+
+Podemos actualizar esta Política de Privacidad ocasionalmente. Cuando lo hagamos, actualizaremos la fecha de "última actualización" en la parte superior del documento y, si los cambios son significativos, te notificaremos mediante una notificación dentro de la app o por email.
+
+
+──────────────────────────────────────────────────
+12. CONTACTO
+──────────────────────────────────────────────────
+
+Para cualquier consulta sobre esta Política de Privacidad:
+
+Email: pingotravelapp@gmail.com

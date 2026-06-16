@@ -54,6 +54,10 @@ export const en = {
   auth_validation_password_strong: 'At least 8 characters, with uppercase, lowercase and a number',
   auth_validation_name: 'Name is required',
   auth_register_passwordHint: 'At least 8 characters, with uppercase, lowercase and a number',
+  auth_register_consent_prefix: 'I accept the',
+  auth_register_consent_terms: 'Terms and Conditions',
+  auth_register_consent_and: 'and the',
+  auth_register_consent_privacy: 'Privacy Policy',
 
   // ─── PROFILE ───────────────────────────────────────────────────────────────
   profile_title: 'Profile',

@@ -27,6 +27,7 @@ import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import { useTheme } from '@lib/theme'
 import { useLanguage, type SupportedLanguage } from '@lib/language'
+import { LEGAL_URLS } from '@/config/legal'
 
 export default function ProfileScreen() {
   const router = useRouter()
@@ -345,7 +346,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <View className={divider} />
           <TouchableOpacity
-            onPress={() => Linking.openURL('https://pingo.app/terminos')}
+            onPress={() => Linking.openURL(LEGAL_URLS.terms)}
             className={rowBase}
             activeOpacity={0.7}
           >
@@ -360,7 +361,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <View className={divider} />
           <TouchableOpacity
-            onPress={() => Linking.openURL('https://pingo.app/privacidad')}
+            onPress={() => Linking.openURL(LEGAL_URLS.privacy)}
             className={rowBase}
             activeOpacity={0.7}
           >
