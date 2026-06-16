@@ -7,9 +7,9 @@ import {
 } from 'expo-apple-authentication'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Image, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@components/ui/Button'
@@ -21,6 +21,7 @@ import { buildRegisterSchema, type RegisterFormData } from '@features/auth/types
 import { colors } from '@lib/colors'
 import { cardShadow, ctaShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
+import { LEGAL_URLS } from '@/config/legal'
 
 export default function RegisterScreen() {
   const router = useRouter()
@@ -45,6 +46,8 @@ export default function RegisterScreen() {
   useEffect(() => {
     if (signInWithApple.error) showError(signInWithApple.error.message)
   }, [signInWithApple.error])
+
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(schema),
@@ -187,10 +190,41 @@ export default function RegisterScreen() {
               </Text>
             )}
 
+            <Pressable
+              onPress={() => setTermsAccepted(v => !v)}
+              className="flex-row items-start gap-2"
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: termsAccepted }}
+            >
+              <Ionicons
+                name={termsAccepted ? 'checkbox' : 'square-outline'}
+                size={20}
+                color={termsAccepted ? '#0046de' : colors.neutral[400]}
+                style={{ marginTop: 1 }}
+              />
+              <Text className="flex-1 text-sm text-neutral-600 dark:text-neutral-400 leading-5">
+                {t('auth_register_consent_prefix')}{' '}
+                <Text
+                  onPress={() => Linking.openURL(LEGAL_URLS.terms)}
+                  className="text-secondary-600 dark:text-secondary-400 font-semibold"
+                >
+                  {t('auth_register_consent_terms')}
+                </Text>
+                {' '}{t('auth_register_consent_and')}{' '}
+                <Text
+                  onPress={() => Linking.openURL(LEGAL_URLS.privacy)}
+                  className="text-secondary-600 dark:text-secondary-400 font-semibold"
+                >
+                  {t('auth_register_consent_privacy')}
+                </Text>
+              </Text>
+            </Pressable>
+
             <View style={ctaShadow}>
               <Button
                 onPress={handleSubmit(onSubmit)}
                 isLoading={signUp.isPending}
+                disabled={!termsAccepted}
                 size="lg"
               >
                 {t('auth_register_submit')}

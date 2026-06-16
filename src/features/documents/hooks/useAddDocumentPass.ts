@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import * as DocumentPicker from 'expo-document-picker'
+import type { DocumentPickerAsset } from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
@@ -8,24 +8,17 @@ type AddPassParams = {
   name: string
   experience_id: string
   tripId: string
+  asset: DocumentPickerAsset
 }
 
 export function useAddDocumentPass() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ name, experience_id, tripId }: AddPassParams) => {
+    mutationFn: async ({ name, experience_id, tripId, asset }: AddPassParams) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No hay sesión activa')
 
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/vnd.apple.pkpass', 'application/octet-stream'],
-        copyToCacheDirectory: true,
-      })
-
-      if (result.canceled || !result.assets[0]) return null
-
-      const asset = result.assets[0]
       const filename = `${user.id}_${Date.now()}.pkpass`
       const storagePath = `documents/${tripId}/${experience_id}/${filename}`
 

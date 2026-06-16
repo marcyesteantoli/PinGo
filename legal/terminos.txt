@@ -1,0 +1,128 @@
+TÉRMINOS Y CONDICIONES — PINGO
+Última actualización: 16 de junio de 2025
+
+
+Estos Términos y Condiciones ("Términos") regulan el acceso y uso de la aplicación móvil PinGo ("la App", "el Servicio"). Al crear una cuenta o usar PinGo aceptas quedar vinculado por estos Términos. Si no estás de acuerdo, no uses la App.
+
+
+──────────────────────────────────────────────────
+1. DESCRIPCIÓN DEL SERVICIO
+──────────────────────────────────────────────────
+
+PinGo es una aplicación móvil colaborativa para la gestión de viajes. Permite a los usuarios:
+
+- Crear viajes y organizar itinerarios con otros viajeros.
+- Centralizar documentación de viaje (vuelos, reservas, confirmaciones).
+- Gestionar y liquidar gastos compartidos entre los miembros del viaje.
+- Construir un diario colectivo de recuerdos con fotos y notas.
+- Guardar una lista de deseos personal de lugares y experiencias.
+
+
+──────────────────────────────────────────────────
+2. CUENTA DE USUARIO
+──────────────────────────────────────────────────
+
+Edad mínima: Para usar PinGo debes tener al menos 16 años. Al registrarte declaras cumplir este requisito.
+
+Datos de acceso: Eres responsable de mantener la confidencialidad de tu contraseña y de todas las actividades que se realicen desde tu cuenta. Notifícanos inmediatamente si sospechas de un acceso no autorizado.
+
+Veracidad de los datos: Al registrarte te comprometes a proporcionar información veraz y actualizada.
+
+Una cuenta por persona: No está permitido crear múltiples cuentas para eludir restricciones del servicio.
+
+
+──────────────────────────────────────────────────
+3. USO ACEPTABLE
+──────────────────────────────────────────────────
+
+Al usar PinGo te comprometes a no:
+
+- Subir, publicar o compartir contenido ilegal, difamatorio, obsceno, amenazante o que infrinja derechos de terceros.
+- Subir material que infrinja derechos de propiedad intelectual de terceros sin la debida autorización.
+- Subir archivos que contengan virus, malware, ransomware o cualquier otro código dañino.
+- Compartir información personal de otras personas sin su consentimiento.
+- Intentar acceder de forma no autorizada a cuentas de otros usuarios o a los sistemas de PinGo.
+- Usar la App con fines comerciales no autorizados expresamente por nosotros.
+- Realizar ingeniería inversa, descompilar o intentar extraer el código fuente de la App.
+
+
+──────────────────────────────────────────────────
+4. CONTENIDO GENERADO POR EL USUARIO
+──────────────────────────────────────────────────
+
+Propiedad: Mantienes la propiedad intelectual de todas las fotos, documentos y contenido que subes a PinGo.
+
+Licencia que nos concedes: Al subir contenido a PinGo nos concedes una licencia limitada, no exclusiva, gratuita y mundial para almacenar, procesar y mostrar dicho contenido exclusivamente a los colaboradores del viaje al que pertenece, y únicamente con el fin de prestar el servicio. Esta licencia se extingue cuando eliminas el contenido o tu cuenta.
+
+Responsabilidad: Eres el único responsable del contenido que subes. PinGo no revisa ni modera el contenido previamente a su publicación. Nos reservamos el derecho de eliminar contenido que infrinja estos Términos.
+
+
+──────────────────────────────────────────────────
+5. PRIVACIDAD
+──────────────────────────────────────────────────
+
+El tratamiento de tus datos personales se rige por nuestra Política de Privacidad, que forma parte integrante de estos Términos.
+
+
+──────────────────────────────────────────────────
+6. PROPIEDAD INTELECTUAL DE PINGO
+──────────────────────────────────────────────────
+
+El nombre PinGo, el logotipo, el diseño de la App, el código fuente y todos los elementos originales del Servicio son propiedad exclusiva del desarrollador o están protegidos por las licencias correspondientes. Estos Términos no te conceden ningún derecho sobre dicha propiedad intelectual más allá del uso personal y no comercial de la App.
+
+
+──────────────────────────────────────────────────
+7. DISPONIBILIDAD DEL SERVICIO
+──────────────────────────────────────────────────
+
+Nos esforzamos por mantener PinGo operativa de forma continua, pero no garantizamos una disponibilidad del 100 %. El servicio puede interrumpirse por mantenimiento, actualizaciones, fallos técnicos o causas fuera de nuestro control. No seremos responsables de los perjuicios derivados de interrupciones del servicio.
+
+
+──────────────────────────────────────────────────
+8. LIMITACIÓN DE RESPONSABILIDAD
+──────────────────────────────────────────────────
+
+En la máxima medida permitida por la ley aplicable, PinGo y su desarrollador no serán responsables de:
+
+- Pérdida o corrupción de datos almacenados en la App. Recomendamos conservar copias de cualquier documento importante.
+- Errores en los cálculos de gastos compartidos derivados de datos incorrectos introducidos por el usuario.
+- Daños causados por acciones de otros usuarios dentro de un viaje compartido.
+- Pérdidas económicas, de negocio o de datos derivadas del uso o la imposibilidad de usar el Servicio.
+- Contenido de terceros enlazado o compartido a través de la App.
+
+
+──────────────────────────────────────────────────
+9. ELIMINACIÓN DE CUENTA
+──────────────────────────────────────────────────
+
+Puedes eliminar tu cuenta en cualquier momento desde la App: Perfil → Gestión de cuenta → Eliminar cuenta. La eliminación es irreversible. Para más detalles sobre qué ocurre con tus datos al eliminar la cuenta, consulta la Política de Privacidad.
+
+Nos reservamos el derecho de suspender o eliminar cuentas que incumplan estos Términos, sin previo aviso en casos graves (fraude, contenido ilegal, etc.).
+
+
+──────────────────────────────────────────────────
+10. MODIFICACIONES DEL SERVICIO Y LOS TÉRMINOS
+──────────────────────────────────────────────────
+
+Podemos modificar o discontinuar el Servicio en cualquier momento. También podemos actualizar estos Términos ocasionalmente. Cuando lo hagamos, actualizaremos la fecha de "última actualización" y, si los cambios son significativos, te notificaremos con antelación razonable a través de la App o por email. El uso continuado del Servicio tras la entrada en vigor de los nuevos Términos implica su aceptación.
+
+
+──────────────────────────────────────────────────
+11. LEY APLICABLE Y JURISDICCIÓN
+──────────────────────────────────────────────────
+
+Estos Términos se rigen por la legislación española. Para la resolución de cualquier controversia derivada de estos Términos, las partes se someten a la jurisdicción de los juzgados y tribunales de Castellón, España, con renuncia expresa a cualquier otro fuero que pudiera corresponderles.
+
+Sin perjuicio de lo anterior, si eres consumidor, las leyes de protección al consumidor de tu país de residencia también pueden aplicarse, independientemente de la jurisdicción pactada en este acuerdo.
+
+Si eres consumidor residente en la Unión Europea, también puedes acceder a la plataforma de resolución de litigios en línea de la Comisión Europea en ec.europa.eu/consumers/odr.
+
+
+──────────────────────────────────────────────────
+12. CONTACTO
+──────────────────────────────────────────────────
+
+Para cualquier consulta sobre estos Términos y Condiciones:
+
+Nombre: Marc Yeste Antoli
+Email: pingotravelapp@gmail.com

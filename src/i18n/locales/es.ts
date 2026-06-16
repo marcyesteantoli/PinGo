@@ -54,6 +54,10 @@ export const es = {
   auth_validation_password_strong: 'Mínimo 8 caracteres, con mayúscula, minúscula y número',
   auth_validation_name: 'El nombre es obligatorio',
   auth_register_passwordHint: 'Mínimo 8 caracteres, con mayúscula, minúscula y número',
+  auth_register_consent_prefix: 'Acepto los',
+  auth_register_consent_terms: 'Términos y Condiciones',
+  auth_register_consent_and: 'y la',
+  auth_register_consent_privacy: 'Política de Privacidad',
 
   // ─── PROFILE ───────────────────────────────────────────────────────────────
   profile_title: 'Perfil',
@@ -66,6 +70,7 @@ export const es = {
   profile_section_appearance: 'Apariencia',
   profile_darkMode: 'Modo oscuro',
   profile_section_language: 'Idioma',
+  profile_language_subtitle: 'Elige tu idioma preferido',
   profile_section_app: 'App',
   profile_field_version: 'Versión',
   profile_terms: 'Términos de uso',
@@ -90,6 +95,10 @@ export const es = {
   // ─── LANGUAGE ────────────────────────────────────────────────────────────
   lang_es: 'Español',
   lang_en: 'English',
+  lang_fr: 'Francés',
+  lang_de: 'Alemán',
+  lang_pt: 'Portugués',
+  lang_it: 'Italiano',
 
   // ─── TABS (main) ──────────────────────────────────────────────────────────
   tabs_trips: 'Viajes',
@@ -482,6 +491,7 @@ export const es = {
   docs_deleteSheet_title: 'Eliminar documento',
   docs_deleteSheet_body: '"{{name}}" se eliminará permanentemente. Esta acción no se puede deshacer.',
   docs_deleteSheet_confirm: 'Eliminar documento',
+  docs_delete_error: 'No se ha podido eliminar el documento.',
   docs_saveSheet_title: 'Guardar documento',
   docs_saveSheet_submit: 'Guardar',
   docs_experiencePicker_label: 'Experiencia relacionada',
@@ -489,6 +499,7 @@ export const es = {
   docs_tripPicker_label: 'Viaje',
   docs_tripPicker_empty: 'No tienes viajes disponibles',
   docs_addSheet_title: 'Añadir documento',
+  docs_picker_error: 'No se pudo abrir el selector de archivos. Espera un momento e inténtalo de nuevo.',
   docs_type_file: 'Archivo',
   docs_type_file_sub: 'PDF, imagen u otro fichero',
   docs_type_link: 'Enlace',
@@ -502,7 +513,7 @@ export const es = {
   docs_link_url_invalid: 'Introduce una URL válida',
   docs_addPass_title: 'Añadir boarding pass',
   docs_addPass_namePlaceholder: 'ej. Vuelo IB7841',
-  docs_addPass_submit: 'Seleccionar archivo .pkpass',
+  docs_addPass_submit: 'Añadir boarding pass',
 
   // ─── MEMORIES ─────────────────────────────────────────────────────────────
   memories_tab: 'Recuerdos',

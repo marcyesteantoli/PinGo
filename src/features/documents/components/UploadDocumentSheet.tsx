@@ -31,9 +31,11 @@ export function UploadDocumentSheet({ visible, onClose, onSubmit, isLoading, err
     if (error) showError(error)
   }, [error])
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<UploadDocumentFormData>({
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<UploadDocumentFormData>({
     resolver: zodResolver(schema),
   })
+
+  const nameValue = watch('name')
 
   const handleClose = () => {
     reset()
@@ -69,7 +71,13 @@ export function UploadDocumentSheet({ visible, onClose, onSubmit, isLoading, err
             <ExperiencePicker
               experiences={experiences ?? []}
               value={value}
-              onChange={onChange}
+              onChange={(id) => {
+                onChange(id)
+                if (!nameValue) {
+                  const exp = experiences?.find((e) => e.id === id)
+                  if (exp) setValue('name', exp.title, { shouldValidate: false })
+                }
+              }}
               error={errors.experience_id?.message}
             />
           )}

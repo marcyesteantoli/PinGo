@@ -66,7 +66,7 @@ export function AddLinkSheet({ visible, onClose, onSubmit, isLoading, error }: A
   }
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose} title={t('docs_addLink_title')}>
+    <BottomSheet visible={visible} onClose={handleClose} title={t('docs_addLink_title')} scrollable>
       <View className="gap-4 pb-4">
         <Controller
           control={control}
@@ -106,7 +106,13 @@ export function AddLinkSheet({ visible, onClose, onSubmit, isLoading, error }: A
             <ExperiencePicker
               experiences={experiences ?? []}
               value={value}
-              onChange={onChange}
+              onChange={(id) => {
+                onChange(id)
+                if (!nameValue) {
+                  const exp = experiences?.find((e) => e.id === id)
+                  if (exp) setValue('name', exp.title, { shouldValidate: false })
+                }
+              }}
               error={errors.experience_id?.message}
             />
           )}

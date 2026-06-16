@@ -21,8 +21,9 @@ export function useDeleteDocument() {
         }
       }
 
-      const { error } = await supabase.from('documents').delete().eq('id', documentId)
+      const { data, error } = await supabase.from('documents').delete().eq('id', documentId).select('id')
       if (error) throw new Error('Error al eliminar el documento.')
+      if (!data || data.length === 0) throw new Error('No tienes permiso para eliminar este documento.')
     },
     onSuccess: (_data, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.all(tripId) })
