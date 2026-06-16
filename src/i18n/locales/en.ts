@@ -70,6 +70,7 @@ export const en = {
   profile_section_appearance: 'Appearance',
   profile_darkMode: 'Dark mode',
   profile_section_language: 'Language',
+  profile_language_subtitle: 'Choose your preferred language',
   profile_section_app: 'App',
   profile_field_version: 'Version',
   profile_terms: 'Terms of use',
@@ -94,6 +95,10 @@ export const en = {
   // ─── LANGUAGE ────────────────────────────────────────────────────────────
   lang_es: 'Español',
   lang_en: 'English',
+  lang_fr: 'French',
+  lang_de: 'German',
+  lang_pt: 'Portuguese',
+  lang_it: 'Italian',
 
   // ─── TABS (main) ──────────────────────────────────────────────────────────
   tabs_trips: 'Trips',

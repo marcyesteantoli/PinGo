@@ -2,10 +2,13 @@ import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import Constants from 'expo-constants'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Alert,
+  Dimensions,
   Linking,
+  Modal,
+  Pressable,
   ScrollView,
   Switch,
   Text,
@@ -28,6 +31,12 @@ import { cardShadow } from '@lib/shadows'
 import { useTheme } from '@lib/theme'
 import { useLanguage, type SupportedLanguage } from '@lib/language'
 import { LEGAL_URLS } from '@/config/legal'
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDecay, runOnJS } from 'react-native-reanimated'
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
+import { EASE_DRAWER, EASE_DRAWER_OUT, DURATION } from '@lib/animations'
+
+const LANG_OFFSCREEN = Dimensions.get('window').height
+const LANG_CLOSE_THRESHOLD = 80
 
 export default function ProfileScreen() {
   const router = useRouter()
@@ -43,6 +52,61 @@ export default function ProfileScreen() {
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState('')
   const [deleteSheetVisible, setDeleteSheetVisible] = useState(false)
+  const [languagePickerOpen, setLanguagePickerOpen] = useState(false)
+  const [langModalMounted, setLangModalMounted] = useState(false)
+  const langTranslateY = useSharedValue(LANG_OFFSCREEN)
+  const langBackdropOpacity = useSharedValue(0)
+
+  useEffect(() => {
+    if (languagePickerOpen) {
+      langTranslateY.value = LANG_OFFSCREEN
+      langBackdropOpacity.value = 0
+      setLangModalMounted(true)
+    } else {
+      langBackdropOpacity.value = withTiming(0, { duration: DURATION.sheetClose })
+      langTranslateY.value = withTiming(LANG_OFFSCREEN, { duration: DURATION.sheetClose, easing: EASE_DRAWER_OUT }, () => {
+        runOnJS(setLangModalMounted)(false)
+      })
+    }
+  }, [languagePickerOpen])
+
+  const langSheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: langTranslateY.value }],
+  }))
+
+  const langBackdropStyle = useAnimatedStyle(() => ({
+    opacity: langBackdropOpacity.value,
+  }))
+
+  const handleLangGestureClose = useCallback(() => {
+    setLanguagePickerOpen(false)
+  }, [])
+
+  const langGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      if (e.translationY > 0) {
+        langTranslateY.value = e.translationY
+        langBackdropOpacity.value = Math.max(0, 1 - e.translationY / 300)
+      }
+    })
+    .onEnd((e) => {
+      if (e.translationY > LANG_CLOSE_THRESHOLD || e.velocityY > 700) {
+        langBackdropOpacity.value = withTiming(0, { duration: 250 })
+        if (e.velocityY > 500) {
+          langTranslateY.value = withDecay(
+            { velocity: e.velocityY, clamp: [0, LANG_OFFSCREEN] },
+            () => { runOnJS(handleLangGestureClose)() }
+          )
+        } else {
+          langTranslateY.value = withTiming(LANG_OFFSCREEN, { duration: DURATION.sheetClose, easing: EASE_DRAWER_OUT }, () => {
+            runOnJS(handleLangGestureClose)()
+          })
+        }
+      } else {
+        langTranslateY.value = withTiming(0, { duration: DURATION.sheet, easing: EASE_DRAWER })
+        langBackdropOpacity.value = withTiming(1, { duration: 200 })
+      }
+    })
 
   const displayName = profile?.name ?? user?.user_metadata?.name ?? '—'
   const email = user?.email ?? '—'
@@ -120,9 +184,13 @@ export default function ProfileScreen() {
   const sectionLabel = 'text-[13px] font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mx-4 mb-2 mt-6'
   const divider = 'h-px bg-neutral-100 dark:bg-surface-700 ml-[52px]'
 
-  const LANGUAGES: { key: SupportedLanguage; label: string; flag: string }[] = [
-    { key: 'es', label: t('lang_es'), flag: '🇪🇸' },
-    { key: 'en', label: t('lang_en'), flag: '🇬🇧' },
+  const LANGUAGES: { key: SupportedLanguage; label: string; native: string }[] = [
+    { key: 'es', label: t('lang_es'), native: 'Español' },
+    { key: 'en', label: t('lang_en'), native: 'English' },
+    { key: 'fr', label: t('lang_fr'), native: 'Français' },
+    { key: 'de', label: t('lang_de'), native: 'Deutsch' },
+    { key: 'pt', label: t('lang_pt'), native: 'Português' },
+    { key: 'it', label: t('lang_it'), native: 'Italiano' },
   ]
 
   return (
@@ -259,61 +327,24 @@ export default function ProfileScreen() {
               onValueChange={toggleTheme}
             />
           </View>
-        </View>
 
-        {/* Sección: Idioma */}
-        <Text className={sectionLabel}>{t('profile_section_language')}</Text>
-        <View
-          className="mx-4 rounded-2xl bg-white dark:bg-surface-800 px-2 py-2"
-          style={cardShadow}
-        >
-          {LANGUAGES.map((lang) => {
-            const isActive = language === lang.key
-            return (
-              <TouchableOpacity
-                key={lang.key}
-                onPress={() => changeLanguage(lang.key)}
-                activeOpacity={0.7}
-                className="rounded-xl px-3 py-3 flex-row items-center"
-                style={isActive ? { backgroundColor: `${colors.primary[500]}1a` } : undefined}
-              >
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 16,
-                    fontWeight: isActive ? '600' : '400',
-                    color: isActive
-                      ? colors.primary[500]
-                      : isDark ? colors.neutral[300] : colors.neutral[700],
-                  }}
-                >
-                  {lang.label}
-                </Text>
-                <View
-                  className="rounded-md px-2 py-0.5"
-                  style={{
-                    backgroundColor: isActive
-                      ? colors.primary[500]
-                      : isDark ? colors.surface[700] : colors.neutral[100],
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: '700',
-                      letterSpacing: 0.5,
-                      textTransform: 'uppercase',
-                      color: isActive
-                        ? colors.white
-                        : isDark ? colors.neutral[500] : colors.neutral[400],
-                    }}
-                  >
-                    {lang.key}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )
-          })}
+          <View className={divider} />
+
+          {/* Idioma inline */}
+          <TouchableOpacity
+            className={rowBase}
+            activeOpacity={0.7}
+            onPress={() => setLanguagePickerOpen(true)}
+          >
+            <Ionicons name="globe-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
+            <Text className={`${labelBase} flex-1`}>{t('profile_section_language')}</Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className={valueBase}>
+                {LANGUAGES.find(l => l.key === language)?.label}
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={iconColor} />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Sección: App */}
@@ -420,6 +451,134 @@ export default function ProfileScreen() {
       </ScrollView>
 
       <DeleteAccountSheet visible={deleteSheetVisible} onClose={() => setDeleteSheetVisible(false)} />
+
+      {/* Language picker sheet */}
+      <Modal
+        visible={langModalMounted}
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        onRequestClose={() => setLanguagePickerOpen(false)}
+        onShow={() => {
+          langTranslateY.value = withTiming(0, { duration: DURATION.sheet, easing: EASE_DRAWER })
+          langBackdropOpacity.value = withTiming(1, { duration: 280 })
+        }}
+      >
+        <GestureHandlerRootView style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <Animated.View
+            style={[
+              { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)' },
+              langBackdropStyle,
+            ]}
+          >
+            <Pressable style={{ flex: 1 }} onPress={() => setLanguagePickerOpen(false)} />
+          </Animated.View>
+
+          <Animated.View style={langSheetStyle}>
+            <View
+              className="bg-white dark:bg-surface-800 rounded-t-[28px] pb-8 pt-2"
+              style={{ shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 20 }}
+            >
+              <GestureDetector gesture={langGesture}>
+                <View style={{ width: '100%', alignItems: 'center', paddingTop: 12, paddingBottom: 16 }}>
+                  <View className="w-9 h-[5px] rounded-full bg-neutral-300 dark:bg-surface-500" />
+                </View>
+              </GestureDetector>
+
+              <View className="px-4 pb-2">
+                <Text className="text-[22px] font-semibold text-neutral-900 dark:text-neutral-50">
+                  {t('profile_section_language')}
+                </Text>
+                <Text className="text-[14px] text-neutral-400 dark:text-neutral-500 mt-0.5">
+                  {t('profile_language_subtitle', { defaultValue: 'Choose your preferred language' })}
+                </Text>
+              </View>
+
+              <View className="mx-4 mt-3 rounded-2xl overflow-hidden bg-neutral-50 dark:bg-surface-700">
+                {LANGUAGES.map((lang, idx) => {
+                  const isActive = language === lang.key
+                  return (
+                    <View key={lang.key}>
+                      {idx > 0 && <View className="h-px bg-neutral-100 dark:bg-surface-600 mx-0" />}
+                      <TouchableOpacity
+                        activeOpacity={0.65}
+                        onPress={() => { changeLanguage(lang.key); setLanguagePickerOpen(false) }}
+                        style={[
+                          { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 13 },
+                          isActive && { backgroundColor: isDark ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.07)' },
+                        ]}
+                      >
+                        <View
+                          style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: 10,
+                            backgroundColor: isActive
+                              ? colors.primary[500]
+                              : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 13,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: '700',
+                              letterSpacing: 0.5,
+                              color: isActive ? '#fff' : isDark ? colors.neutral[300] : colors.neutral[600],
+                            }}
+                          >
+                            {lang.key.toUpperCase()}
+                          </Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              fontWeight: isActive ? '600' : '400',
+                              color: isActive
+                                ? colors.primary[500]
+                                : isDark ? colors.neutral[50] : colors.neutral[900],
+                            }}
+                          >
+                            {lang.label}
+                          </Text>
+                          {lang.label !== lang.native && (
+                            <Text
+                              style={{
+                                fontSize: 13,
+                                color: isDark ? colors.neutral[400] : colors.neutral[500],
+                                marginTop: 1,
+                              }}
+                            >
+                              {lang.native}
+                            </Text>
+                          )}
+                        </View>
+                        {isActive && (
+                          <View
+                            style={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: 11,
+                              backgroundColor: colors.primary[500],
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Ionicons name="checkmark" size={13} color="#fff" />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  )
+                })}
+              </View>
+            </View>
+          </Animated.View>
+        </GestureHandlerRootView>
+      </Modal>
     </SafeAreaView>
   )
 }
