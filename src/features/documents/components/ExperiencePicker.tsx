@@ -37,7 +37,7 @@ export function ExperiencePicker({ experiences, value, onChange, error }: Experi
   const { t } = useTranslation()
   return (
     <View className="gap-1">
-      <Text className="text-sm font-medium text-neutral-700">{t('docs_experiencePicker_label')}</Text>
+      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('docs_experiencePicker_label')}</Text>
       {experiences.length === 0 ? (
         <Text className="text-xs text-neutral-400 italic">{t('docs_experiencePicker_empty')}</Text>
       ) : (
@@ -50,7 +50,7 @@ export function ExperiencePicker({ experiences, value, onChange, error }: Experi
                   key={exp.id}
                   onPress={() => onChange(exp.id)}
                   className={`flex-row items-center gap-1.5 px-3 py-2 rounded-xl border ${
-                    isSelected ? 'bg-primary-500 border-primary-500' : 'bg-white border-neutral-200'
+                    isSelected ? 'bg-primary-500 border-primary-500' : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
                   }`}
                 >
                   <Ionicons
@@ -59,7 +59,7 @@ export function ExperiencePicker({ experiences, value, onChange, error }: Experi
                     color={isSelected ? colors.white : TYPE_COLORS[exp.type]}
                   />
                   <Text
-                    className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-neutral-600'}`}
+                    className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`}
                     numberOfLines={1}
                   >
                     {exp.title}

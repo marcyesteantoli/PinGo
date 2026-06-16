@@ -17,6 +17,7 @@ import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -28,7 +29,7 @@ import * as MediaLibrary from 'expo-media-library'
 import Gallery from 'react-native-awesome-gallery'
 import { Avatar } from '@components/ui/Avatar'
 import { colors } from '@lib/colors'
-import { EASE_OUT, EASE_DRAWER } from '@lib/animations'
+import { EASE_OUT, EASE_OUT_FAST } from '@lib/animations'
 import type { MemoryWithUrl } from '../hooks/useMemories'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -249,32 +250,58 @@ export function MemoryDetail({
   const [galleryHeight, setGalleryHeight] = useState(SCREEN_HEIGHT - 160)
 
   const bgOpacity = useSharedValue(0)
-  const slideY = useSharedValue(SCREEN_HEIGHT)
+  const contentOpacity = useSharedValue(0)
+  const contentScale = useSharedValue(0.96)
+  const dragY = useSharedValue(0)
 
   const currentMemory = memories[currentIndex] ?? null
 
   const bgStyle = useAnimatedStyle(() => ({ opacity: bgOpacity.value }))
-  const containerStyle = useAnimatedStyle(() => ({ transform: [{ translateY: slideY.value }] }))
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ scale: contentScale.value }],
+  }))
+  const panelDragStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: dragY.value }],
+  }))
+  const headerDragStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: dragY.value }],
+    opacity: interpolate(dragY.value, [0, 100], [1, 0], Extrapolation.CLAMP),
+  }))
 
   useEffect(() => {
     if (visible) {
       setCurrentIndex(initialIndex)
-      slideY.value = SCREEN_HEIGHT
+      dragY.value = 0
       bgOpacity.value = 0
-      slideY.value = withTiming(0, { duration: 300, easing: EASE_DRAWER })
+      contentOpacity.value = 0
+      contentScale.value = 0.96
       bgOpacity.value = withTiming(1, { duration: 260, easing: EASE_OUT })
+      contentOpacity.value = withTiming(1, { duration: 240, easing: EASE_OUT })
+      contentScale.value = withSpring(1, { damping: 26, stiffness: 300, mass: 0.8 })
     }
   }, [visible, initialIndex])
 
+  // swipe-to-close: Gallery animates image away, fade panels + bg
   const dismiss = () => {
-    bgOpacity.value = 0
-    slideY.value = SCREEN_HEIGHT
-    onClose()
+    bgOpacity.value = withTiming(0, { duration: 200, easing: EASE_OUT_FAST })
+    contentOpacity.value = withTiming(0, { duration: 180, easing: EASE_OUT_FAST })
+    setTimeout(() => { dragY.value = 0; onClose() }, 210)
+  }
+
+  // close button / back gesture: scale down + fade (photo viewer native feel)
+  const dismissWithSlide = () => {
+    contentOpacity.value = withTiming(0, { duration: 220, easing: EASE_OUT_FAST })
+    contentScale.value = withTiming(0.94, { duration: 220, easing: EASE_OUT_FAST })
+    bgOpacity.value = withTiming(0, { duration: 220, easing: EASE_OUT_FAST })
+    setTimeout(onClose, 230)
   }
 
   const handleTranslationYChange = (translationY: number) => {
     'worklet'
-    bgOpacity.value = interpolate(translationY, [0, 260], [1, 0.25], Extrapolation.CLAMP)
+    const y = translationY > 0 ? translationY : 0
+    dragY.value = y
+    bgOpacity.value = interpolate(y, [0, 200], [1, 0], Extrapolation.CLAMP)
   }
 
   const handleDownload = async () => {
@@ -310,7 +337,7 @@ export function MemoryDetail({
       animationType="none"
       transparent
       statusBarTranslucent
-      onRequestClose={dismiss}
+      onRequestClose={dismissWithSlide}
     >
       {/* Background */}
       <Animated.View
@@ -345,43 +372,45 @@ export function MemoryDetail({
 
         {/* Bottom panel */}
         {currentMemory && (
-          <BottomPanel
-            memory={currentMemory}
-            uploaderName={getUploaderName(currentMemory.user_id)}
-            uploaderAvatar={getUploaderAvatar(currentMemory.user_id)}
-            onDownload={handleDownload}
-            downloaded={downloaded}
-            onDelete={
-              canDelete(currentMemory)
-                ? () => {
-                    Alert.alert(
-                      t('memories_delete_confirm_title'),
-                      t('memories_delete_confirm_body'),
-                      [
-                        { text: t('memories_delete_confirm_cancel'), style: 'cancel' },
-                        {
-                          text: t('memories_delete_confirm_action'),
-                          style: 'destructive',
-                          onPress: () => { onDelete(currentMemory.id); dismiss() },
-                        },
-                      ],
-                    )
-                  }
-                : undefined
-            }
-            downloading={downloading}
-            theme={theme}
-            paddingBottom={insets.bottom + 16}
-            t={t}
-          />
+          <Animated.View style={panelDragStyle}>
+            <BottomPanel
+              memory={currentMemory}
+              uploaderName={getUploaderName(currentMemory.user_id)}
+              uploaderAvatar={getUploaderAvatar(currentMemory.user_id)}
+              onDownload={handleDownload}
+              downloaded={downloaded}
+              onDelete={
+                canDelete(currentMemory)
+                  ? () => {
+                      Alert.alert(
+                        t('memories_delete_confirm_title'),
+                        t('memories_delete_confirm_body'),
+                        [
+                          { text: t('memories_delete_confirm_cancel'), style: 'cancel' },
+                          {
+                            text: t('memories_delete_confirm_action'),
+                            style: 'destructive',
+                            onPress: () => { onDelete(currentMemory.id); dismiss() },
+                          },
+                        ],
+                      )
+                    }
+                  : undefined
+              }
+              downloading={downloading}
+              theme={theme}
+              paddingBottom={insets.bottom + 16}
+              t={t}
+            />
+          </Animated.View>
         )}
 
         {/* Header overlay */}
-        <View
-          style={[styles.header, { paddingTop: insets.top + 8 }]}
+        <Animated.View
+          style={[styles.header, { paddingTop: insets.top + 8 }, headerDragStyle]}
           pointerEvents="box-none"
         >
-          <IconBtn iconName="close" onPress={dismiss} />
+          <IconBtn iconName="close" onPress={dismissWithSlide} />
           {memories.length > 1 && (
             <View style={[styles.counterPill, { backgroundColor: theme.counterBg }]}>
               <Text style={[styles.counterText, { color: theme.counterText }]}>
@@ -389,7 +418,7 @@ export function MemoryDetail({
               </Text>
             </View>
           )}
-        </View>
+        </Animated.View>
       </Animated.View>
     </Modal>
   )
