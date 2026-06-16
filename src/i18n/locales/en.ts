@@ -480,6 +480,7 @@ export const en = {
   docs_deleteSheet_title: 'Delete document',
   docs_deleteSheet_body: '"{{name}}" will be permanently deleted. This action cannot be undone.',
   docs_deleteSheet_confirm: 'Delete document',
+  docs_delete_error: 'The document could not be deleted.',
   docs_saveSheet_title: 'Save document',
   docs_saveSheet_submit: 'Save',
   docs_experiencePicker_label: 'Related experience',
@@ -487,6 +488,7 @@ export const en = {
   docs_tripPicker_label: 'Trip',
   docs_tripPicker_empty: 'No trips available',
   docs_addSheet_title: 'Add document',
+  docs_picker_error: 'Could not open the file picker. Wait a moment and try again.',
   docs_type_file: 'File',
   docs_type_file_sub: 'PDF, image or other file',
   docs_type_link: 'Link',
@@ -500,7 +502,7 @@ export const en = {
   docs_link_url_invalid: 'Enter a valid URL',
   docs_addPass_title: 'Add boarding pass',
   docs_addPass_namePlaceholder: 'e.g. Flight IB7841',
-  docs_addPass_submit: 'Select .pkpass file',
+  docs_addPass_submit: 'Add boarding pass',
 
   // ─── MEMORIES ─────────────────────────────────────────────────────────────
   memories_tab: 'Memories',

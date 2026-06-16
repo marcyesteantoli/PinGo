@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import * as DocumentPicker from 'expo-document-picker'
 import { Ionicons } from '@expo/vector-icons'
-import { Dimensions, Modal, Pressable, SectionList, Text, TouchableOpacity, View, useColorScheme } from 'react-native'
+import { Alert, Dimensions, Modal, Platform, Pressable, SectionList, Text, TouchableOpacity, View, useColorScheme } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
 import Animated, {
@@ -34,6 +34,7 @@ import { useUploadDocument } from '@features/documents/hooks/useUploadDocument'
 import { useAddDocumentLink } from '@features/documents/hooks/useAddDocumentLink'
 import { useAddDocumentPass } from '@features/documents/hooks/useAddDocumentPass'
 import { useDeleteDocument } from '@features/documents/hooks/useDeleteDocument'
+import { useErrorToast } from '@lib/errorToast'
 import type { UploadDocumentFormData, AddLinkFormData } from '@features/documents/types'
 
 type ActionSheetOption = 'file' | 'link' | 'pass'
@@ -58,6 +59,23 @@ function AddDocumentActionSheet({
   const translateY = useSharedValue(SCREEN_HEIGHT)
   const backdropOpacity = useSharedValue(0)
   const [isRendered, setIsRendered] = useState(false)
+  const pendingSelectionRef = useRef<ActionSheetOption | null>(null)
+
+  const handleClosed = useCallback(() => {
+    setIsRendered(false)
+    if (pendingSelectionRef.current) {
+      const type = pendingSelectionRef.current
+      pendingSelectionRef.current = null
+      // iOS: presenting a native picker right as this Modal's view controller
+      // is being dismissed silently fails (no picker, no error). Give UIKit a
+      // moment to finish the dismissal first.
+      if (Platform.OS === 'ios') {
+        setTimeout(() => onSelect(type), 350)
+      } else {
+        onSelect(type)
+      }
+    }
+  }, [onSelect])
 
   useEffect(() => {
     if (visible) {
@@ -66,12 +84,12 @@ function AddDocumentActionSheet({
       setIsRendered(true)
     } else {
       if (translateY.value >= SCREEN_HEIGHT - 1) {
-        setIsRendered(false)
+        handleClosed()
         return
       }
       backdropOpacity.value = withTiming(0, { duration: DURATION.sheetClose })
       translateY.value = withTiming(SCREEN_HEIGHT, { duration: DURATION.sheetClose, easing: EASE_DRAWER_OUT }, () => {
-        runOnJS(setIsRendered)(false)
+        runOnJS(handleClosed)()
       })
     }
   }, [visible])
@@ -212,7 +230,7 @@ function AddDocumentActionSheet({
             {options.map((opt, i) => (
               <TouchableOpacity
                 key={opt.type}
-                onPress={() => { onClose(); onSelect(opt.type) }}
+                onPress={() => { pendingSelectionRef.current = opt.type; onClose() }}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -249,8 +267,10 @@ function AddDocumentActionSheet({
 }
 
 export default function DocumentsScreen() {
+  const pickingFileRef = useRef(false)
   const { tripId } = useTripContext()
   const { t } = useTranslation()
+  const showError = useErrorToast()
   const { data: documents, isLoading, isFetching, refetch } = useDocuments(tripId)
   const uploadDocument = useUploadDocument()
   const addLink = useAddDocumentLink()
@@ -262,6 +282,7 @@ export default function DocumentsScreen() {
   const [pendingAsset, setPendingAsset] = useState<DocumentPicker.DocumentPickerAsset | null>(null)
   const [linkSheetVisible, setLinkSheetVisible] = useState(false)
   const [passSheetVisible, setPassSheetVisible] = useState(false)
+  const [pendingPassAsset, setPendingPassAsset] = useState<DocumentPicker.DocumentPickerAsset | null>(null)
   const [selectedDocument, setSelectedDocument] = useState<DocumentWithExperience | null>(null)
   const [documentToDelete, setDocumentToDelete] = useState<DocumentWithExperience | null>(null)
 
@@ -279,19 +300,60 @@ export default function DocumentsScreen() {
     }, {})
   ) as { title: string; data: NonNullable<typeof documents> }[]
 
+  // iOS: presenting a Modal right after a native picker dismisses can silently
+  // fail unless deferred to the next tick.
+  const openSheetAfterPicker = (open: () => void) => {
+    if (Platform.OS === 'ios') {
+      setTimeout(open, 400)
+    } else {
+      open()
+    }
+  }
+
+  // Native picker dismiss isn't instant — releasing the lock immediately lets a
+  // fast re-tap hit it mid-teardown, which throws "Different document picking
+  // in progress". Hold the lock a bit longer than the native teardown takes.
+  const releasePickerLock = () => {
+    setTimeout(() => { pickingFileRef.current = false }, Platform.OS === 'ios' ? 500 : 0)
+  }
+
   const handleActionSelect = async (type: ActionSheetOption) => {
     if (type === 'file') {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf', 'image/*'],
-        copyToCacheDirectory: true,
-      })
-      if (result.canceled || !result.assets?.[0]) return
-      setPendingAsset(result.assets[0])
-      setUploadSheetVisible(true)
+      if (pickingFileRef.current) return
+      pickingFileRef.current = true
+      try {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: ['application/pdf', 'image/*'],
+          copyToCacheDirectory: true,
+        })
+        if (result.canceled || !result.assets?.[0]) return
+        setPendingAsset(result.assets[0])
+        openSheetAfterPicker(() => setUploadSheetVisible(true))
+      } catch (err) {
+        console.error('getDocumentAsync failed', err)
+        showError(t('docs_picker_error'))
+      } finally {
+        releasePickerLock()
+      }
     } else if (type === 'link') {
       setLinkSheetVisible(true)
     } else {
-      setPassSheetVisible(true)
+      if (pickingFileRef.current) return
+      pickingFileRef.current = true
+      try {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: ['application/vnd.apple.pkpass', 'application/octet-stream'],
+          copyToCacheDirectory: true,
+        })
+        if (result.canceled || !result.assets?.[0]) return
+        setPendingPassAsset(result.assets[0])
+        openSheetAfterPicker(() => setPassSheetVisible(true))
+      } catch (err) {
+        console.error('getDocumentAsync failed', err)
+        showError(t('docs_picker_error'))
+      } finally {
+        releasePickerLock()
+      }
     }
   }
 
@@ -311,9 +373,11 @@ export default function DocumentsScreen() {
   }
 
   const handleAddPass = async (data: { name: string; experience_id: string }) => {
+    if (!pendingPassAsset) return
     try {
-      await addPass.mutateAsync({ ...data, tripId })
+      await addPass.mutateAsync({ ...data, tripId, asset: pendingPassAsset })
       setPassSheetVisible(false)
+      setPendingPassAsset(null)
     } catch {}
   }
 
@@ -326,7 +390,9 @@ export default function DocumentsScreen() {
         fileUrl: documentToDelete.file_url,
       })
       setDocumentToDelete(null)
-    } catch {}
+    } catch (err) {
+      Alert.alert(t('common_error'), err instanceof Error ? err.message : t('docs_delete_error'))
+    }
   }
 
   return (
@@ -414,7 +480,7 @@ export default function DocumentsScreen() {
 
         <AddPassSheet
           visible={passSheetVisible}
-          onClose={() => setPassSheetVisible(false)}
+          onClose={() => { setPassSheetVisible(false); setPendingPassAsset(null) }}
           onSubmit={handleAddPass}
           isLoading={addPass.isPending}
         />
