@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { colors } from '@lib/colors'
+import { LIMITS } from '@/config/limits'
 
 export type ProPaywallFeature = 'maps' | 'trips' | 'photos' | 'documents' | 'pdf'
 
@@ -52,6 +53,7 @@ interface ProPaywallSheetProps {
   visible: boolean
   onClose: () => void
   feature: ProPaywallFeature
+  isLimitReached?: boolean
 }
 
 const BENEFITS: { key: string; icon: keyof typeof Ionicons.glyphMap; color: string; bg: { light: string; dark: string } }[] = [
@@ -63,11 +65,18 @@ const BENEFITS: { key: string; icon: keyof typeof Ionicons.glyphMap; color: stri
   { key: 'premium_paywall_benefit_support', icon: 'heart', color: '#EF4444', bg: { light: '#FEE2E2', dark: '#4E0606' } },
 ]
 
-export function ProPaywallSheet({ visible, onClose }: ProPaywallSheetProps) {
+export function ProPaywallSheet({ visible, onClose, feature, isLimitReached }: ProPaywallSheetProps) {
   const { t } = useTranslation()
   const { colorScheme } = useColorScheme()
   const isDark = colorScheme === 'dark'
   const [selectedPlan, setSelectedPlan] = useState<PlanId>('annual')
+
+  const limitMessages: Partial<Record<ProPaywallFeature, string>> = {
+    trips: t('premium_trips_limit_message', { count: LIMITS.FREE_MAX_ACTIVE_TRIPS }),
+    photos: t('premium_photos_limit_message', { count: LIMITS.FREE_MAX_PHOTOS_PER_TRIP }),
+    documents: t('premium_documents_limit_message', { count: LIMITS.FREE_MAX_DOCUMENTS_PER_TRIP }),
+  }
+  const limitMessage = isLimitReached ? limitMessages[feature] : undefined
   const [showAllPlans, setShowAllPlans] = useState(false)
   const selectedPlanData = PLANS.find(plan => plan.id === selectedPlan)!
   const visiblePlans = showAllPlans ? PLANS : PLANS.filter(p => p.id !== 'lifetime')
@@ -104,6 +113,15 @@ export function ProPaywallSheet({ visible, onClose }: ProPaywallSheetProps) {
             {t('premium_paywall_generic_subtitle')}
           </Text>
         </View>
+
+        {/* Limit reached banner */}
+        {limitMessage && (
+          <View className="w-full rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-4 py-3">
+            <Text className="text-amber-800 dark:text-amber-300 text-sm font-medium text-center">
+              {limitMessage}
+            </Text>
+          </View>
+        )}
 
         {/* Benefits */}
         <View className="w-full gap-3 mt-1">

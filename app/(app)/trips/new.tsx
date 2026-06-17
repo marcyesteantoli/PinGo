@@ -186,6 +186,7 @@ export default function NewTripScreen() {
         visible={paywallVisible}
         onClose={() => { setPaywallVisible(false); createTrip.reset() }}
         feature="trips"
+        isLimitReached
       />
     </SafeAreaView>
   )

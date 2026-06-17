@@ -647,4 +647,5 @@ export const pt = {
   premium_locked_map_unlock: 'Desbloquear mapa',
   premium_photos_limit_message: 'Esta viagem atingiu o limite de {{count}} fotos do plano gratuito.',
   premium_documents_limit_message: 'Esta viagem atingiu o limite de {{count}} documentos do plano gratuito.',
+  premium_trips_limit_message: 'Atingiste o limite de {{count}} viagens ativas do plano gratuito.',
 } as const

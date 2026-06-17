@@ -347,6 +347,7 @@ export default function TripsScreen() {
         visible={tripsPaywallVisible}
         onClose={() => setTripsPaywallVisible(false)}
         feature="trips"
+        isLimitReached
       />
     </SafeAreaView>
   )

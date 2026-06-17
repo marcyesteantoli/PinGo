@@ -649,4 +649,5 @@ export const en = {
   premium_locked_map_unlock: 'Unlock map',
   premium_photos_limit_message: 'This trip has reached the {{count}}-photo limit of the free plan.',
   premium_documents_limit_message: 'This trip has reached the {{count}}-document limit of the free plan.',
+  premium_trips_limit_message: "You've reached the {{count}}-trip limit of the free plan.",
 } as const

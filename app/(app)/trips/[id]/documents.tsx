@@ -506,6 +506,7 @@ export default function DocumentsScreen() {
           visible={paywallVisible}
           onClose={() => setPaywallVisible(false)}
           feature="documents"
+          isLimitReached
         />
       </View>
 

@@ -334,6 +334,7 @@ export default function MemoriesScreen() {
           visible={paywallVisible}
           onClose={() => setPaywallVisible(false)}
           feature="photos"
+          isLimitReached
         />
       </View>
     </View>

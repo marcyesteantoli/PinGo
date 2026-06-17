@@ -649,6 +649,7 @@ export const es = {
   premium_locked_map_unlock: 'Desbloquear mapa',
   premium_photos_limit_message: 'Este viaje ha alcanzado el límite de {{count}} fotos del plan gratuito.',
   premium_documents_limit_message: 'Este viaje ha alcanzado el límite de {{count}} documentos del plan gratuito.',
+  premium_trips_limit_message: 'Has alcanzado el límite de {{count}} viajes activos del plan gratuito.',
 } as const
 
 export type TranslationKeys = keyof typeof es
