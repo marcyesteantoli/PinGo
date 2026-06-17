@@ -7,6 +7,7 @@ import { queryKeys } from '@lib/queryKeys'
 import { compressImage } from '@utils/image'
 import { LIMITS } from '@/config/limits'
 import { fetchUserProStatus } from '@features/premium/hooks/useIsPro'
+import { maybePromptRating } from '@/hooks/useRatingPrompt'
 import type { MemoryWithUrl } from './useMemories'
 
 export type AddMemoryParams = {
@@ -124,9 +125,10 @@ export function useAddMemories() {
 
       return uploaded
     },
-    onSettled: (_, __, variables) => {
+    onSettled: (uploadedCount, error, variables) => {
       setProgress(null)
       queryClient.invalidateQueries({ queryKey: queryKeys.memories.all(variables.tripId) })
+      if (!error && uploadedCount && uploadedCount >= 3) maybePromptRating()
     },
   })
 

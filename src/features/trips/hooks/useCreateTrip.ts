@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { maybePromptRating } from '@/hooks/useRatingPrompt'
 import type { CreateTripFormData } from '../types'
 import type { Trip } from '@app-types/index'
 
@@ -35,7 +36,10 @@ export function useCreateTrip() {
       return trip as Trip
     },
     onSuccess: () => {
+      const currentTrips = queryClient.getQueryData<Trip[]>(queryKeys.trips.list())
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.list() })
+      const newCount = (currentTrips?.length ?? 0) + 1
+      if (newCount >= 2) maybePromptRating()
     },
   })
 }

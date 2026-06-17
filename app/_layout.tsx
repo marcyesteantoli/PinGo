@@ -14,6 +14,7 @@ import { LanguageProvider } from '@lib/language'
 import { ErrorToastProvider, ErrorToastPortal } from '@lib/errorToast'
 import { getLastActiveTripId } from '@lib/lastActiveTrip'
 import { getOnboardingCompleted } from '@features/onboarding/hooks/useOnboardingStatus'
+import { initRatingSession } from '@/hooks/useRatingPrompt'
 import { ShareDocumentSheet } from '@features/documents/components/ShareDocumentSheet'
 import { initI18n } from '@/i18n'
 import '../global.css'
@@ -48,6 +49,10 @@ function AppShell() {
   const router = useRouter()
   const segments = useSegments()
   const segmentsRef = useRef(segments)
+
+  useEffect(() => {
+    initRatingSession()
+  }, [])
 
   useEffect(() => {
     segmentsRef.current = segments
