@@ -4,6 +4,17 @@ import { queryKeys } from '@lib/queryKeys'
 import type { CreateExperienceFormData } from '../types'
 import type { Experience } from '@app-types/index'
 
+function notifyExperienceAdded(experienceId: string, tripId: string, title: string) {
+  supabase.functions.invoke('send-notification', {
+    body: {
+      event: 'experience_added',
+      trip_id: tripId,
+      source_id: experienceId,
+      context: { title },
+    },
+  }).catch(() => {})
+}
+
 export function useCreateExperience(tripId: string) {
   const queryClient = useQueryClient()
 
@@ -96,6 +107,8 @@ export function useCreateExperience(tripId: string) {
           })
         }
       )
+
+      notifyExperienceAdded(newExp.id, tripId, newExp.title)
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.experiences.all(tripId) })

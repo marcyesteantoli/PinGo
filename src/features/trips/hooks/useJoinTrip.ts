@@ -19,8 +19,11 @@ export function useJoinTrip() {
 
       return tripId as string
     },
-    onSuccess: () => {
+    onSuccess: (tripId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.list() })
+      supabase.functions.invoke('send-notification', {
+        body: { event: 'member_joined', trip_id: tripId, source_id: null, context: {} },
+      }).catch(() => {})
     },
   })
 }

@@ -10,6 +10,17 @@ import { fetchUserProStatus } from '@features/premium/hooks/useIsPro'
 import { maybePromptRating } from '@/hooks/useRatingPrompt'
 import type { MemoryWithUrl } from './useMemories'
 
+function notifyMemoryAdded(memoryId: string, tripId: string) {
+  supabase.functions.invoke('send-notification', {
+    body: {
+      event: 'memory_added',
+      trip_id: tripId,
+      source_id: memoryId,
+      context: {},
+    },
+  }).catch(() => {})
+}
+
 export type AddMemoryParams = {
   tripId: string
   caption?: string
@@ -171,6 +182,7 @@ export function useAddMemory() {
         queryKeys.memories.all(newMemory.trip_id),
         (old = []) => [newMemory, ...old]
       )
+      notifyMemoryAdded(newMemory.id, newMemory.trip_id)
     },
     onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.memories.all(variables.tripId) })

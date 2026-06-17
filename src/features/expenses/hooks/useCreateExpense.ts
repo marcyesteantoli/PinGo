@@ -5,6 +5,17 @@ import { splitEquallyAll } from '@utils/currency'
 import type { CreateExpenseFormData } from '../types'
 import type { Collaborator, ExpenseWithSplits } from '@app-types/index'
 
+function notifyExpenseAdded(expenseId: string, tripId: string, formData: CreateExpenseFormData) {
+  supabase.functions.invoke('send-notification', {
+    body: {
+      event: 'expense_added',
+      trip_id: tripId,
+      source_id: expenseId,
+      context: { description: formData.description, amount: formData.amount },
+    },
+  }).catch(() => {})
+}
+
 export function useCreateExpense(tripId: string, collaborators: Collaborator[] = [], currency = 'EUR') {
   const queryClient = useQueryClient()
 
@@ -59,6 +70,9 @@ export function useCreateExpense(tripId: string, collaborators: Collaborator[] =
       )
 
       return { snapshot }
+    },
+    onSuccess: (expenseId, formData) => {
+      if (expenseId) notifyExpenseAdded(expenseId, tripId, formData)
     },
     onError: (_, __, ctx) => {
       if (ctx?.snapshot) {

@@ -50,8 +50,16 @@ export function useSettleDebt(tripId: string) {
       )
       return { snapshot }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       maybePromptRating()
+      supabase.functions.invoke('send-notification', {
+        body: {
+          event: 'debt_settled',
+          trip_id: tripId,
+          source_id: null,
+          context: { to_user_id: variables.toUserId, amount: variables.amount },
+        },
+      }).catch(() => {})
     },
     onError: (_, __, ctx) => {
       if (ctx?.snapshot) {

@@ -10,8 +10,11 @@ export function useLeaveTrip() {
       const { error } = await supabase.rpc('leave_trip', { p_trip_id: tripId })
       if (error) throw new Error(error.message)
     },
-    onSuccess: () => {
+    onSuccess: (_, tripId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.list() })
+      supabase.functions.invoke('send-notification', {
+        body: { event: 'member_left', trip_id: tripId, source_id: null, context: {} },
+      }).catch(() => {})
     },
   })
 }

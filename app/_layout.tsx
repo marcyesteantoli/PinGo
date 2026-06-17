@@ -16,6 +16,8 @@ import { getLastActiveTripId } from '@lib/lastActiveTrip'
 import { getOnboardingCompleted } from '@features/onboarding/hooks/useOnboardingStatus'
 import { initRatingSession } from '@/hooks/useRatingPrompt'
 import { ShareDocumentSheet } from '@features/documents/components/ShareDocumentSheet'
+import { useNotificationSetup } from '@features/notifications/useNotificationSetup'
+import { useNotificationHandler } from '@features/notifications/useNotificationHandler'
 import { initI18n } from '@/i18n'
 import '../global.css'
 
@@ -53,6 +55,9 @@ function AppShell() {
   useEffect(() => {
     initRatingSession()
   }, [])
+
+  useNotificationSetup()
+  useNotificationHandler()
 
   useEffect(() => {
     segmentsRef.current = segments

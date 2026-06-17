@@ -38,6 +38,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-secure-store',
     'expo-font',
     [
+      'expo-notifications',
+      {
+        color: '#0046de',
+        iosDisplayInForeground: true,
+      },
+    ],
+    [
       'expo-image-picker',
       { photosPermission: 'La app necesita acceso a tus fotos para añadir recuerdos.' },
     ],
@@ -85,5 +92,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    eas: {
+      projectId: '03654de5-a800-4d73-9b60-a67bfb42d98c',
+    },
   },
 })
