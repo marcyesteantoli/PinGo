@@ -16,17 +16,36 @@ interface Plan {
   id: PlanId
   labelKey: string
   price: string
-  periodKey?: string
+  pricePerMonth?: string
   originalPrice?: string
-  savings?: string
+  savingsPercent?: string
   descKey?: string
-  badgeKey?: string
+  trialDays?: number
+  bestOffer?: boolean
 }
 
 const PLANS: Plan[] = [
-  { id: 'monthly', labelKey: 'premium_paywall_monthly', price: '€3.99', periodKey: 'premium_paywall_perMonth' },
-  { id: 'annual', labelKey: 'premium_paywall_annual', price: '€28.99', periodKey: 'premium_paywall_perYear', originalPrice: '€47.88', savings: '€18.89', descKey: 'premium_paywall_annual_desc', badgeKey: 'premium_paywall_annualSave' },
-  { id: 'lifetime', labelKey: 'premium_paywall_lifetime', price: '€79.99', descKey: 'premium_paywall_lifetime_desc' },
+  {
+    id: 'annual',
+    labelKey: 'premium_paywall_annual',
+    price: '29,99 €',
+    pricePerMonth: '2,50 € / mes',
+    originalPrice: '47,88 €',
+    savingsPercent: '37%',
+    bestOffer: true,
+    trialDays: 7,
+  },
+  {
+    id: 'monthly',
+    labelKey: 'premium_paywall_monthly',
+    price: '3,99 € / mes',
+  },
+  {
+    id: 'lifetime',
+    labelKey: 'premium_paywall_lifetime',
+    price: '79,99 €',
+    descKey: 'premium_paywall_lifetime_desc',
+  },
 ]
 
 interface ProPaywallSheetProps {
@@ -49,7 +68,9 @@ export function ProPaywallSheet({ visible, onClose }: ProPaywallSheetProps) {
   const { colorScheme } = useColorScheme()
   const isDark = colorScheme === 'dark'
   const [selectedPlan, setSelectedPlan] = useState<PlanId>('annual')
+  const [showAllPlans, setShowAllPlans] = useState(false)
   const selectedPlanData = PLANS.find(plan => plan.id === selectedPlan)!
+  const visiblePlans = showAllPlans ? PLANS : PLANS.filter(p => p.id !== 'lifetime')
 
   const handleSelectPlan = (id: PlanId) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -61,21 +82,30 @@ export function ProPaywallSheet({ visible, onClose }: ProPaywallSheetProps) {
     // TODO: integrar RevenueCat/StoreKit
   }
 
+  const ctaLabel = selectedPlanData.trialDays
+    ? t('premium_paywall_cta_trial', { days: selectedPlanData.trialDays })
+    : t('premium_paywall_cta')
+
   return (
     <BottomSheet visible={visible} onClose={onClose} scrollable>
       <View className="items-center gap-4 mb-2">
+        {/* Header */}
         <View className="items-center gap-1 px-2">
           <View className="flex-row items-center gap-2">
             <Ionicons name="sparkles" size={24} color={colors.primary[500]} />
-            <Text className="text-2xl font-bold text-neutral-900 dark:text-white text-center">
-              {t('premium_paywall_generic_title')}
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <Text className="text-2xl font-bold text-neutral-900 dark:text-white">PinGo</Text>
+              <View className="bg-primary-500 rounded-lg px-2 py-0.5 justify-center">
+                <Text className="text-2xl font-bold text-white">PRO</Text>
+              </View>
+            </View>
           </View>
           <Text className="text-base text-neutral-500 dark:text-neutral-400 text-center">
             {t('premium_paywall_generic_subtitle')}
           </Text>
         </View>
 
+        {/* Benefits */}
         <View className="w-full gap-3 mt-1">
           {BENEFITS.map(({ key, icon, color, bg }) => (
             <View key={key} className="flex-row items-center gap-3">
@@ -92,48 +122,88 @@ export function ProPaywallSheet({ visible, onClose }: ProPaywallSheetProps) {
           ))}
         </View>
 
+        {/* Plan selectors */}
         <View className="w-full gap-2.5 mt-2">
-          {PLANS.map(plan => {
+          {visiblePlans.map(plan => {
             const selected = selectedPlan === plan.id
             return (
               <Pressable
                 key={plan.id}
                 onPress={() => handleSelectPlan(plan.id)}
-                className={`rounded-2xl border-2 px-4 py-3 ${
-                  selected ? 'border-primary-500 bg-primary-500/5' : 'border-neutral-200 dark:border-neutral-700'
+                className={`rounded-2xl border-2 overflow-hidden ${
+                  selected
+                    ? 'border-primary-500 bg-primary-500/5 dark:bg-primary-500/10'
+                    : 'border-neutral-200 dark:border-neutral-700'
                 }`}
               >
-                {plan.badgeKey && (
-                  <View className="absolute -top-2.5 right-4 bg-warning-500 rounded-full px-2 py-0.5">
-                    <Text className="text-xs font-semibold text-white">{t(plan.badgeKey)}</Text>
-                  </View>
-                )}
-                <View className="flex-row items-center justify-between gap-3">
-                  <View className="flex-row items-center gap-3 flex-1">
-                    <View
-                      className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
-                        selected ? 'border-primary-500' : 'border-neutral-300 dark:border-neutral-600'
+                {/* Best offer header row — annual only */}
+                {plan.bestOffer && (
+                  <View className="flex-row items-center justify-between px-4 pt-3 pb-1.5">
+                    <Text
+                      className={`text-xs font-bold uppercase tracking-wider ${
+                        selected ? 'text-primary-500' : 'text-neutral-400 dark:text-neutral-500'
                       }`}
                     >
-                      {selected && <View className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold text-neutral-900 dark:text-white">
-                        {t(plan.labelKey)}
+                      {t('premium_paywall_best_offer', { percent: plan.savingsPercent })}
+                    </Text>
+                    <View
+                      className={`rounded-full px-2.5 py-1 ${
+                        selected ? 'bg-primary-500' : 'bg-neutral-200 dark:bg-neutral-700'
+                      }`}
+                    >
+                      <Text
+                        className={`text-xs font-bold ${
+                          selected ? 'text-white' : 'text-neutral-500 dark:text-neutral-400'
+                        }`}
+                      >
+                        {t('premium_paywall_trial_badge', { days: plan.trialDays })}
                       </Text>
-                      {plan.descKey && (
-                        <Text className="text-sm text-neutral-400">{t(plan.descKey)}</Text>
-                      )}
                     </View>
                   </View>
-                  <View className="items-end">
+                )}
+
+                {/* Main content row */}
+                <View
+                  className={`flex-row items-start justify-between px-4 ${
+                    plan.bestOffer ? 'pb-3' : 'py-4'
+                  }`}
+                >
+                  <View className="flex-1">
+                    <Text
+                      className={`text-xl font-bold ${
+                        selected
+                          ? 'text-neutral-900 dark:text-white'
+                          : 'text-neutral-500 dark:text-neutral-400'
+                      }`}
+                    >
+                      {t(plan.labelKey)}
+                    </Text>
                     {plan.originalPrice && (
-                      <Text className="text-sm text-neutral-400 line-through">{plan.originalPrice}</Text>
+                      <Text className="text-sm text-neutral-400 mt-0.5">
+                        {t('premium_paywall_annual_months')}{' '}
+                        <Text className="line-through">{plan.originalPrice}</Text>
+                      </Text>
                     )}
-                    <View className="flex-row items-baseline gap-1">
-                      <Text className="text-lg font-bold text-neutral-900 dark:text-white">{plan.price}</Text>
-                      {plan.periodKey && <Text className="text-sm text-neutral-400">{t(plan.periodKey)}</Text>}
-                    </View>
+                    {plan.descKey && !plan.originalPrice && (
+                      <Text className="text-sm text-neutral-400 mt-0.5">{t(plan.descKey)}</Text>
+                    )}
+                  </View>
+
+                  <View className="items-end ml-4">
+                    <Text
+                      className={`text-xl font-bold ${
+                        selected && plan.bestOffer
+                          ? 'text-primary-500'
+                          : selected
+                          ? 'text-neutral-900 dark:text-white'
+                          : 'text-neutral-500 dark:text-neutral-400'
+                      }`}
+                    >
+                      {plan.price}
+                    </Text>
+                    {plan.pricePerMonth && (
+                      <Text className="text-sm text-neutral-400 mt-0.5">{plan.pricePerMonth}</Text>
+                    )}
                   </View>
                 </View>
               </Pressable>
@@ -141,15 +211,26 @@ export function ProPaywallSheet({ visible, onClose }: ProPaywallSheetProps) {
           })}
         </View>
 
-        <Button onPress={handleUpgrade} size="lg" className="w-full mt-2">
-          <View className="items-center w-full">
-            <Text className="text-lg font-semibold text-white text-center">{t('premium_paywall_cta')}</Text>
-            <Text className="text-sm text-white/80 text-center">
-              {selectedPlanData.price}
-              {selectedPlanData.periodKey ? ` ${t(selectedPlanData.periodKey)}` : ` · ${t('premium_paywall_lifetime_desc')}`}
-            </Text>
-          </View>
-        </Button>
+        {/* CTA */}
+        <View className="w-full mt-2">
+          <Button onPress={handleUpgrade} size="lg">
+            <Text className="text-xl font-bold text-white text-center w-full">{ctaLabel}</Text>
+          </Button>
+        </View>
+
+        {/* Footer */}
+        <View className="items-center gap-2 pb-2">
+          <Text className="text-sm text-neutral-400 text-center">
+            {selectedPlanData.trialDays
+              ? t('premium_paywall_no_charge_now')
+              : selectedPlanData.id === 'lifetime'
+              ? t('premium_paywall_one_time_purchase')
+              : t('premium_paywall_cancel_anytime')}
+          </Text>
+          <Pressable onPress={() => setShowAllPlans(prev => !prev)}>
+            <Text className="text-sm text-primary-500">{t('premium_paywall_all_plans')}</Text>
+          </Pressable>
+        </View>
       </View>
     </BottomSheet>
   )
