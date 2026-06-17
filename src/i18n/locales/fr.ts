@@ -607,6 +607,11 @@ export const fr = {
   onboarding_slide6_subtitle: 'Créez votre carte des endroits à revisiter et partagez-la avec vos amis pour qu\'ils découvrent vos recommandations.',
   onboarding_slide8_title: 'Prêt au décollage',
   onboarding_slide8_subtitle: 'Créez votre premier voyage maintenant et commencez à planifier.',
+  onboarding_pro_title: 'Sans limites',
+  onboarding_pro_subtitle: 'Tout ce qu\'il vous faut pour voyager sans restrictions.',
+  onboarding_pro_cta_trial: 'Essayer Pro gratuitement 7 jours',
+  onboarding_pro_cta_skip: 'Continuer gratuitement →',
+  onboarding_pro_free_note: 'L\'app est gratuite · Pro est optionnel',
 
   // ─── PREMIUM ───────────────────────────────────────────────────────────────
   premium_paywall_generic_title: 'Passer à Pro',

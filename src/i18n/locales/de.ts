@@ -607,6 +607,11 @@ export const de = {
   onboarding_slide6_subtitle: 'Erstelle deine Karte der Orte, die du wieder besuchen möchtest, und teile sie mit Freunden, damit sie deine Empfehlungen entdecken.',
   onboarding_slide8_title: 'Bereit zum Abheben',
   onboarding_slide8_subtitle: 'Erstelle jetzt deine erste Reise und fange an zu planen.',
+  onboarding_pro_title: 'Ohne Grenzen',
+  onboarding_pro_subtitle: 'Alles, was du brauchst, um ohne Einschränkungen zu reisen.',
+  onboarding_pro_cta_trial: 'Pro 7 Tage kostenlos testen',
+  onboarding_pro_cta_skip: 'Kostenlos weitermachen →',
+  onboarding_pro_free_note: 'Die App ist kostenlos · Pro ist optional',
 
   // ─── PREMIUM ───────────────────────────────────────────────────────────────
   premium_paywall_generic_title: 'Zu Pro wechseln',

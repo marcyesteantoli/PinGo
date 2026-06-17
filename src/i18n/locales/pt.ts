@@ -607,6 +607,11 @@ export const pt = {
   onboarding_slide6_subtitle: 'Monte seu mapa de lugares para voltar e compartilhe com amigos para que descubram suas recomendações.',
   onboarding_slide8_title: 'Pronto para decolar',
   onboarding_slide8_subtitle: 'Crie sua primeira viagem agora e comece a planejar.',
+  onboarding_pro_title: 'Sem limites',
+  onboarding_pro_subtitle: 'Tudo o que você precisa para viajar sem restrições.',
+  onboarding_pro_cta_trial: 'Experimentar Pro grátis por 7 dias',
+  onboarding_pro_cta_skip: 'Continuar grátis →',
+  onboarding_pro_free_note: 'O app é gratuito · Pro é opcional',
 
   // ─── PREMIUM ───────────────────────────────────────────────────────────────
   premium_paywall_generic_title: 'Ir para Pro',

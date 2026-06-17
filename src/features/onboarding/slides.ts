@@ -57,6 +57,15 @@ const SLIDES: OnboardingSlideData[] = [
     subtitleKey: 'onboarding_slide6_subtitle',
   },
   {
+    key: 'pro_awareness',
+    type: 'pro_awareness',
+    iconName: 'sparkles',
+    accentColor: '#0046de',
+    bgColor: '#FFFFFF',
+    titleKey: 'onboarding_pro_title',
+    subtitleKey: 'onboarding_pro_subtitle',
+  },
+  {
     key: 'activation',
     type: 'activation',
     iconName: 'rocket-outline',

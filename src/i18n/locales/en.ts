@@ -609,6 +609,11 @@ export const en = {
   onboarding_slide6_subtitle: 'Build your map of must-go spots and share it with friends so they can discover your recommendations.',
   onboarding_slide8_title: 'Ready for takeoff',
   onboarding_slide8_subtitle: 'Create your first trip now and start planning.',
+  onboarding_pro_title: 'No limits',
+  onboarding_pro_subtitle: 'Everything you need to travel without restrictions.',
+  onboarding_pro_cta_trial: 'Try Pro free for 7 days',
+  onboarding_pro_cta_skip: 'Continue for free →',
+  onboarding_pro_free_note: 'The app is free · Pro is optional',
 
   // ─── PREMIUM ───────────────────────────────────────────────────────────────
   premium_paywall_generic_title: 'Go Pro',

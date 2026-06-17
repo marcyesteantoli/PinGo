@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import Animated, {
@@ -28,14 +28,16 @@ interface OnboardingCarouselProps {
   onSkip: () => void
   primaryCta: OnboardingCarouselCta & { color: string }
   secondaryCta?: OnboardingCarouselCta
+  onOpenPaywall?: () => void
 }
 
-export function OnboardingCarousel({ slides, onSkip, primaryCta, secondaryCta }: OnboardingCarouselProps) {
+export function OnboardingCarousel({ slides, onSkip, primaryCta, secondaryCta, onOpenPaywall }: OnboardingCarouselProps) {
   const { t } = useTranslation()
   const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
 
   const [activeIndex, setActiveIndex] = useState(0)
+  const flatListRef = useRef<any>(null)
 
   const bgColors = useMemo(() => slides.map((s) => s.bgColor), [slides])
   const indices = useMemo(() => slides.map((_, i) => i), [slides])
@@ -71,6 +73,11 @@ export function OnboardingCarousel({ slides, onSkip, primaryCta, secondaryCta }:
   )
 
   const isLastSlide = activeIndex === slides.length - 1
+  const isProSlide = slides[activeIndex]?.type === 'pro_awareness'
+
+  const handleContinueFree = useCallback(() => {
+    flatListRef.current?.scrollToIndex({ index: activeIndex + 1, animated: true })
+  }, [activeIndex])
 
   return (
     <Animated.View style={[styles.container, screenStyle]}>
@@ -94,6 +101,7 @@ export function OnboardingCarousel({ slides, onSkip, primaryCta, secondaryCta }:
 
       {/* Slides */}
       <Animated.FlatList
+        ref={flatListRef}
         data={slides}
         keyExtractor={(item) => item.key}
         horizontal
@@ -117,6 +125,26 @@ export function OnboardingCarousel({ slides, onSkip, primaryCta, secondaryCta }:
         <PaginationDots total={slides.length} activeIndex={activeIndex} />
 
         <View style={styles.gap20} />
+
+        {isProSlide && (
+          <>
+            <TouchableOpacity
+              style={[styles.ctaPrimary, { backgroundColor: '#0046DE', shadowColor: '#0046DE' }]}
+              onPress={onOpenPaywall}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.ctaPrimaryText}>{t('onboarding_pro_cta_trial')}</Text>
+            </TouchableOpacity>
+
+            <View style={styles.gap12} />
+            <TouchableOpacity
+              onPress={handleContinueFree}
+              hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
+            >
+              <Text style={styles.ctaSecondaryText}>{t('onboarding_pro_cta_skip')}</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         {isLastSlide && (
           <>
