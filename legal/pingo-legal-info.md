@@ -29,6 +29,7 @@ Sustituye los [ ] con tu información real antes de generar.
 - [x] **Photos and images** — fotos de viajes y recuerdos subidas por el usuario
 - [x] **Files and documents** — documentos subidos por el usuario (PDFs, imágenes)
 - [x] **Financial information** — gastos de viaje, importes, divisas, divisiones de deuda
+- [x] **Purchase / subscription data** — estado de suscripción Pro (`is_pro`, `pro_expires_at`); PinGo no almacena datos de tarjeta
 - [x] **Location data (manual input)** — ubicaciones de experiencias introducidas manualmente por el usuario (NO rastreo GPS)
 - [ ] ~~Precise geolocation~~ — NO, la app NO accede al GPS del dispositivo
 - [ ] ~~Device identifiers~~ — NO
@@ -53,6 +54,7 @@ Sustituye los [ ] con tu información real antes de generar.
 - [x] **To provide the service** — la app no funciona sin los datos básicos
 - [x] **Account management** — crear y gestionar la cuenta del usuario
 - [x] **To enable collaboration** — compartir viajes con otros usuarios
+- [x] **Subscription management** — gestionar el acceso al Plan Pro y verificar entitlements
 - [ ] ~~Advertising~~ — NO
 - [ ] ~~Analytics~~ — NO
 - [ ] ~~Marketing~~ — NO
@@ -90,6 +92,24 @@ Sustituye los [ ] con tu información real antes de generar.
 - **Datos que recibe:** Nombre y email (solo en el momento del login)
 - **Privacy Policy Apple:** https://www.apple.com/legal/privacy
 - **Relación:** Authentication provider
+
+### Apple App Store (In-App Purchases)
+- **Qué es:** Procesador de pagos para compras en app en iOS
+- **Datos que recibe:** Datos de pago y transacciones (gestionados íntegramente por Apple; PinGo NO recibe datos de tarjeta)
+- **Privacy Policy Apple:** https://www.apple.com/legal/privacy
+- **Relación:** Payment processor
+
+### Google Play Billing (In-App Purchases)
+- **Qué es:** Procesador de pagos para compras en app en Android
+- **Datos que recibe:** Datos de pago y transacciones (gestionados íntegramente por Google; PinGo NO recibe datos de tarjeta)
+- **Privacy Policy Google:** https://policies.google.com/privacy
+- **Relación:** Payment processor
+
+### RevenueCat (pendiente de integración)
+- **Qué es:** Plataforma de gestión de suscripciones y entitlements
+- **Datos que recibe:** Identificador de usuario anónimo e historial de transacciones (sin datos de tarjeta)
+- **Privacy Policy RevenueCat:** https://www.revenuecat.com/privacy
+- **Relación:** Service provider / subscription management
 
 ---
 
@@ -195,6 +215,16 @@ Sustituye los [ ] con tu información real antes de generar.
 > - Errores en los cálculos de gastos compartidos derivados de datos introducidos incorrectamente por el usuario
 > - Acciones realizadas por otros colaboradores dentro de un viaje compartido
 > - Interrupciones del servicio
+
+## T&C Bloque 5B — Plan Pro y Suscripciones
+
+> PinGo ofrece un Plan Free (gratuito) y un Plan Pro de pago.
+> Plan Free: hasta 3 viajes activos, 10 fotos/viaje, 3 documentos/viaje.
+> Plan Pro: 3,99 €/mes · 29,99 €/año (7 días prueba gratuita) · 79,99 € lifetime.
+> Los planes Mensual y Anual se renuevan automáticamente.
+> Cancelación en iOS: Ajustes → Suscripciones → PinGo.
+> Cancelación en Android: Google Play → Suscripciones → PinGo.
+> Reembolsos gestionados por App Store / Google Play — PinGo no gestiona pagos directamente.
 
 ## T&C Bloque 6 — Terminación
 

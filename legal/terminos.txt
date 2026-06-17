@@ -1,5 +1,5 @@
 TÉRMINOS Y CONDICIONES — PINGO
-Última actualización: 16 de junio de 2025
+Última actualización: 17 de junio de 2026
 
 
 Estos Términos y Condiciones ("Términos") regulan el acceso y uso de la aplicación móvil PinGo ("la App", "el Servicio"). Al crear una cuenta o usar PinGo aceptas quedar vinculado por estos Términos. Si no estás de acuerdo, no uses la App.
@@ -65,21 +65,63 @@ El tratamiento de tus datos personales se rige por nuestra Política de Privacid
 
 
 ──────────────────────────────────────────────────
-6. PROPIEDAD INTELECTUAL DE PINGO
+6. PLAN PRO Y SUSCRIPCIONES
+──────────────────────────────────────────────────
+
+PinGo ofrece dos modalidades de uso:
+
+Plan Free (gratuito)
+La cuenta gratuita incluye:
+- Hasta 3 viajes activos simultáneamente.
+- Hasta 10 fotos por viaje.
+- Hasta 3 documentos por viaje.
+
+Plan Pro
+El Plan Pro elimina estas restricciones y desbloquea funciones exclusivas (mapas de experiencias guardadas y wishlist). Está disponible en las siguientes modalidades:
+
+- Mensual: 3,99 € al mes, con renovación automática mensual.
+- Anual: 29,99 € al año (equivale a 2,50 €/mes), con renovación automática anual. Incluye 7 días de prueba gratuita.
+- De por vida (Lifetime): 79,99 € pago único, sin renovaciones.
+
+Precios con IVA incluido. El precio final puede variar según la plataforma (App Store / Google Play) y tu región.
+
+Período de prueba
+El plan Anual incluye un período de prueba gratuito de 7 días. No se realiza ningún cargo durante el período de prueba. Si no cancelas antes de que finalice, se facturará automáticamente el precio del plan Anual.
+
+Renovación automática
+Los planes Mensual y Anual se renuevan automáticamente al final de cada período, al mismo precio, salvo que canceles antes. Tu cuenta se cargará dentro de las 24 horas previas al final del período en curso.
+
+Para cancelar en iOS: Ajustes → [tu nombre] → Suscripciones → PinGo → Cancelar suscripción.
+Para cancelar en Android: Google Play → Suscripciones → PinGo → Cancelar suscripción.
+
+La cancelación surte efecto al final del período en curso. No se realizan reembolsos proporcionales por el tiempo no utilizado.
+
+Reembolsos
+Los pagos se procesan íntegramente a través de Apple App Store (iOS) o Google Play (Android). PinGo no gestiona directamente ningún pago ni datos de tarjeta. Cualquier solicitud de reembolso debe tramitarse a través de la plataforma correspondiente conforme a sus políticas:
+
+- Apple App Store: reportaproblem.apple.com
+- Google Play: support.google.com/googleplay/answer/2479637
+
+Cambios de precio
+Podemos modificar los precios de los planes en cualquier momento. Notificaremos los cambios con al menos 30 días de antelación antes de que el nuevo precio entre en vigor para las suscripciones activas.
+
+
+──────────────────────────────────────────────────
+7. PROPIEDAD INTELECTUAL DE PINGO
 ──────────────────────────────────────────────────
 
 El nombre PinGo, el logotipo, el diseño de la App, el código fuente y todos los elementos originales del Servicio son propiedad exclusiva del desarrollador o están protegidos por las licencias correspondientes. Estos Términos no te conceden ningún derecho sobre dicha propiedad intelectual más allá del uso personal y no comercial de la App.
 
 
 ──────────────────────────────────────────────────
-7. DISPONIBILIDAD DEL SERVICIO
+8. DISPONIBILIDAD DEL SERVICIO
 ──────────────────────────────────────────────────
 
 Nos esforzamos por mantener PinGo operativa de forma continua, pero no garantizamos una disponibilidad del 100 %. El servicio puede interrumpirse por mantenimiento, actualizaciones, fallos técnicos o causas fuera de nuestro control. No seremos responsables de los perjuicios derivados de interrupciones del servicio.
 
 
 ──────────────────────────────────────────────────
-8. LIMITACIÓN DE RESPONSABILIDAD
+9. LIMITACIÓN DE RESPONSABILIDAD
 ──────────────────────────────────────────────────
 
 En la máxima medida permitida por la ley aplicable, PinGo y su desarrollador no serán responsables de:
@@ -92,23 +134,25 @@ En la máxima medida permitida por la ley aplicable, PinGo y su desarrollador no
 
 
 ──────────────────────────────────────────────────
-9. ELIMINACIÓN DE CUENTA
+10. ELIMINACIÓN DE CUENTA
 ──────────────────────────────────────────────────
 
 Puedes eliminar tu cuenta en cualquier momento desde la App: Perfil → Gestión de cuenta → Eliminar cuenta. La eliminación es irreversible. Para más detalles sobre qué ocurre con tus datos al eliminar la cuenta, consulta la Política de Privacidad.
 
 Nos reservamos el derecho de suspender o eliminar cuentas que incumplan estos Términos, sin previo aviso en casos graves (fraude, contenido ilegal, etc.).
 
+Nota: Si tienes una suscripción activa al Plan Pro, la eliminación de la cuenta no cancela automáticamente la suscripción en App Store o Google Play. Cancela la suscripción desde la plataforma correspondiente antes de eliminar tu cuenta.
+
 
 ──────────────────────────────────────────────────
-10. MODIFICACIONES DEL SERVICIO Y LOS TÉRMINOS
+11. MODIFICACIONES DEL SERVICIO Y LOS TÉRMINOS
 ──────────────────────────────────────────────────
 
 Podemos modificar o discontinuar el Servicio en cualquier momento. También podemos actualizar estos Términos ocasionalmente. Cuando lo hagamos, actualizaremos la fecha de "última actualización" y, si los cambios son significativos, te notificaremos con antelación razonable a través de la App o por email. El uso continuado del Servicio tras la entrada en vigor de los nuevos Términos implica su aceptación.
 
 
 ──────────────────────────────────────────────────
-11. LEY APLICABLE Y JURISDICCIÓN
+12. LEY APLICABLE Y JURISDICCIÓN
 ──────────────────────────────────────────────────
 
 Estos Términos se rigen por la legislación española. Para la resolución de cualquier controversia derivada de estos Términos, las partes se someten a la jurisdicción de los juzgados y tribunales de Castellón, España, con renuncia expresa a cualquier otro fuero que pudiera corresponderles.
@@ -119,7 +163,7 @@ Si eres consumidor residente en la Unión Europea, también puedes acceder a la 
 
 
 ──────────────────────────────────────────────────
-12. CONTACTO
+13. CONTACTO
 ──────────────────────────────────────────────────
 
 Para cualquier consulta sobre estos Términos y Condiciones:
