@@ -25,6 +25,7 @@ import { Input } from '@components/ui/Input'
 import { SkeletonCard } from '@components/ui/Skeleton'
 import { TripCard } from '@features/trips/components/TripCard'
 import { useJoinTrip } from '@features/trips/hooks/useJoinTrip'
+import { ActiveTripLimitReachedError } from '@features/trips/hooks/useCreateTrip'
 import { useTrips } from '@features/trips/hooks/useTrips'
 import { buildJoinTripSchema, type JoinTripFormData } from '@features/trips/types'
 import { SegmentedTabBar } from '@components/ui/SegmentedTabBar'
@@ -156,8 +157,13 @@ export default function TripsScreen() {
       setJoinSheetVisible(false)
       reset()
       router.push(`/(app)/trips/${tripId}/timeline`)
-    } catch {
-      // Error se muestra via joinTrip.error
+    } catch (err) {
+      if (err instanceof ActiveTripLimitReachedError) {
+        setJoinSheetVisible(false)
+        reset()
+        setTripsPaywallVisible(true)
+      }
+      // Other errors shown via joinTrip.error
     }
   }
 
@@ -273,7 +279,14 @@ export default function TripsScreen() {
       <Animated.View className="absolute right-5 items-end gap-3" style={[fabAnimStyle, { bottom: 16 }]} pointerEvents="box-none">
         {/* Opción Unirse */}
         <Animated.View style={option2Style} pointerEvents={fabOpen ? 'auto' : 'none'}>
-          <FabOption onPress={() => { toggleFab(); setJoinSheetVisible(true) }}>
+          <FabOption onPress={() => {
+            toggleFab()
+            if (!isPro && !isProLoading && upcomingTrips.length >= LIMITS.FREE_MAX_ACTIVE_TRIPS) {
+              setTripsPaywallVisible(true)
+              return
+            }
+            setJoinSheetVisible(true)
+          }}>
             <View className="px-4 py-2 bg-white dark:bg-surface-700 rounded-full" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 }}>
               <Text className="text-[15px] font-semibold text-neutral-900 dark:text-neutral-50">{t('trips_fab_join')}</Text>
             </View>

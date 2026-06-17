@@ -5,7 +5,8 @@
       "Bash(xargs grep -l \"rating\\\\|Rating\\\\|star\\\\|Star\")",
       "mcp__plugin_supabase_supabase__apply_migration",
       "Bash(node \".agents/skills/impeccable/scripts/context.mjs\")",
-      "Bash(cmd /c dir \"c:\\\\Users\\\\Marc\\\\OneDrive\\\\Documentos\\\\Master IA\\\\TripSync\\\\supabase\")"
+      "Bash(cmd /c dir \"c:\\\\Users\\\\Marc\\\\OneDrive\\\\Documentos\\\\Master IA\\\\TripSync\\\\supabase\")",
+      "Bash(SUPABASE_DB_PASSWORD='RSz5wVNcDTPzFwCs' supabase db push --linked --yes)"
     ]
   },
   "enabledPlugins": {
