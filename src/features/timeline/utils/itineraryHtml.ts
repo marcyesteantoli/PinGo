@@ -29,24 +29,34 @@ function renderExperience(exp: Experience, locale: string): string {
 
   return `
     <div class="experience">
-      <div class="experience-main">
+      <div class="experience-header">
         <span class="experience-title">${escapeHtml(exp.title)}</span>
         ${timeRange ? `<span class="experience-time">${escapeHtml(timeRange)}</span>` : ''}
       </div>
-      ${locationName ? `<div class="experience-location">${escapeHtml(locationName)}</div>` : ''}
+      ${locationName ? `<div class="experience-location">&#128205; ${escapeHtml(locationName)}</div>` : ''}
     </div>
   `
 }
 
-function renderSection(section: Section, locale: string, undatedSectionTitle: string): string {
-  const title = section.title === UNDATED_SENTINEL
+function renderSection(section: Section, locale: string, undatedSectionTitle: string, index: number, isUndated: boolean): string {
+  const title = isUndated
     ? undatedSectionTitle
     : formatDateWithWeekday(section.title, locale)
 
+  const dayLabel = isUndated ? '' : `<span class="day-badge">Day ${index + 1}</span>`
+
   return `
     <div class="section">
-      <h2 class="section-title">${escapeHtml(title)}</h2>
-      ${section.data.map(exp => renderExperience(exp, locale)).join('')}
+      <div class="section-header">
+        ${dayLabel}
+        <span class="section-title">${escapeHtml(title)}</span>
+      </div>
+      <div class="experience-list">
+        ${section.data.length > 0
+          ? section.data.map(exp => renderExperience(exp, locale)).join('')
+          : '<div class="empty-day">—</div>'
+        }
+      </div>
     </div>
   `
 }
@@ -59,6 +69,10 @@ export function buildItineraryHtml(
 ): string {
   const dateRange = formatDateRange(trip.start_date, trip.end_date, locale)
 
+  const datedSections = sections.filter(s => s.title !== UNDATED_SENTINEL)
+  const undatedSections = sections.filter(s => s.title === UNDATED_SENTINEL)
+  const orderedSections = [...datedSections, ...undatedSections]
+
   return `
     <!DOCTYPE html>
     <html>
@@ -66,63 +80,157 @@ export function buildItineraryHtml(
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+
           body {
-            font-family: -apple-system, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, Helvetica Neue, Arial, sans-serif;
             color: #0f172a;
-            padding: 32px;
+            background: #ffffff;
+            padding: 40px 44px;
+            font-size: 13px;
+            line-height: 1.5;
           }
-          h1 {
-            font-size: 24px;
-            margin: 0 0 4px;
+
+          /* ── Header ── */
+          .trip-header {
+            border-bottom: 3px solid #6366f1;
+            padding-bottom: 20px;
+            margin-bottom: 32px;
           }
-          .date-range {
-            font-size: 14px;
-            color: #6366f1;
+          .trip-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+            margin-bottom: 6px;
+          }
+          .trip-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+          .trip-dates {
+            font-size: 13px;
             font-weight: 600;
-            margin: 0 0 24px;
+            color: #6366f1;
           }
+          .trip-count {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+
+          /* ── Day Section ── */
           .section {
-            margin-bottom: 20px;
+            margin-bottom: 28px;
+            break-inside: avoid;
+          }
+          .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            border-radius: 0 8px 8px 0;
+            padding: 10px 14px;
+            margin-bottom: 4px;
+          }
+          .day-badge {
+            background: #6366f1;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            white-space: nowrap;
+            flex-shrink: 0;
           }
           .section-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 6px;
-            margin: 0 0 10px;
+            color: #3730a3;
             text-transform: capitalize;
           }
-          .experience {
-            padding: 8px 0;
-            border-bottom: 1px solid #f1f5f9;
+
+          /* ── Experience List ── */
+          .experience-list {
+            padding: 4px 0 4px 18px;
+            border-left: 2px solid #e0e7ff;
+            margin-left: 8px;
           }
-          .experience-main {
+          .experience {
+            padding: 10px 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            break-inside: avoid;
+          }
+          .experience:last-child {
+            margin-bottom: 0;
+          }
+          .experience-header {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
+            align-items: flex-start;
+            gap: 12px;
           }
           .experience-title {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            flex: 1;
           }
           .experience-time {
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: 700;
             color: #6366f1;
-            font-weight: 600;
+            background: #eef2ff;
+            padding: 2px 7px;
+            border-radius: 12px;
             white-space: nowrap;
-            margin-left: 12px;
+            flex-shrink: 0;
           }
           .experience-location {
-            font-size: 12px;
+            font-size: 11px;
             color: #64748b;
-            margin-top: 2px;
+            margin-top: 4px;
+          }
+          .empty-day {
+            font-size: 12px;
+            color: #cbd5e1;
+            padding: 8px 12px;
+            font-style: italic;
+          }
+
+          /* ── Footer ── */
+          .footer {
+            margin-top: 40px;
+            padding-top: 14px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: center;
           }
         </style>
       </head>
       <body>
-        <h1>${escapeHtml(trip.title)}</h1>
-        <p class="date-range">${escapeHtml(dateRange)}</p>
-        ${sections.map(section => renderSection(section, locale, undatedSectionTitle)).join('')}
+        <div class="trip-header">
+          <div class="trip-title">${escapeHtml(trip.title)}</div>
+          <div class="trip-meta">
+            <span class="trip-dates">${escapeHtml(dateRange)}</span>
+            <span class="trip-count">${datedSections.length} day${datedSections.length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+
+        ${orderedSections.map((section, i) => {
+          const isUndated = section.title === UNDATED_SENTINEL
+          const datedIndex = isUndated ? datedSections.length : i
+          return renderSection(section, locale, undatedSectionTitle, datedIndex, isUndated)
+        }).join('')}
+
+        <div class="footer">PinGo · ${escapeHtml(trip.title)}</div>
       </body>
     </html>
   `
