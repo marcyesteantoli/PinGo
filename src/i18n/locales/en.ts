@@ -492,6 +492,7 @@ export const en = {
   docs_deleteSheet_body: '"{{name}}" will be permanently deleted. This action cannot be undone.',
   docs_deleteSheet_confirm: 'Delete document',
   docs_delete_error: 'The document could not be deleted.',
+  docs_delete_not_authorized: 'You can only delete documents you added.',
   docs_saveSheet_title: 'Save document',
   docs_saveSheet_submit: 'Save',
   docs_experiencePicker_label: 'Related experience',
@@ -547,6 +548,8 @@ export const en = {
   memories_delete_confirm_body: 'This will permanently delete the photo.',
   memories_delete_confirm_action: 'Delete',
   memories_delete_confirm_cancel: 'Cancel',
+  memories_delete_error: 'Could not delete the photo. Please try again.',
+  memories_delete_not_authorized: 'You can only delete photos you uploaded.',
 
   // ─── VALIDATION ───────────────────────────────────────────────────────────
   validation_required_name: 'Name is required',

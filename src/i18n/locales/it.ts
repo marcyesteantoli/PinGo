@@ -490,6 +490,7 @@ export const it = {
   docs_deleteSheet_body: '«{{name}}» sarà eliminato definitivamente. Questa azione non può essere annullata.',
   docs_deleteSheet_confirm: 'Elimina documento',
   docs_delete_error: 'Impossibile eliminare il documento.',
+  docs_delete_not_authorized: 'Puoi eliminare solo i documenti che hai aggiunto tu.',
   docs_saveSheet_title: 'Salva documento',
   docs_saveSheet_submit: 'Salva',
   docs_experiencePicker_label: 'Esperienza correlata',
@@ -545,6 +546,8 @@ export const it = {
   memories_delete_confirm_body: 'Questa foto sarà eliminata definitivamente.',
   memories_delete_confirm_action: 'Elimina',
   memories_delete_confirm_cancel: 'Annulla',
+  memories_delete_error: 'Impossibile eliminare la foto. Riprova.',
+  memories_delete_not_authorized: 'Puoi eliminare solo le foto che hai caricato tu.',
 
   // ─── VALIDATION ───────────────────────────────────────────────────────────
   validation_required_name: 'Il nome è obbligatorio',

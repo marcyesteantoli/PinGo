@@ -490,6 +490,7 @@ export const de = {
   docs_deleteSheet_body: '«{{name}}» wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
   docs_deleteSheet_confirm: 'Dokument löschen',
   docs_delete_error: 'Dokument konnte nicht gelöscht werden.',
+  docs_delete_not_authorized: 'Du kannst nur Dokumente löschen, die du selbst hinzugefügt hast.',
   docs_saveSheet_title: 'Dokument speichern',
   docs_saveSheet_submit: 'Speichern',
   docs_experiencePicker_label: 'Zugehöriges Erlebnis',
@@ -545,6 +546,8 @@ export const de = {
   memories_delete_confirm_body: 'Dieses Foto wird dauerhaft gelöscht.',
   memories_delete_confirm_action: 'Löschen',
   memories_delete_confirm_cancel: 'Abbrechen',
+  memories_delete_error: 'Foto konnte nicht gelöscht werden. Bitte versuche es erneut.',
+  memories_delete_not_authorized: 'Du kannst nur Fotos löschen, die du selbst hochgeladen hast.',
 
   // ─── VALIDATION ───────────────────────────────────────────────────────────
   validation_required_name: 'Name ist erforderlich',
