@@ -391,7 +391,10 @@ export default function DocumentsScreen() {
       })
       setDocumentToDelete(null)
     } catch (err) {
-      Alert.alert(t('common_error'), err instanceof Error ? err.message : t('docs_delete_error'))
+      const msg = err instanceof Error && err.message === 'not_authorized'
+        ? t('docs_delete_not_authorized')
+        : t('docs_delete_error')
+      Alert.alert(t('common_error'), msg)
     }
   }
 

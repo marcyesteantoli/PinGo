@@ -490,6 +490,7 @@ export const pt = {
   docs_deleteSheet_body: '"{{name}}" será excluído permanentemente. Esta ação não pode ser desfeita.',
   docs_deleteSheet_confirm: 'Excluir documento',
   docs_delete_error: 'Não foi possível excluir o documento.',
+  docs_delete_not_authorized: 'Você só pode excluir documentos que você mesmo adicionou.',
   docs_saveSheet_title: 'Salvar documento',
   docs_saveSheet_submit: 'Salvar',
   docs_experiencePicker_label: 'Experiência relacionada',
@@ -545,6 +546,8 @@ export const pt = {
   memories_delete_confirm_body: 'Esta foto será excluída permanentemente.',
   memories_delete_confirm_action: 'Excluir',
   memories_delete_confirm_cancel: 'Cancelar',
+  memories_delete_error: 'Não foi possível excluir a foto. Tente novamente.',
+  memories_delete_not_authorized: 'Você só pode excluir fotos que você mesmo enviou.',
 
   // ─── VALIDATION ───────────────────────────────────────────────────────────
   validation_required_name: 'Nome é obrigatório',

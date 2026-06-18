@@ -490,6 +490,7 @@ export const fr = {
   docs_deleteSheet_body: '«{{name}}» sera supprimé définitivement. Cette action est irréversible.',
   docs_deleteSheet_confirm: 'Supprimer le document',
   docs_delete_error: 'Impossible de supprimer le document.',
+  docs_delete_not_authorized: 'Vous ne pouvez supprimer que les documents que vous avez ajoutés.',
   docs_saveSheet_title: 'Enregistrer le document',
   docs_saveSheet_submit: 'Enregistrer',
   docs_experiencePicker_label: 'Expérience liée',
@@ -545,6 +546,8 @@ export const fr = {
   memories_delete_confirm_body: 'Cette photo sera définitivement supprimée.',
   memories_delete_confirm_action: 'Supprimer',
   memories_delete_confirm_cancel: 'Annuler',
+  memories_delete_error: 'Impossible de supprimer la photo. Veuillez réessayer.',
+  memories_delete_not_authorized: 'Vous ne pouvez supprimer que les photos que vous avez téléchargées.',
 
   // ─── VALIDATION ───────────────────────────────────────────────────────────
   validation_required_name: 'Le nom est obligatoire',
