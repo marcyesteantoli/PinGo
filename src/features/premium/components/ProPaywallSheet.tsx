@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useColorScheme } from 'nativewind'
@@ -8,6 +8,8 @@ import { BottomSheet } from '@components/ui/BottomSheet'
 import { Button } from '@components/ui/Button'
 import { colors } from '@lib/colors'
 import { LIMITS } from '@/config/limits'
+import { usePurchase } from '@features/premium/hooks/usePurchase'
+import { useRestorePurchases } from '@features/premium/hooks/useRestorePurchases'
 
 export type ProPaywallFeature = 'maps' | 'trips' | 'photos' | 'documents' | 'pdf'
 
@@ -71,6 +73,9 @@ export function ProPaywallSheet({ visible, onClose, feature, isLimitReached }: P
   const isDark = colorScheme === 'dark'
   const [selectedPlan, setSelectedPlan] = useState<PlanId>('annual')
 
+  const purchase = usePurchase()
+  const restorePurchases = useRestorePurchases()
+
   const limitMessages: Partial<Record<ProPaywallFeature, string>> = {
     trips: t('premium_trips_limit_message', { count: LIMITS.FREE_MAX_ACTIVE_TRIPS }),
     photos: t('premium_photos_limit_message', { count: LIMITS.FREE_MAX_PHOTOS_PER_TRIP }),
@@ -88,7 +93,7 @@ export function ProPaywallSheet({ visible, onClose, feature, isLimitReached }: P
 
   const handleUpgrade = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    // TODO: integrar RevenueCat/StoreKit
+    purchase.mutate({ planId: selectedPlan, onClose })
   }
 
   const ctaLabel = selectedPlanData.trialDays
@@ -231,8 +236,11 @@ export function ProPaywallSheet({ visible, onClose, feature, isLimitReached }: P
 
         {/* CTA */}
         <View className="w-full mt-2">
-          <Button onPress={handleUpgrade} size="lg">
-            <Text className="text-xl font-bold text-white text-center w-full">{ctaLabel}</Text>
+          <Button onPress={handleUpgrade} size="lg" disabled={purchase.isPending}>
+            {purchase.isPending
+              ? <ActivityIndicator color="white" />
+              : <Text className="text-xl font-bold text-white text-center w-full">{ctaLabel}</Text>
+            }
           </Button>
         </View>
 
@@ -247,6 +255,12 @@ export function ProPaywallSheet({ visible, onClose, feature, isLimitReached }: P
           </Text>
           <Pressable onPress={() => setShowAllPlans(prev => !prev)}>
             <Text className="text-sm text-primary-500">{t('premium_paywall_all_plans')}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => restorePurchases.mutate()}
+            disabled={restorePurchases.isPending}
+          >
+            <Text className="text-sm text-neutral-400">{t('premium_restore_purchases')}</Text>
           </Pressable>
         </View>
       </View>

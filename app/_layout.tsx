@@ -18,6 +18,7 @@ import { initRatingSession } from '@/hooks/useRatingPrompt'
 import { ShareDocumentSheet } from '@features/documents/components/ShareDocumentSheet'
 import { useNotificationSetup } from '@features/notifications/useNotificationSetup'
 import { useNotificationHandler } from '@features/notifications/useNotificationHandler'
+import { useRevenueCatSetup } from '@features/premium/hooks/useRevenueCatSetup'
 import { initI18n } from '@/i18n'
 import { initSentry, Sentry } from '@lib/sentry'
 import { SentryErrorBoundary } from '@components/SentryErrorBoundary'
@@ -62,6 +63,7 @@ function AppShell() {
 
   useNotificationSetup()
   useNotificationHandler()
+  useRevenueCatSetup()
 
   useEffect(() => {
     segmentsRef.current = segments

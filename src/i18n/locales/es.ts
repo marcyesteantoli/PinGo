@@ -63,6 +63,11 @@ export const es = {
   profile_title: 'Perfil',
   profile_stats_trips: 'Viajes',
   profile_stats_saved: 'Joyas',
+  profile_section_subscription: 'Suscripción',
+  profile_pro_active_title: 'PinGo PRO',
+  profile_manage_subscription: 'Gestionar suscripción',
+  profile_upgrade_to_pro: 'Actualizar a PRO',
+  profile_upgrade_to_pro_subtitle: 'Desbloquea mapas, viajes ilimitados y más',
   profile_section_account: 'Cuenta',
   profile_field_name: 'Nombre',
   profile_field_email: 'Email',
@@ -653,6 +658,12 @@ export const es = {
   premium_photos_limit_message: 'Este viaje ha alcanzado el límite de {{count}} fotos del plan gratuito.',
   premium_documents_limit_message: 'Este viaje ha alcanzado el límite de {{count}} documentos del plan gratuito.',
   premium_trips_limit_message: 'Has alcanzado el límite de {{count}} viajes activos del plan gratuito.',
+  premium_restore_purchases: 'Restaurar compras',
+  premium_restore_success_title: 'Compra restaurada',
+  premium_restore_success_message: '¡Tu suscripción PRO está activa!',
+  premium_restore_empty_title: 'Sin suscripción',
+  premium_restore_empty_message: 'No se encontró ninguna suscripción activa asociada a tu cuenta.',
+  premium_restore_error_message: 'No se pudo restaurar la compra. Inténtalo de nuevo.',
 } as const
 
 export type TranslationKeys = keyof typeof es

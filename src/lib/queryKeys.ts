@@ -51,5 +51,6 @@ export const queryKeys = {
   },
   premium: {
     tripStatus: (tripId: string) => ['premium', 'tripStatus', tripId] as const,
+    customerInfo: () => ['premium', 'customerInfo'] as const,
   },
 }
