@@ -83,6 +83,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           ] satisfies [string, { iosUrlScheme: string }],
         ]
       : []),
+    [
+      '@sentry/react-native/expo',
+      {
+        organization: 'PinGo',
+        project: 'PinGo',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

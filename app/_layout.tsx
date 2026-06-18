@@ -19,7 +19,11 @@ import { ShareDocumentSheet } from '@features/documents/components/ShareDocument
 import { useNotificationSetup } from '@features/notifications/useNotificationSetup'
 import { useNotificationHandler } from '@features/notifications/useNotificationHandler'
 import { initI18n } from '@/i18n'
+import { initSentry, Sentry } from '@lib/sentry'
+import { SentryErrorBoundary } from '@components/SentryErrorBoundary'
 import '../global.css'
+
+initSentry()
 
 function ShareIntentHandler() {
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext()
@@ -65,6 +69,7 @@ function AppShell() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      Sentry.setUser(session?.user ? { id: session.user.id } : null)
       const inAuthGroup = segmentsRef.current[0] === '(auth)'
       const isPublicRoute = inAuthGroup || segmentsRef.current[0] === 'intro'
       if (!session && !isPublicRoute) router.replace('/(auth)/login')
@@ -93,7 +98,7 @@ function AppShell() {
   )
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded] = useFonts({
     PlusJakartaSans_400Regular,
     PlusJakartaSans_500Medium,
@@ -110,16 +115,20 @@ export default function RootLayout() {
   if (!fontsLoaded || !i18nReady) return null
 
   return (
-    <ShareIntentProvider options={{ scheme: 'pingo' }}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <LanguageProvider>
-            <ErrorToastProvider>
-              <AppShell />
-            </ErrorToastProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ShareIntentProvider>
+    <SentryErrorBoundary>
+      <ShareIntentProvider options={{ scheme: 'pingo' }}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <LanguageProvider>
+              <ErrorToastProvider>
+                <AppShell />
+              </ErrorToastProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </ShareIntentProvider>
+    </SentryErrorBoundary>
   )
 }
+
+export default Sentry.wrap(RootLayout)
