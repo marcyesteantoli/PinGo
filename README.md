@@ -1,82 +1,41 @@
-# PinGo
+# PinGo 📍✈️
 
-App móvil colaborativa para gestión de viajes. Permite organizar itinerarios, centralizar documentación, gestionar gastos compartidos y construir un diario colectivo.
+**PinGo** es una aplicación móvil colaborativa diseñada para simplificar la gestión y organización de viajes en grupo, sin descuidar la experiencia individual del viajero.
 
-## Stack
+## 🚀 Funcionalidades Principales
+
+### 👥 Viajes en Grupo (Colaborativo)
+* **Itinerarios dinámicos (Timeline):** Planificación y organización del viaje día a día con actividades, transporte, alojamiento y restaurantes.
+* **Gestión de gastos:** Registro de gastos compartidos con cálculo automático de balances y liquidaciones.
+* **Documentación centralizada:** Adjuntos y reservas accesibles por experiencia en un solo lugar.
+* **Galería de recuerdos:** Espacio común colaborativo para subir fotos y revivir el viaje.
+
+### 👤 Experiencia Individual (Personal)
+* **Mapa de experiencias:** Guarda, organiza y visualiza en el mapa tus lugares favoritos y recomendaciones de viajes anteriores.
+* **Lista de deseos (Wishlist):** Planifica tus próximos destinos, restaurantes y actividades pendientes con soporte de mapa.
+
+---
+
+## Stack tecnológico
 
 | Capa | Tecnología |
 |------|------------|
-| Framework | Expo 52 + React Native 0.76 + Expo Router v4 |
-| UI | NativeWind v4 + Tailwind CSS v3.4 |
-| Estado | TanStack Query v5 + React Hook Form + Zod |
-| Backend | Supabase (PostgreSQL + Auth + Storage + Realtime) |
+| Framework | Expo 54 + React Native 0.81 + Expo Router 6 |
 | Lenguaje | TypeScript 5.3 (strict) |
+| UI | NativeWind 4 + Tailwind CSS 3.4 |
+| Estado / Formularios | TanStack Query 5 + React Hook Form + Zod |
+| Backend | Supabase (PostgreSQL + Auth + Storage + Realtime) |
+| Animaciones | React Native Reanimated 4 + Gesture Handler |
+| Mapas | react-native-maps + Supercluster |
 
-## Funcionalidades
+---
 
-- **Timeline** — Itinerario por días con experiencias (actividades, transporte, alojamiento)
-- **Gastos** — Registro de gastos compartidos con cálculo de balances y liquidaciones
-- **Documentos** — Adjuntos por experiencia con soporte offline-first
-- **Recuerdos** — Galería colaborativa de fotos con captions
-- **Colaboradores** — Acceso por código de invitación con roles (owner / member)
-
-## Estructura del proyecto
-
-```
-app/                    # Rutas (Expo Router file-based)
-│   (auth)/             # Login y registro
-│   (app)/              # Rutas autenticadas
-│       index.tsx       # Dashboard — lista de viajes
-│       trips/[id]/     # Tabs del viaje: timeline, expenses, documents, memories
-│
-src/
-│   components/ui/      # Componentes base reutilizables
-│   features/           # Módulos por dominio (auth, trips, timeline, expenses, documents, memories)
-│   lib/                # Clientes (supabase, queryClient, queryKeys)
-│   types/              # Tipos globales y tipos generados de Supabase
-│   utils/              # Helpers de fecha, moneda e imagen
-│
-supabase/
-│   migrations/         # Esquema, RLS y Storage buckets
-│
-agents/                 # Agentes especializados para Claude Code
-```
-
-Cada feature sigue la misma estructura interna:
-
-```
-features/<nombre>/
-    hooks/      # useQuery / useMutation específicos del dominio
-    components/ # Componentes visuales del módulo
-    types.ts    # Tipos del dominio
-```
-
-## Base de datos
-
-Tablas principales y sus relaciones:
-
-```
-profiles ──┐
-           ├── trips ──── trip_collaborators
-           │       └──── experiences ──── documents
-           │                    └──────── experience_ratings
-           ├── expenses ── expense_splits
-           └── memories
-```
-
-Storage buckets:
-- `memories` (público) — Fotos, máx 5 MB, formatos: JPEG / PNG / WebP
-- `documents` (privado) — PDFs y adjuntos, máx 20 MB
-
-Row Level Security habilitado en todas las tablas: un usuario solo accede a los datos de viajes en los que es colaborador.
-
-## Puesta en marcha
+## Instalación y ejecución
 
 ### Requisitos
 
 - Node.js 20+
-- Expo CLI (`npm install -g expo-cli`)
-- Cuenta y proyecto en [Supabase](https://supabase.com)
+- Expo Go (dispositivo físico) o simulador iOS / emulador Android
 
 ### Instalación
 
@@ -88,63 +47,65 @@ npm install
 
 ### Variables de entorno
 
-Copia el fichero de ejemplo y rellena tus credenciales de Supabase:
+Las credenciales del proyecto están incluidas en `.env.example`. No es necesario crear una cuenta de Supabase ni configurar claves de API, solo pasarlas al archivo .env.local
 
 ```bash
 cp .env.example .env.local
 ```
 
-```env
-EXPO_PUBLIC_SUPABASE_URL=https://<tu-proyecto>.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=<tu-anon-key>
-```
-
-### Migraciones de base de datos
-
-```bash
-supabase db push
-```
-
-### Generar tipos de Supabase
-
-```bash
-npm run supabase:types
-```
-
-### Desarrollo
-
-```bash
-npm start        # Metro bundler + QR para Expo Go
-npm run android  # Emulador Android
-npm run ios      # Simulador iOS (requiere macOS)
-```
-
-## Scripts disponibles
+### Scripts disponibles
 
 | Comando | Descripción |
 |---------|-------------|
 | `npm start` | Inicia el servidor de desarrollo |
-| `npm run android` | Abre en emulador Android |
 | `npm run ios` | Abre en simulador iOS |
+| `npm run android` | Abre en emulador Android |
 | `npm run lint` | Ejecuta ESLint |
 | `npm run type-check` | Comprueba tipos TypeScript sin compilar |
 | `npm run supabase:types` | Regenera tipos desde el esquema de Supabase |
 
-## Path aliases
+---
 
-```ts
-@/*           →  src/*
-@components/* →  src/components/*
-@features/*   →  src/features/*
-@lib/*        →  src/lib/*
-@types/*      →  src/types/*
-@utils/*      →  src/utils/*
+## Estructura del proyecto
+El proyecto utiliza una arquitectura híbrida basada en **rutas por archivos** (Expo Router) y organización **por módulos/dominios** (*feature-based*) dentro de `src/`.
+```
+app/                    # Rutas y navegación (Expo Router)
+├── (auth)/             # Flujo de autenticación (Login y registro)
+└── (app)/
+├── (tabs)/         # Tabs principales (Viajes, Wishlist, Guardados)
+├── trips/[id]/     # Detalle del viaje (Timeline, Gastos, Documentos, Recuerdos)
+├── saved-experiences/
+└── wishlist/
+
+src/
+├── features/           # Módulos por dominio aislado (ver detalle abajo)
+├── components/         # Componentes globales y reutilizables de la UI
+├── lib/                # Clientes de API, query keys y utilidades compartidas
+├── types/              # Tipos globales y tipos autogenerados de Supabase
+└── utils/              # Helpers genéricos (fechas, monedas, formato de imágenes)
+
+supabase/
+└── migrations/         # Esquema de base de datos, políticas RLS y Storage buckets
 ```
 
-## Decisiones de arquitectura
+### Anatomía de una Feature
 
-- **Feature-based organization** — cada módulo es autónomo y no depende de otros módulos
-- **TripContext** — los cuatro tabs del viaje comparten un único contexto cargado en el layout padre
-- **Query keys centralizadas** — `src/lib/queryKeys.ts` como fuente única de verdad para TanStack Query
-- **Offline-first en Documentos** — los adjuntos se gestionan con caché local prioritaria
-- **LargeSecureStore** — wrapper sobre Expo Secure Store para superar el límite de 2 KB del token de sesión
+Cada módulo dentro de `src/features/` es autónomo y sigue esta estructura interna:
+
+```
+features/<nombre>/
+├── hooks/       # useQuery / useMutation específicos del dominio
+├── components/  # Componentes visuales del módulo
+└── types.ts     # Tipos del dominio
+```
+
+Módulos disponibles: `auth` · `trips` · `timeline` · `expenses` · `documents` · `memories` · `wishlist` · `saved` · `onboarding`
+
+---
+
+## Usuario de prueba
+
+| Campo | Valor |
+|-------|-------|
+| Email | usertest@pingotest.app |
+| Contraseña | Test1234! |
