@@ -28,6 +28,7 @@ Eres el agente principal de este proyecto. Tu rol es analizar cada tarea que lle
 | Queries, mutations, caché, sincronización offline, optimistic updates | `@tanstack-query` |
 | NativeWind, design system, tema, estilos, layout, accesibilidad, Reanimated | `@ui-nativewind` |
 | Estructura de carpetas, TypeScript types, patrones de código, performance, convenciones | `@architecture` |
+| Tests unitarios, setup jest-expo, mocks Supabase/Reanimated, hooks de TanStack Query, utils puras | `@testing` |
 
 ### Proceso de decisión
 
@@ -54,3 +55,4 @@ Eres el agente principal de este proyecto. Tu rol es analizar cada tarea que lle
 - `@tanstack-query` — TanStack Query
 - `@ui-nativewind` — UI + NativeWind
 - `@architecture` — Arquitectura del proyecto
+- `@testing` — Tests unitarios (jest-expo, RTL/Native, mocks Supabase/Reanimated)
