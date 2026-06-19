@@ -35,16 +35,16 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
   return (
     <View className="gap-2">
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm font-medium text-neutral-700">
+        <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
           {t('expenses_participants_label')}{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
         </Text>
-        <TouchableOpacity onPress={toggleAll} hitSlop={8} className="flex-row items-center gap-1 px-3 py-2 rounded-lg active:bg-neutral-100">
+        <TouchableOpacity onPress={toggleAll} hitSlop={8} className="flex-row items-center gap-1 px-3 py-2 rounded-lg active:bg-neutral-100 dark:active:bg-neutral-800">
           <Ionicons
             name={allSelected ? 'checkbox' : 'checkbox-outline'}
             size={16}
             color={allSelected ? colors.primary[500] : colors.neutral[400]}
           />
-          <Text className={`text-sm font-medium ${allSelected ? 'text-primary-600' : 'text-neutral-500'}`}>
+          <Text className={`text-sm font-medium ${allSelected ? 'text-primary-600 dark:text-primary-400' : 'text-neutral-500 dark:text-neutral-400'}`}>
             {allSelected ? t('expenses_participants_deselectAll') : t('expenses_participants_selectAll')}
           </Text>
         </TouchableOpacity>
@@ -59,16 +59,16 @@ export function ParticipantPicker({ collaborators, selectedIds, onChange, error 
               onPress={() => toggle(c.user_id)}
               activeOpacity={0.7}
               className={`flex-row items-center gap-3 p-3 rounded-xl border ${
-                isSelected ? 'border-primary-300 bg-primary-50' : 'border-neutral-200 bg-white'
+                isSelected ? 'border-primary-300 bg-primary-50 dark:border-primary-700 dark:bg-primary-900' : 'border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800'
               }`}
             >
               <Avatar uri={c.avatar_url} name={c.name} size="sm" />
-              <Text className={`flex-1 text-sm font-medium ${isSelected ? 'text-primary-700' : 'text-neutral-700'}`}>
+              <Text className={`flex-1 text-sm font-medium ${isSelected ? 'text-primary-700 dark:text-primary-300' : 'text-neutral-700 dark:text-neutral-300'}`}>
                 {c.name}
               </Text>
               <View
                 className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
-                  isSelected ? 'border-primary-500 bg-primary-500' : 'border-neutral-300 bg-white'
+                  isSelected ? 'border-primary-500 bg-primary-500' : 'border-neutral-300 bg-white dark:border-neutral-600 dark:bg-neutral-800'
                 }`}
               >
                 {isSelected && <Ionicons name="checkmark" size={12} color={colors.white} />}

@@ -54,6 +54,10 @@ export const en = {
   auth_validation_password_strong: 'At least 8 characters, with uppercase, lowercase and a number',
   auth_validation_name: 'Name is required',
   auth_register_passwordHint: 'At least 8 characters, with uppercase, lowercase and a number',
+  auth_register_consent_prefix: 'I accept the',
+  auth_register_consent_terms: 'Terms and Conditions',
+  auth_register_consent_and: 'and the',
+  auth_register_consent_privacy: 'Privacy Policy',
 
   // ─── PROFILE ───────────────────────────────────────────────────────────────
   profile_title: 'Profile',
@@ -66,6 +70,7 @@ export const en = {
   profile_section_appearance: 'Appearance',
   profile_darkMode: 'Dark mode',
   profile_section_language: 'Language',
+  profile_language_subtitle: 'Choose your preferred language',
   profile_section_app: 'App',
   profile_field_version: 'Version',
   profile_terms: 'Terms of use',
@@ -90,6 +95,10 @@ export const en = {
   // ─── LANGUAGE ────────────────────────────────────────────────────────────
   lang_es: 'Español',
   lang_en: 'English',
+  lang_fr: 'French',
+  lang_de: 'German',
+  lang_pt: 'Portuguese',
+  lang_it: 'Italian',
 
   // ─── TABS (main) ──────────────────────────────────────────────────────────
   tabs_trips: 'Trips',
@@ -480,6 +489,8 @@ export const en = {
   docs_deleteSheet_title: 'Delete document',
   docs_deleteSheet_body: '"{{name}}" will be permanently deleted. This action cannot be undone.',
   docs_deleteSheet_confirm: 'Delete document',
+  docs_delete_error: 'The document could not be deleted.',
+  docs_delete_not_authorized: 'You can only delete documents you added.',
   docs_saveSheet_title: 'Save document',
   docs_saveSheet_submit: 'Save',
   docs_experiencePicker_label: 'Related experience',
@@ -487,6 +498,7 @@ export const en = {
   docs_tripPicker_label: 'Trip',
   docs_tripPicker_empty: 'No trips available',
   docs_addSheet_title: 'Add document',
+  docs_picker_error: 'Could not open the file picker. Wait a moment and try again.',
   docs_type_file: 'File',
   docs_type_file_sub: 'PDF, image or other file',
   docs_type_link: 'Link',
@@ -500,7 +512,7 @@ export const en = {
   docs_link_url_invalid: 'Enter a valid URL',
   docs_addPass_title: 'Add boarding pass',
   docs_addPass_namePlaceholder: 'e.g. Flight IB7841',
-  docs_addPass_submit: 'Select .pkpass file',
+  docs_addPass_submit: 'Add boarding pass',
 
   // ─── MEMORIES ─────────────────────────────────────────────────────────────
   memories_tab: 'Memories',
@@ -534,6 +546,8 @@ export const en = {
   memories_delete_confirm_body: 'This will permanently delete the photo.',
   memories_delete_confirm_action: 'Delete',
   memories_delete_confirm_cancel: 'Cancel',
+  memories_delete_error: 'Could not delete the photo. Please try again.',
+  memories_delete_not_authorized: 'You can only delete photos you uploaded.',
 
   // ─── VALIDATION ───────────────────────────────────────────────────────────
   validation_required_name: 'Name is required',

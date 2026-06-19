@@ -37,10 +37,12 @@ export function AddPassSheet({ visible, onClose, onSubmit, isLoading }: AddPassS
   const { t } = useTranslation()
   const schema = useMemo(() => buildAddPassSchema(), [t])
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<AddPassFormData>({
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<AddPassFormData>({
     resolver: zodResolver(schema),
     defaultValues: { name: '', experience_id: '' },
   })
+
+  const nameValue = watch('name')
 
   const handleClose = () => {
     reset()
@@ -53,7 +55,7 @@ export function AddPassSheet({ visible, onClose, onSubmit, isLoading }: AddPassS
   }
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose} title={t('docs_addPass_title')}>
+    <BottomSheet visible={visible} onClose={handleClose} title={t('docs_addPass_title')} scrollable>
       <View className="gap-4 pb-4">
         <Controller
           control={control}
@@ -76,7 +78,13 @@ export function AddPassSheet({ visible, onClose, onSubmit, isLoading }: AddPassS
             <ExperiencePicker
               experiences={experiences ?? []}
               value={value}
-              onChange={onChange}
+              onChange={(id) => {
+                onChange(id)
+                if (!nameValue) {
+                  const exp = experiences?.find((e) => e.id === id)
+                  if (exp) setValue('name', exp.title, { shouldValidate: false })
+                }
+              }}
               error={errors.experience_id?.message}
             />
           )}

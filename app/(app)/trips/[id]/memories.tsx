@@ -94,7 +94,7 @@ export default function MemoriesScreen() {
             selectedIds.forEach((id) =>
               deleteMemory.mutate(
                 { memoryId: id, tripId },
-                { onError: (err) => showError(err.message) }
+                { onError: (err) => showError(t(err.message === 'not_authorized' ? 'memories_delete_not_authorized' : 'memories_delete_error')) }
               )
             )
             exitSelectionMode()
@@ -307,7 +307,7 @@ export default function MemoriesScreen() {
           onDelete={(id) => {
             deleteMemory.mutate(
               { memoryId: id, tripId },
-              { onError: (err) => showError(err.message) }
+              { onError: (err) => showError(t(err.message === 'not_authorized' ? 'memories_delete_not_authorized' : 'memories_delete_error')) }
             )
             setViewerIndex(-1)
           }}
