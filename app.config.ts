@@ -86,8 +86,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       '@sentry/react-native/expo',
       {
-        organization: 'PinGo',
-        project: 'PinGo',
+        organization: 'pingo-nq',
+        project: 'pingo',
       },
     ],
   ],
