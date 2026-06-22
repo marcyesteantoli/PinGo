@@ -619,7 +619,7 @@ export const de = {
   onboarding_pro_subtitle: 'Alles, was du brauchst, um ohne Einschränkungen zu reisen.',
   onboarding_pro_cta_trial: 'Pro 7 Tage kostenlos testen',
   onboarding_pro_cta_skip: 'Kostenlos weitermachen →',
-  onboarding_pro_free_note: 'Die App ist kostenlos · Pro ist optional',
+  onboarding_pro_free_note: 'Jederzeit kündbar · Keine Verpflichtung',
 
   // ─── PREMIUM ───────────────────────────────────────────────────────────────
   premium_paywall_generic_title: 'Zu Pro wechseln',
@@ -662,4 +662,6 @@ export const de = {
   premium_restore_empty_title: 'Kein Abonnement gefunden',
   premium_restore_empty_message: 'Für dein Konto wurde kein aktives Abonnement gefunden.',
   premium_restore_error_message: 'Kauf konnte nicht wiederhergestellt werden. Bitte versuche es erneut.',
+  premium_paywall_load_error: 'Pläne konnten nicht geladen werden. Bitte versuche es erneut.',
+  premium_paywall_retry: 'Erneut versuchen',
 } as const

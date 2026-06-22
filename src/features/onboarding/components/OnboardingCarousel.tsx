@@ -40,6 +40,7 @@ export function OnboardingCarousel({ slides, onSkip, primaryCta, secondaryCta, o
   const flatListRef = useRef<any>(null)
 
   const bgColors = useMemo(() => slides.map((s) => s.bgColor), [slides])
+  const accentColors = useMemo(() => slides.map((s) => s.accentColor), [slides])
   const indices = useMemo(() => slides.map((_, i) => i), [slides])
 
   const scrollX = useSharedValue(0)
@@ -122,7 +123,7 @@ export function OnboardingCarousel({ slides, onSkip, primaryCta, secondaryCta, o
 
       {/* Bottom controls */}
       <View style={[styles.bottom, { paddingBottom: insets.bottom + 28 }]}>
-        <PaginationDots total={slides.length} activeIndex={activeIndex} />
+        <PaginationDots total={slides.length} activeIndex={activeIndex} accentColors={accentColors} />
 
         <View style={styles.gap20} />
 

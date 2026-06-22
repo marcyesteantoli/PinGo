@@ -10,46 +10,19 @@ import { colors } from '@lib/colors'
 import { LIMITS } from '@/config/limits'
 import { usePurchase } from '@features/premium/hooks/usePurchase'
 import { useRestorePurchases } from '@features/premium/hooks/useRestorePurchases'
+import { useOfferings } from '@features/premium/hooks/useOfferings'
 
 export type ProPaywallFeature = 'maps' | 'trips' | 'photos' | 'documents' | 'pdf'
 
 type PlanId = 'monthly' | 'annual' | 'lifetime'
 
-interface Plan {
-  id: PlanId
-  labelKey: string
-  price: string
-  pricePerMonth?: string
-  originalPrice?: string
-  savingsPercent?: string
-  descKey?: string
-  trialDays?: number
-  bestOffer?: boolean
+function formatCurrency(amount: number, currencyCode: string): string {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+  }).format(amount)
 }
-
-const PLANS: Plan[] = [
-  {
-    id: 'annual',
-    labelKey: 'premium_paywall_annual',
-    price: '29,99 €',
-    pricePerMonth: '2,50 € / mes',
-    originalPrice: '47,88 €',
-    savingsPercent: '37%',
-    bestOffer: true,
-    trialDays: 7,
-  },
-  {
-    id: 'monthly',
-    labelKey: 'premium_paywall_monthly',
-    price: '3,99 € / mes',
-  },
-  {
-    id: 'lifetime',
-    labelKey: 'premium_paywall_lifetime',
-    price: '79,99 €',
-    descKey: 'premium_paywall_lifetime_desc',
-  },
-]
 
 interface ProPaywallSheetProps {
   visible: boolean
@@ -67,14 +40,62 @@ const BENEFITS: { key: string; icon: keyof typeof Ionicons.glyphMap; color: stri
   { key: 'premium_paywall_benefit_support', icon: 'heart', color: '#EF4444', bg: { light: '#FEE2E2', dark: '#4E0606' } },
 ]
 
+const TRIAL_DAYS = 7
+
 export function ProPaywallSheet({ visible, onClose, feature, isLimitReached }: ProPaywallSheetProps) {
   const { t } = useTranslation()
   const { colorScheme } = useColorScheme()
   const isDark = colorScheme === 'dark'
   const [selectedPlan, setSelectedPlan] = useState<PlanId>('annual')
+  const [showAllPlans, setShowAllPlans] = useState(false)
 
   const purchase = usePurchase()
   const restorePurchases = useRestorePurchases()
+  const { data: offerings, isPending: offeringsLoading, isError: offeringsError, refetch } = useOfferings()
+  const current = offerings?.current ?? null
+
+  const annualPkg = current?.annual
+  const monthlyPkg = current?.monthly
+  const lifetimePkg = current?.lifetime
+
+  const savingsPercent =
+    annualPkg && monthlyPkg
+      ? Math.round((1 - annualPkg.product.price / (monthlyPkg.product.price * 12)) * 100) + '%'
+      : undefined
+
+  const annualPerMonth =
+    annualPkg
+      ? formatCurrency(annualPkg.product.price / 12, annualPkg.product.currencyCode)
+      : undefined
+
+  const annualOriginalPrice =
+    monthlyPkg
+      ? formatCurrency(monthlyPkg.product.price * 12, monthlyPkg.product.currencyCode)
+      : undefined
+
+  const plans = [
+    {
+      id: 'annual' as PlanId,
+      labelKey: 'premium_paywall_annual',
+      price: annualPkg?.product.priceString ?? '',
+      pricePerMonth: annualPerMonth,
+      originalPrice: annualOriginalPrice,
+      savingsPercent,
+      bestOffer: true,
+      trialDays: TRIAL_DAYS,
+    },
+    {
+      id: 'monthly' as PlanId,
+      labelKey: 'premium_paywall_monthly',
+      price: monthlyPkg?.product.priceString ?? '',
+    },
+    {
+      id: 'lifetime' as PlanId,
+      labelKey: 'premium_paywall_lifetime',
+      price: lifetimePkg?.product.priceString ?? '',
+      descKey: 'premium_paywall_lifetime_desc',
+    },
+  ]
 
   const limitMessages: Partial<Record<ProPaywallFeature, string>> = {
     trips: t('premium_trips_limit_message', { count: LIMITS.FREE_MAX_ACTIVE_TRIPS }),
@@ -82,9 +103,9 @@ export function ProPaywallSheet({ visible, onClose, feature, isLimitReached }: P
     documents: t('premium_documents_limit_message', { count: LIMITS.FREE_MAX_DOCUMENTS_PER_TRIP }),
   }
   const limitMessage = isLimitReached ? limitMessages[feature] : undefined
-  const [showAllPlans, setShowAllPlans] = useState(false)
-  const selectedPlanData = PLANS.find(plan => plan.id === selectedPlan)!
-  const visiblePlans = showAllPlans ? PLANS : PLANS.filter(p => p.id !== 'lifetime')
+
+  const selectedPlanData = plans.find(p => p.id === selectedPlan)!
+  const visiblePlans = showAllPlans ? plans : plans.filter(p => p.id !== 'lifetime')
 
   const handleSelectPlan = (id: PlanId) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -147,7 +168,22 @@ export function ProPaywallSheet({ visible, onClose, feature, isLimitReached }: P
 
         {/* Plan selectors */}
         <View className="w-full gap-2.5 mt-2">
-          {visiblePlans.map(plan => {
+          {offeringsLoading && (
+            <View className="items-center py-6">
+              <ActivityIndicator size="large" color={colors.primary[500]} />
+            </View>
+          )}
+          {!offeringsLoading && (offeringsError || !current) && (
+            <View className="items-center gap-3 py-4">
+              <Text className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
+                {t('premium_paywall_load_error')}
+              </Text>
+              <Pressable onPress={() => refetch()}>
+                <Text className="text-sm text-primary-500">{t('premium_paywall_retry')}</Text>
+              </Pressable>
+            </View>
+          )}
+          {!offeringsLoading && !offeringsError && !!current && visiblePlans.map(plan => {
             const selected = selectedPlan === plan.id
             return (
               <Pressable
@@ -222,7 +258,7 @@ export function ProPaywallSheet({ visible, onClose, feature, isLimitReached }: P
                           : 'text-neutral-500 dark:text-neutral-400'
                       }`}
                     >
-                      {plan.price}
+                      {plan.price || <ActivityIndicator size="small" />}
                     </Text>
                     {plan.pricePerMonth && (
                       <Text className="text-sm text-neutral-400 mt-0.5">{plan.pricePerMonth}</Text>

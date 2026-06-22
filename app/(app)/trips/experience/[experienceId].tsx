@@ -2,8 +2,7 @@ import { useRef, useState } from 'react'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, interpolate } from 'react-native-reanimated'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
-// TODO: import PROVIDER_GOOGLE and set provider={PROVIDER_GOOGLE} on MapView when Google Maps API key is configured
-import MapView, { Marker } from 'react-native-maps'
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
@@ -285,6 +284,7 @@ export default function ExperienceDetailScreen() {
               className="rounded-2xl overflow-hidden"
             >
               <MapView
+                provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
                 style={{ height: 180, width: '100%' }}
                 region={{
                   latitude: location.lat,

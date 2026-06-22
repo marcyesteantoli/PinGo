@@ -8,6 +8,7 @@ import {
   Dimensions,
   Linking,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Switch,
@@ -262,63 +263,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Sección: Suscripción */}
-        <Text className={sectionLabel}>{t('profile_section_subscription')}</Text>
-        <View className={sectionCard} style={cardShadow}>
-          {isPro ? (
-            <>
-              <View className={`${rowBase} gap-3`}>
-                <View className="w-8 h-8 rounded-full bg-primary-500/15 items-center justify-center" style={{ marginRight: 4 }}>
-                  <Ionicons name="sparkles" size={16} color={colors.primary[500]} />
-                </View>
-                <View className="flex-1">
-                  <Text className={labelBase}>{t('profile_pro_active_title')}</Text>
-                </View>
-                <View className="bg-primary-500 rounded-md px-2 py-0.5">
-                  <Text className="text-xs font-bold text-white">PRO</Text>
-                </View>
-              </View>
-              <View className={divider} />
-              <TouchableOpacity
-                className={rowBase}
-                activeOpacity={0.7}
-                onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}
-              >
-                <Ionicons name="card-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
-                <Text className={`${labelBase} flex-1`}>{t('profile_manage_subscription')}</Text>
-                <Ionicons name="chevron-forward" size={16} color={iconColor} />
-              </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity
-              className={rowBase}
-              activeOpacity={0.7}
-              onPress={() => setPaywallVisible(true)}
-            >
-              <View className="w-8 h-8 rounded-full bg-primary-500/15 items-center justify-center" style={{ marginRight: 12 }}>
-                <Ionicons name="sparkles" size={16} color={colors.primary[500]} />
-              </View>
-              <View className="flex-1">
-                <Text className={labelBase}>{t('profile_upgrade_to_pro')}</Text>
-                <Text className="text-[13px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-                  {t('profile_upgrade_to_pro_subtitle')}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={iconColor} />
-            </TouchableOpacity>
-          )}
-          <View className={divider} />
-          <TouchableOpacity
-            className={rowBase}
-            activeOpacity={0.7}
-            disabled={restorePurchases.isPending}
-            onPress={() => restorePurchases.mutate()}
-          >
-            <Ionicons name="refresh-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text className={`${labelBase} flex-1`}>{t('premium_restore_purchases')}</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Sección: Cuenta */}
         <Text className={sectionLabel}>{t('profile_section_account')}</Text>
         <View className={sectionCard} style={cardShadow}>
@@ -407,6 +351,71 @@ export default function ProfileScreen() {
               </Text>
               <Ionicons name="chevron-forward" size={16} color={iconColor} />
             </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sección: Suscripción */}
+        <Text className={sectionLabel}>{t('profile_section_subscription')}</Text>
+        <View className={sectionCard} style={cardShadow}>
+          {isPro ? (
+            <>
+              <TouchableOpacity
+                className={`${rowBase} gap-3`}
+                activeOpacity={0.7}
+                onPress={() => setPaywallVisible(true)}
+              >
+                <View className="w-8 h-8 rounded-full bg-primary-500/15 items-center justify-center" style={{ marginRight: 4 }}>
+                  <Ionicons name="sparkles" size={16} color={colors.primary[500]} />
+                </View>
+                <View className="flex-1">
+                  <Text className={labelBase}>{t('profile_pro_active_title')}</Text>
+                </View>
+                <View className="bg-primary-500 rounded-md px-2 py-0.5">
+                  <Text className="text-xs font-bold text-white">PRO</Text>
+                </View>
+              </TouchableOpacity>
+              <View className={divider} />
+              <TouchableOpacity
+                className={rowBase}
+                activeOpacity={0.7}
+                onPress={() => Linking.openURL(
+                  Platform.OS === 'android'
+                    ? 'https://play.google.com/store/account/subscriptions'
+                    : 'https://apps.apple.com/account/subscriptions'
+                )}
+              >
+                <Ionicons name="card-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
+                <Text className={`${labelBase} flex-1`}>{t('profile_manage_subscription')}</Text>
+                <Ionicons name="chevron-forward" size={16} color={iconColor} />
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity
+              className={rowBase}
+              activeOpacity={0.7}
+              onPress={() => setPaywallVisible(true)}
+            >
+              <View className="w-8 h-8 rounded-full bg-primary-500/15 items-center justify-center" style={{ marginRight: 12 }}>
+                <Ionicons name="sparkles" size={16} color={colors.primary[500]} />
+              </View>
+              <View className="flex-1">
+                <Text className={labelBase}>{t('profile_upgrade_to_pro')}</Text>
+                <Text className="text-[13px] text-neutral-400 dark:text-neutral-500 mt-0.5">
+                  {t('profile_upgrade_to_pro_subtitle')}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={iconColor} />
+            </TouchableOpacity>
+          )}
+          <View className={divider} />
+          <TouchableOpacity
+            className={rowBase}
+            activeOpacity={0.7}
+            disabled={restorePurchases.isPending}
+            onPress={() => restorePurchases.mutate()}
+          >
+            <Ionicons name="refresh-outline" size={20} color={iconColor} style={{ marginRight: 12 }} />
+            <Text className={`${labelBase} flex-1`}>{t('premium_restore_purchases')}</Text>
           </TouchableOpacity>
         </View>
 

@@ -621,7 +621,7 @@ export const en = {
   onboarding_pro_subtitle: 'Everything you need to travel without restrictions.',
   onboarding_pro_cta_trial: 'Try Pro free for 7 days',
   onboarding_pro_cta_skip: 'Continue for free →',
-  onboarding_pro_free_note: 'The app is free · Pro is optional',
+  onboarding_pro_free_note: 'Cancel anytime · No commitment',
 
   // ─── PREMIUM ───────────────────────────────────────────────────────────────
   premium_paywall_generic_title: 'Go Pro',
@@ -664,4 +664,6 @@ export const en = {
   premium_restore_empty_title: 'No Subscription Found',
   premium_restore_empty_message: 'No active subscription was found for your account.',
   premium_restore_error_message: 'Could not restore purchase. Please try again.',
+  premium_paywall_load_error: 'Could not load plans. Please try again.',
+  premium_paywall_retry: 'Try again',
 } as const

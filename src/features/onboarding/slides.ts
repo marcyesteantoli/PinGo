@@ -77,4 +77,5 @@ const SLIDES: OnboardingSlideData[] = [
 ]
 
 export const INTRO_SLIDES = SLIDES.slice(0, 6)
+export const POST_AUTH_SLIDES = SLIDES.slice(6)
 export const ALL_SLIDES = SLIDES

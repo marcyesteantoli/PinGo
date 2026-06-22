@@ -619,7 +619,7 @@ export const pt = {
   onboarding_pro_subtitle: 'Tudo o que você precisa para viajar sem restrições.',
   onboarding_pro_cta_trial: 'Experimentar Pro grátis por 7 dias',
   onboarding_pro_cta_skip: 'Continuar grátis →',
-  onboarding_pro_free_note: 'O app é gratuito · Pro é opcional',
+  onboarding_pro_free_note: 'Cancele quando quiser · Sem compromisso',
 
   // ─── PREMIUM ───────────────────────────────────────────────────────────────
   premium_paywall_generic_title: 'Ir para Pro',
@@ -662,4 +662,6 @@ export const pt = {
   premium_restore_empty_title: 'Nenhuma subscrição encontrada',
   premium_restore_empty_message: 'Não foi encontrada nenhuma subscrição ativa para a tua conta.',
   premium_restore_error_message: 'Não foi possível restaurar a compra. Tenta novamente.',
+  premium_paywall_load_error: 'Não foi possível carregar os planos. Tenta novamente.',
+  premium_paywall_retry: 'Tentar novamente',
 } as const

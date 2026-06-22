@@ -13,10 +13,11 @@ export function useRevenueCatSetup() {
   useEffect(() => {
     if (userId) {
       initRevenueCat(userId)
+      queryClient.invalidateQueries({ queryKey: ['revenuecat', 'offerings'] })
     } else {
       logoutRevenueCat()
     }
-  }, [userId])
+  }, [userId, queryClient])
 
   useEffect(() => {
     if (!userId) return

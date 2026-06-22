@@ -194,7 +194,7 @@ function GalleryItemRenderer({ uri, cacheKey, setImageDimensions }: GalleryItemP
         source={{ uri, cacheKey }}
         style={StyleSheet.absoluteFillObject}
         contentFit="contain"
-        cachePolicy="disk"
+        cachePolicy="memory-disk"
         onLoad={(e) => {
           setImageDimensions({ width: e.source.width, height: e.source.height })
           setStatus('loaded')

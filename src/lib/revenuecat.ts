@@ -18,5 +18,5 @@ export async function logoutRevenueCat(): Promise<void> {
 }
 
 export function isEntitled(customerInfo: CustomerInfo): boolean {
-  return customerInfo.entitlements.active['pro'] !== undefined
+  return customerInfo.entitlements.active['PinGo Pro'] !== undefined
 }

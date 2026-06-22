@@ -118,7 +118,7 @@ function MemoryCell({
             source={{ uri: memory.image_url, cacheKey: memory.cacheKey }}
             style={size}
             contentFit="cover"
-            cachePolicy="disk"
+            cachePolicy="memory-disk"
             onLoad={() => setStatus('loaded')}
             onError={() => setStatus('error')}
           />

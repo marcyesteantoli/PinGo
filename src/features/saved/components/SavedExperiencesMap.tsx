@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Platform, Text, View } from 'react-native'
-import MapView, { Marker, type MarkerPressEvent, type Region } from 'react-native-maps'
+import MapView, { Marker, PROVIDER_GOOGLE, type MarkerPressEvent, type Region } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useTranslation } from 'react-i18next'
@@ -247,6 +247,7 @@ export function SavedExperiencesMap({ items, onItemPress }: SavedExperiencesMapP
     <View style={{ flex: 1 }}>
       <MapView
         ref={mapRef}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
         style={{ flex: 1 }}
         mapType="standard"
         userInterfaceStyle={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}

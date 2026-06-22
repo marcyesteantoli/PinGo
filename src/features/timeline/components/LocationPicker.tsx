@@ -12,7 +12,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
-import MapView, { Marker } from 'react-native-maps'
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import { Platform } from 'react-native'
 import { useTheme } from '@lib/theme'
@@ -450,6 +450,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps) 
                   }}
                 >
                   <MapView
+                    provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
                     style={{ height: 220, width: '100%' }}
                     region={{
                       latitude: selected.lat,

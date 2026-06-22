@@ -122,10 +122,9 @@ export function ProFeatureList({ isActive }: ProFeatureListProps) {
       </View>
 
       {/* Free tier callout */}
-      <Animated.View style={[styles.freeCard, freeStyle]}>
-        <Ionicons name="checkmark-circle" size={16} color="#16A34A" />
-        <Text style={styles.freeText}>{t('onboarding_pro_free_note')}</Text>
-      </Animated.View>
+      <Animated.Text style={[styles.footnote, freeStyle]}>
+        {t('onboarding_pro_free_note')}
+      </Animated.Text>
     </View>
   )
 }
@@ -189,19 +188,10 @@ const styles = StyleSheet.create({
     color: '#374151',
     flex: 1,
   },
-  freeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#F0FDF4',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  freeText: {
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_500Medium',
-    color: '#15803D',
-    flex: 1,
+  footnote: {
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_400Regular',
+    color: 'rgba(0,0,0,0.35)',
+    textAlign: 'center',
   },
 })

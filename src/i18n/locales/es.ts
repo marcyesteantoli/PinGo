@@ -621,7 +621,7 @@ export const es = {
   onboarding_pro_subtitle: 'Todo lo que necesitas para viajar sin restricciones.',
   onboarding_pro_cta_trial: 'Probar Pro 7 días gratis',
   onboarding_pro_cta_skip: 'Continuar gratis →',
-  onboarding_pro_free_note: 'La app es gratuita · Pro es opcional',
+  onboarding_pro_free_note: 'Cancela cuando quieras · Sin compromisos',
 
   // ─── PREMIUM ───────────────────────────────────────────────────────────────
   premium_paywall_generic_title: 'Pásate a Pro',
@@ -664,6 +664,8 @@ export const es = {
   premium_restore_empty_title: 'Sin suscripción',
   premium_restore_empty_message: 'No se encontró ninguna suscripción activa asociada a tu cuenta.',
   premium_restore_error_message: 'No se pudo restaurar la compra. Inténtalo de nuevo.',
+  premium_paywall_load_error: 'No se pudieron cargar los planes. Inténtalo de nuevo.',
+  premium_paywall_retry: 'Reintentar',
 } as const
 
 export type TranslationKeys = keyof typeof es
