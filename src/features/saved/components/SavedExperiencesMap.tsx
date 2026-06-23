@@ -99,7 +99,7 @@ function ExperienceMarker({
         color={TYPE_ICON_COLOR[type]}
         icon={TYPE_ICON[type]}
         photoUrl={photoUrl}
-        isSelected={isSelected}
+        showBorder={false}
         onImageLoadEnd={() => setReady(true)}
       />
     </Marker>
@@ -132,23 +132,6 @@ function ExperienceClusterMarker({
 
 // ─── Map styles (Android — custom Google Maps style) ─────────────────────────
 
-const MAP_STYLE_DARK = [
-  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-  { elementType: 'geometry', stylers: [{ color: '#0a1628' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#0a1628' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#7a9ab8' }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#1e3050' }] },
-  { featureType: 'administrative.country', elementType: 'geometry.stroke', stylers: [{ color: '#2a4a70' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#162842' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#0d1e30' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#1e3a5a' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#0f2040' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0d1d35' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#4a6a8a' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#0c1828' }] },
-]
-
 const MAP_STYLE_LIGHT = [
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', stylers: [{ visibility: 'off' }] },
@@ -158,7 +141,43 @@ const MAP_STYLE_LIGHT = [
   { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#e8e8e2' }] },
   { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#f0f0ec' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#4a4a5a' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#f8f8f5' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#f8f8f5' }] },]
+
+// Multi-tone dark style — preserves the spatial hierarchy of the light map:
+// land < roads < highways, parks tinted green, vivid water, readable labels.
+const MAP_STYLE_DARK = [
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+
+  // Base land
+  { elementType: 'geometry', stylers: [{ color: '#1E2029' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#171C28' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#8E99B0' }] },
+
+  // Administrative borders
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#2A3348' }] },
+  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#CDD3E0' }] },
+  { featureType: 'administrative.country', elementType: 'labels.text.fill', stylers: [{ color: '#8E99B0' }] },
+
+  // Parks — dark green tint so they read as nature areas
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ visibility: 'on' }, { color: '#1B2D22' }] },
+  { featureType: 'poi.park', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+
+  // Road hierarchy (local → arterial → highway, each level lighter)
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#27304A' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#171C28' }] },
+  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#6B7894' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#344060' }] },
+  { featureType: 'road.arterial', elementType: 'labels.text.fill', stylers: [{ color: '#7A8699' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#475870' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#27304A' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#DFE4EE' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.stroke', stylers: [{ color: '#171C28' }] },
+
+  // Water — muted dark navy, distinct from land without dominating the map
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#163563' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#5B8DB8' }] },
+  { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#0D2240' }] },
 ]
 
 // ─── Main map component ───────────────────────────────────────────────────────
