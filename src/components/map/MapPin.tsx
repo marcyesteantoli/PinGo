@@ -3,10 +3,11 @@ import { Platform, Text, View } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  withSpring,
   withTiming,
-  Easing,
+  withDelay,
 } from 'react-native-reanimated'
-import Svg, { Circle, ClipPath, Defs, Image as SvgImage, Polygon } from 'react-native-svg'
+import Svg, { Circle, ClipPath, Defs, Image as SvgImage, Path } from 'react-native-svg'
 import { Ionicons } from '@expo/vector-icons'
 import { colors } from '@lib/colors'
 
@@ -27,48 +28,69 @@ export function useMarkerReady(delay = 300) {
   return ready
 }
 
-// ─── Generic circular pin ─────────────────────────────────────────────────────
-// Drawn entirely as a single SVG (circle + border + tip) instead of nested
-// Views with borderRadius/overflow. react-native-maps' Android marker
-// snapshot rasterises the View's rectangular bounding box and does not
-// reliably clip to borderRadius, which left a square corner on the bubble
-// and dropped the triangular tip. An SVG has a transparent canvas and draws
-// only the shapes themselves, so there's nothing rectangular to crop.
+// ─── Triangle pointer path ────────────────────────────────────────────────────
+// Small downward pointer below the circle body. Top edge starts 1px inside
+// the circle's bottom so the circle fill covers the seam seamlessly.
+
+function makeTrianglePath(cx: number, tipW: number, tipH: number, circleBottom: number): string {
+  const topY = circleBottom - 1
+  return (
+    `M ${(cx - tipW / 2).toFixed(1)},${topY} ` +
+    `L ${cx},${(circleBottom + tipH).toFixed(1)} ` +
+    `L ${(cx + tipW / 2).toFixed(1)},${topY} Z`
+  )
+}
+
+// ─── Spring configs ───────────────────────────────────────────────────────────
+// Pin: gentle spring so each pin feels like it landed independently.
+// Cluster: bouncier so it reads as "group snapping into position".
+
+const PIN_SPRING = { damping: 14, stiffness: 180, mass: 0.7, overshootClamping: false } as const
+const CLUSTER_SPRING = { damping: 9, stiffness: 220, mass: 0.5, overshootClamping: false } as const
+
+// ─── Pin marker ───────────────────────────────────────────────────────────────
+// Circle body + small triangle pointer. SVG-only to avoid Android rasterization
+// artifacts. Canvas: size+pad*2 wide, size+tipH+pad*2 tall (pad keeps border
+// strokes from clipping at canvas edges).
 
 export function PinMarker({
   color,
   icon,
   iconSize,
   photoUrl,
-  isSelected,
+  showBorder = true,
   onImageLoadEnd,
 }: {
   color: string
   icon: keyof typeof Ionicons.glyphMap
   iconSize?: number
   photoUrl?: string | null
-  isSelected: boolean
+  showBorder?: boolean
   onImageLoadEnd?: () => void
 }) {
-  const size = isSelected ? 40 : 30
-  const borderWidth = isSelected ? 3 : 2.5
-  const tipW = isSelected ? 16 : 12
-  const tipH = isSelected ? 10 : 8
-  const tipTop = size - 2
-  const canvasH = tipTop + tipH
-  const clipId = useId()
+  const size = 32
+  const strokeWidth = 2
+  const pad = 2
+  const tipH = 8
+  const tipW = 9
+  const canvasW = size + pad * 2           // 2px pad left + right
+  const canvasH = size + tipH + pad * 2   // 2px pad top + bottom (tip stroke no longer clips)
+  const cx = size / 2 + pad              // circle center on canvas
 
-  // Android rasterises the marker for its tracksViewChanges snapshot; if that
-  // happens mid-animation the pin is frozen at a partial scale/opacity. Skip
-  // the entrance animation there and render at full size immediately.
+  const clipId = useId()
+  const r = size / 2
+  const circleBottom = size + pad
+  const trianglePath = makeTrianglePath(cx, tipW, tipH, circleBottom)
+
+  // Android rasterises the marker snapshot mid-animation → skip entrance there.
   const initial = Platform.OS === 'android' ? 1 : 0.4
   const scale = useSharedValue(initial)
   const opacity = useSharedValue(initial === 1 ? 1 : 0)
 
   useEffect(() => {
     if (Platform.OS === 'android') return
-    scale.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.cubic) })
-    opacity.value = withTiming(1, { duration: 180 })
+    scale.value = withSpring(1, PIN_SPRING)
+    opacity.value = withTiming(1, { duration: 200 })
   }, [scale, opacity])
 
   const animStyle = useAnimatedStyle(() => ({
@@ -77,80 +99,71 @@ export function PinMarker({
   }))
 
   const shadowStyle = Platform.OS === 'ios' ? {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: isSelected ? 6 : 3 },
-    shadowOpacity: isSelected ? 0.5 : 0.32,
-    shadowRadius: isSelected ? 8 : 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 5,
   } : {}
 
-  const tipPoints = `${size / 2 - tipW / 2},${tipTop} ${size / 2 + tipW / 2},${tipTop} ${size / 2},${tipTop + tipH}`
-
-  // A `transform` style on the marker's content view — even an inert
-  // scale(1) — makes react-native-maps' Android snapshot capture the
-  // pre-transform layout box while the transformed content renders larger,
-  // cropping the bubble. Skip Animated.View/transform on Android entirely.
+  // A `transform` style on the marker's content view — even an inert scale(1) — makes
+  // react-native-maps' Android snapshot capture the pre-transform layout box while the
+  // transformed content renders larger, cropping the marker. Skip Animated.View on Android.
   const Wrapper = Platform.OS === 'android' ? View : Animated.View
   const wrapperStyle = Platform.OS === 'android'
-    ? { width: size, height: canvasH }
-    : [{ width: size, height: canvasH }, shadowStyle, animStyle]
+    ? { width: canvasW, height: canvasH }
+    : [{ width: canvasW, height: canvasH }, shadowStyle, animStyle]
 
   return (
-    // collapsable={false} — without it RN's view-flattening optimization breaks
-    // react-native-maps' Android bitmap measurement and crops the marker.
-    <View collapsable={false} style={{ width: size, height: canvasH }}>
+    // collapsable={false} — prevents RN view-flattening from breaking Android bitmap measurement.
+    <View collapsable={false} style={{ width: canvasW, height: canvasH }}>
       <Wrapper style={wrapperStyle}>
-        <Svg width={size} height={canvasH}>
+        <Svg width={canvasW} height={canvasH}>
+          {/* Triangle pointer — drawn first so circle covers the seam */}
+          <Path d={trianglePath} fill={color} />
+
+          {/* Circle body — fill, then photo on top, then white border last */}
+          <Circle cx={cx} cy={cx} r={r} fill={color} />
+
           {photoUrl ? (
             <>
               <Defs>
                 <ClipPath id={clipId}>
-                  <Circle cx={size / 2} cy={size / 2} r={size / 2 - borderWidth} />
+                  <Circle cx={cx} cy={cx} r={r} />
                 </ClipPath>
               </Defs>
               <SvgImage
                 href={{ uri: photoUrl }}
-                x={borderWidth}
-                y={borderWidth}
-                width={size - borderWidth * 2}
-                height={size - borderWidth * 2}
+                x={pad}
+                y={pad}
+                width={size}
+                height={size}
                 preserveAspectRatio="xMidYMid slice"
                 clipPath={`url(#${clipId})`}
                 onLoad={onImageLoadEnd}
               />
-              <Circle
-                cx={size / 2}
-                cy={size / 2}
-                r={size / 2 - borderWidth / 2}
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth={borderWidth}
-              />
             </>
-          ) : (
+          ) : null}
+
+          {/* Border drawn last so it sits on top of photo */}
+          {(showBorder || !!photoUrl) && (
             <Circle
-              cx={size / 2}
-              cy={size / 2}
-              r={size / 2 - borderWidth / 2}
-              fill={color}
-              stroke="#ffffff"
-              strokeWidth={borderWidth}
+              cx={cx}
+              cy={cx}
+              r={r}
+              fill="none"
+              stroke={photoUrl ? color : '#ffffff'}
+              strokeWidth={strokeWidth}
             />
           )}
-          <Polygon
-            points={tipPoints}
-            fill={color}
-            stroke="#ffffff"
-            strokeWidth={isSelected ? 2 : 1.5}
-            strokeLinejoin="round"
-          />
         </Svg>
+
         {!photoUrl && (
           <View
             pointerEvents="none"
             style={{
               position: 'absolute',
-              top: 0,
-              left: 0,
+              top: pad,
+              left: pad,
               width: size,
               height: size,
               alignItems: 'center',
@@ -159,7 +172,7 @@ export function PinMarker({
           >
             <Ionicons
               name={icon}
-              size={iconSize ?? (isSelected ? 24 : 18)}
+              size={iconSize ?? 15}
               color="#ffffff"
             />
           </View>
@@ -169,24 +182,30 @@ export function PinMarker({
   )
 }
 
-// ─── Cluster badge ────────────────────────────────────────────────────────────
-// Same SVG-only approach as PinMarker — see comment above.
+// ─── Cluster marker ───────────────────────────────────────────────────────────
+// Canvas = size (same as old code) so Android rasterization is reliable.
+// Two-ring design: white frame → primary blue core.
+// The "outer glow" effect is provided by shadowRadius on iOS instead of an
+// extra SVG ring (which required canvas expansion and caused Android clipping).
 
 export function ClusterMarker({ count }: { count: number }) {
-  const size = count <= 9 ? 40 : count <= 99 ? 48 : 52
-  const fontSize = count <= 9 ? 16 : count <= 99 ? 14 : 12
-  const borderWidth = 3
+  const size = count <= 9 ? 32 : count <= 99 ? 38 : 44
+  const fontSize = count <= 9 ? 13 : count <= 99 ? 11 : 10
+  const cx = size / 2
 
-  // Android rasterises the marker for its tracksViewChanges snapshot; if that
-  // happens mid-animation the bubble is frozen at a partial scale/opacity. Skip
-  // the entrance animation there and render at full size immediately.
+  // Inset frame ring so the 3px stroke stays inside the canvas bounds.
+  const frameR = size / 2 - 2
+  const coreR = frameR - 5
+
+  // Android rasterises the marker snapshot mid-animation → skip entrance there.
   const initial = Platform.OS === 'android' ? 1 : 0.4
   const scale = useSharedValue(initial)
   const opacity = useSharedValue(initial === 1 ? 1 : 0)
 
   useEffect(() => {
     if (Platform.OS === 'android') return
-    scale.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) })
+    // Clusters use a bouncier spring — they feel like a group snapping into view.
+    scale.value = withDelay(60, withSpring(1, CLUSTER_SPRING))
     opacity.value = withTiming(1, { duration: 160 })
   }, [scale, opacity])
 
@@ -196,35 +215,30 @@ export function ClusterMarker({ count }: { count: number }) {
   }))
 
   const shadowStyle = Platform.OS === 'ios' ? {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.22,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
     shadowRadius: 6,
   } : {}
 
-  // A `transform` style on the marker's content view — even an inert
-  // scale(1) — makes react-native-maps' Android snapshot capture the
-  // pre-transform layout box while the transformed content renders larger,
-  // cropping the bubble. Skip Animated.View/transform on Android entirely.
   const Wrapper = Platform.OS === 'android' ? View : Animated.View
   const wrapperStyle = Platform.OS === 'android'
     ? { width: size, height: size }
     : [{ width: size, height: size }, shadowStyle, animStyle]
 
   return (
-    // collapsable={false} — without it RN's view-flattening optimization breaks
-    // react-native-maps' Android bitmap measurement and crops the bubble.
     <View collapsable={false} style={{ width: size, height: size }}>
       <Wrapper style={wrapperStyle}>
         <Svg width={size} height={size}>
           <Circle
-            cx={size / 2}
-            cy={size / 2}
-            r={size / 2 - borderWidth / 2}
-            fill="#ffffff"
-            stroke="rgba(0,70,222,0.25)"
-            strokeWidth={borderWidth}
+            cx={cx}
+            cy={cx}
+            r={frameR}
+            fill="#FFFFFF"
+            stroke="rgba(0,70,222,0.20)"
+            strokeWidth={3}
           />
+          <Circle cx={cx} cy={cx} r={coreR} fill={colors.primary[500]} />
         </Svg>
         <View
           pointerEvents="none"
@@ -241,7 +255,7 @@ export function ClusterMarker({ count }: { count: number }) {
           <Text style={{
             fontSize,
             fontWeight: '700',
-            color: colors.primary[500],
+            color: '#FFFFFF',
             letterSpacing: -0.5,
           }}>
             {count > 99 ? '99+' : String(count)}
