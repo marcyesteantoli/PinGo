@@ -59,24 +59,6 @@ function spreadToRegion(
 
 // ─── Map styles (Android — custom Google Maps style) ─────────────────────────
 
-const MAP_STYLE_DARK = [
-  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-  { elementType: 'geometry', stylers: [{ color: '#0a1628' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#0a1628' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#7a9ab8' }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#1e3050' }] },
-  { featureType: 'administrative.country', elementType: 'geometry.stroke', stylers: [{ color: '#2a4a70' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#162842' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#0d1e30' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#1e3a5a' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#0f2040' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0d1d35' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#4a6a8a' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#0c1828' }] },
-]
-
-<<<<<<< HEAD
 const MAP_STYLE_LIGHT = [
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', stylers: [{ visibility: 'off' }] },
@@ -87,9 +69,7 @@ const MAP_STYLE_LIGHT = [
   { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#f0f0ec' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#4a4a5a' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: '#f8f8f5' }] },
-=======
-const MAP_STYLE_LIGHT = POI_OFF_STYLE
-
+]
 // Multi-tone dark style — preserves the spatial hierarchy of the light map:
 // land < roads < highways, parks tinted green, vivid water, readable labels.
 const MAP_STYLE_DARK = [
@@ -125,7 +105,6 @@ const MAP_STYLE_DARK = [
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#163563' }] },
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#5B8DB8' }] },
   { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#0D2240' }] },
->>>>>>> c659eda88c806d137aa6d266f2ee603f060f8fe6
 ]
 
 // ─── Individual marker ────────────────────────────────────────────────────────
@@ -152,7 +131,6 @@ function WishlistMarker({
       <PinMarker
         color={TYPE_COLORS[item.type]}
         icon={TYPE_ICONS[item.type]}
-        isSelected={isSelected}
       />
     </Marker>
   )
