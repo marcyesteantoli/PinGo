@@ -130,26 +130,35 @@ function ExperienceClusterMarker({
   )
 }
 
-// ─── Map styles (Android — hide POI/transit icons & labels on Google Maps) ───
-
-const POI_OFF_STYLE = [
-  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-]
-
-const MAP_STYLE_LIGHT = POI_OFF_STYLE
+// ─── Map styles (Android — custom Google Maps style) ─────────────────────────
 
 const MAP_STYLE_DARK = [
-  ...POI_OFF_STYLE,
-  { elementType: 'geometry', stylers: [{ color: colors.surface[900] }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: colors.surface[900] }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: colors.neutral[400] }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: colors.surface[700] }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: colors.surface[700] }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: colors.surface[800] }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: colors.surface[600] }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: colors.surface[900] }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: colors.neutral[600] }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { elementType: 'geometry', stylers: [{ color: '#0a1628' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#0a1628' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#7a9ab8' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#1e3050' }] },
+  { featureType: 'administrative.country', elementType: 'geometry.stroke', stylers: [{ color: '#2a4a70' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#162842' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#0d1e30' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#1e3a5a' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#0f2040' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0d1d35' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#4a6a8a' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#0c1828' }] },
+]
+
+const MAP_STYLE_LIGHT = [
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c8d8e8' }] },
+  { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#f2f2ed' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#e0dcd8' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#e8e8e2' }] },
+  { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#f0f0ec' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#4a4a5a' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#f8f8f5' }] },
 ]
 
 // ─── Main map component ───────────────────────────────────────────────────────

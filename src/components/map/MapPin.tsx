@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated'
-import Svg, { Circle, ClipPath, Defs, Image as SvgImage, Polygon } from 'react-native-svg'
+import Svg, { Circle, ClipPath, Defs, Image as SvgImage, Path } from 'react-native-svg'
 import { Ionicons } from '@expo/vector-icons'
 import { colors } from '@lib/colors'
 
@@ -27,13 +27,32 @@ export function useMarkerReady(delay = 300) {
   return ready
 }
 
-// ─── Generic circular pin ─────────────────────────────────────────────────────
-// Drawn entirely as a single SVG (circle + border + tip) instead of nested
-// Views with borderRadius/overflow. react-native-maps' Android marker
-// snapshot rasterises the View's rectangular bounding box and does not
-// reliably clip to borderRadius, which left a square corner on the bubble
-// and dropped the triangular tip. An SVG has a transparent canvas and draws
-// only the shapes themselves, so there's nothing rectangular to crop.
+// ─── Teardrop path builder ────────────────────────────────────────────────────
+// Classic map-pin shape: circle on top, smooth bezier tip below.
+// Connection angle of 25° from the circle bottom creates a natural teardrop.
+// The arc uses large-arc=1, sweep=0 (counter-clockwise in SVG Y-down coords)
+// to trace the major arc from right connection, up through the top, to left connection.
+
+function buildPinPath(W: number, bw: number, tipLen: number): string {
+  const r = W / 2 - bw / 2
+  const cx = W / 2
+  const cy = W / 2
+  const H = W + tipLen
+  const lx = +(cx - r * 0.4226).toFixed(2) // sin(25°) = 0.4226
+  const ly = +(cy + r * 0.9063).toFixed(2) // cos(25°) = 0.9063
+  const rx = +(cx + r * 0.4226).toFixed(2)
+  const tipY = +(H - 2.5).toFixed(2)
+  const cpY = +(ly + (tipY - ly) * 0.55).toFixed(2)
+  // Bezier control points sit slightly outside the start/end x to create a gentle
+  // outward curve on each side before converging to the tip — natural teardrop profile.
+  return `M ${lx} ${ly} Q ${+(lx - 3).toFixed(2)} ${cpY} ${cx} ${tipY} Q ${+(rx + 3).toFixed(2)} ${cpY} ${rx} ${ly} A ${r} ${r} 0 1 0 ${lx} ${ly} Z`
+}
+
+// ─── Generic map pin ──────────────────────────────────────────────────────────
+// Drawn as a single SVG Path (teardrop) instead of Circle + Polygon.
+// react-native-maps' Android snapshot rasterises the marker's rectangular bounding
+// box and does not reliably clip borderRadius, so an SVG canvas with a transparent
+// background is required to get correct transparent corners and shape.
 
 export function PinMarker({
   color,
@@ -50,17 +69,19 @@ export function PinMarker({
   isSelected: boolean
   onImageLoadEnd?: () => void
 }) {
-  const size = isSelected ? 40 : 30
-  const borderWidth = isSelected ? 3 : 2.5
-  const tipW = isSelected ? 16 : 12
-  const tipH = isSelected ? 10 : 8
-  const tipTop = size - 2
-  const canvasH = tipTop + tipH
+  const W = isSelected ? 48 : 36
+  const bw = isSelected ? 3 : 2.5
+  const tipLen = isSelected ? 20 : 16
+  const H = W + tipLen
+  const r = W / 2 - bw / 2
+  const cx = W / 2
+  const cy = W / 2
   const clipId = useId()
 
-  // Android rasterises the marker for its tracksViewChanges snapshot; if that
-  // happens mid-animation the pin is frozen at a partial scale/opacity. Skip
-  // the entrance animation there and render at full size immediately.
+  const pinPath = buildPinPath(W, bw, tipLen)
+
+  // Android rasterises the marker snapshot; skip entrance animation there to
+  // avoid the pin being frozen at a partial scale/opacity in the bitmap.
   const initial = Platform.OS === 'android' ? 1 : 0.4
   const scale = useSharedValue(initial)
   const opacity = useSharedValue(initial === 1 ? 1 : 0)
@@ -78,71 +99,55 @@ export function PinMarker({
 
   const shadowStyle = Platform.OS === 'ios' ? {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: isSelected ? 6 : 3 },
-    shadowOpacity: isSelected ? 0.5 : 0.32,
-    shadowRadius: isSelected ? 8 : 4,
+    shadowOffset: { width: 0, height: isSelected ? 8 : 4 },
+    shadowOpacity: isSelected ? 0.55 : 0.35,
+    shadowRadius: isSelected ? 10 : 5,
   } : {}
 
-  const tipPoints = `${size / 2 - tipW / 2},${tipTop} ${size / 2 + tipW / 2},${tipTop} ${size / 2},${tipTop + tipH}`
-
-  // A `transform` style on the marker's content view — even an inert
-  // scale(1) — makes react-native-maps' Android snapshot capture the
-  // pre-transform layout box while the transformed content renders larger,
-  // cropping the bubble. Skip Animated.View/transform on Android entirely.
+  // A `transform` style on Android makes react-native-maps snapshot the pre-transform
+  // layout box while the transformed content renders larger, cropping the marker.
   const Wrapper = Platform.OS === 'android' ? View : Animated.View
   const wrapperStyle = Platform.OS === 'android'
-    ? { width: size, height: canvasH }
-    : [{ width: size, height: canvasH }, shadowStyle, animStyle]
+    ? { width: W, height: H }
+    : [{ width: W, height: H }, shadowStyle, animStyle]
 
   return (
-    // collapsable={false} — without it RN's view-flattening optimization breaks
-    // react-native-maps' Android bitmap measurement and crops the marker.
-    <View collapsable={false} style={{ width: size, height: canvasH }}>
+    // collapsable={false} prevents RN's view-flattening from breaking the Android bitmap.
+    <View collapsable={false} style={{ width: W, height: H }}>
       <Wrapper style={wrapperStyle}>
-        <Svg width={size} height={canvasH}>
+        <Svg width={W} height={H}>
           {photoUrl ? (
             <>
               <Defs>
                 <ClipPath id={clipId}>
-                  <Circle cx={size / 2} cy={size / 2} r={size / 2 - borderWidth} />
+                  <Circle cx={cx} cy={cy} r={W / 2 - bw} />
                 </ClipPath>
               </Defs>
+              {/* Full teardrop with category color — tip portion stays visible below photo */}
+              <Path d={pinPath} fill={color} stroke="#ffffff" strokeWidth={bw} strokeLinejoin="round" />
+              {/* Photo clipped to circle, overlaid on top of the circle portion */}
               <SvgImage
                 href={{ uri: photoUrl }}
-                x={borderWidth}
-                y={borderWidth}
-                width={size - borderWidth * 2}
-                height={size - borderWidth * 2}
+                x={bw}
+                y={bw}
+                width={W - bw * 2}
+                height={W - bw * 2}
                 preserveAspectRatio="xMidYMid slice"
                 clipPath={`url(#${clipId})`}
                 onLoad={onImageLoadEnd}
               />
-              <Circle
-                cx={size / 2}
-                cy={size / 2}
-                r={size / 2 - borderWidth / 2}
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth={borderWidth}
-              />
+              {/* White border ring rendered on top of the photo */}
+              <Circle cx={cx} cy={cy} r={r} fill="none" stroke="#ffffff" strokeWidth={bw} />
             </>
           ) : (
-            <Circle
-              cx={size / 2}
-              cy={size / 2}
-              r={size / 2 - borderWidth / 2}
+            <Path
+              d={pinPath}
               fill={color}
               stroke="#ffffff"
-              strokeWidth={borderWidth}
+              strokeWidth={bw}
+              strokeLinejoin="round"
             />
           )}
-          <Polygon
-            points={tipPoints}
-            fill={color}
-            stroke="#ffffff"
-            strokeWidth={isSelected ? 2 : 1.5}
-            strokeLinejoin="round"
-          />
         </Svg>
         {!photoUrl && (
           <View
@@ -151,15 +156,15 @@ export function PinMarker({
               position: 'absolute',
               top: 0,
               left: 0,
-              width: size,
-              height: size,
+              width: W,
+              height: W,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             <Ionicons
               name={icon}
-              size={iconSize ?? (isSelected ? 24 : 18)}
+              size={iconSize ?? (isSelected ? 28 : 20)}
               color="#ffffff"
             />
           </View>
@@ -170,16 +175,15 @@ export function PinMarker({
 }
 
 // ─── Cluster badge ────────────────────────────────────────────────────────────
-// Same SVG-only approach as PinMarker — see comment above.
+// Two-ring design: outer halo (primary @ 18% opacity) + inner solid fill (primary).
+// White text for count instead of blue-on-white — more legible on the colored fill.
 
 export function ClusterMarker({ count }: { count: number }) {
-  const size = count <= 9 ? 40 : count <= 99 ? 48 : 52
-  const fontSize = count <= 9 ? 16 : count <= 99 ? 14 : 12
-  const borderWidth = 3
+  const outer = count <= 9 ? 48 : count <= 99 ? 56 : 62
+  const innerR = (outer - 10) / 2  // 5px halo gap on each side
+  const fontSize = count <= 9 ? 17 : count <= 99 ? 15 : 13
 
-  // Android rasterises the marker for its tracksViewChanges snapshot; if that
-  // happens mid-animation the bubble is frozen at a partial scale/opacity. Skip
-  // the entrance animation there and render at full size immediately.
+  // Same Android/iOS animation split as PinMarker.
   const initial = Platform.OS === 'android' ? 1 : 0.4
   const scale = useSharedValue(initial)
   const opacity = useSharedValue(initial === 1 ? 1 : 0)
@@ -196,34 +200,34 @@ export function ClusterMarker({ count }: { count: number }) {
   }))
 
   const shadowStyle = Platform.OS === 'ios' ? {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.22,
-    shadowRadius: 6,
+    shadowColor: colors.primary[500],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
   } : {}
 
-  // A `transform` style on the marker's content view — even an inert
-  // scale(1) — makes react-native-maps' Android snapshot capture the
-  // pre-transform layout box while the transformed content renders larger,
-  // cropping the bubble. Skip Animated.View/transform on Android entirely.
   const Wrapper = Platform.OS === 'android' ? View : Animated.View
   const wrapperStyle = Platform.OS === 'android'
-    ? { width: size, height: size }
-    : [{ width: size, height: size }, shadowStyle, animStyle]
+    ? { width: outer, height: outer }
+    : [{ width: outer, height: outer }, shadowStyle, animStyle]
 
   return (
-    // collapsable={false} — without it RN's view-flattening optimization breaks
-    // react-native-maps' Android bitmap measurement and crops the bubble.
-    <View collapsable={false} style={{ width: size, height: size }}>
+    <View collapsable={false} style={{ width: outer, height: outer }}>
       <Wrapper style={wrapperStyle}>
-        <Svg width={size} height={size}>
+        <Svg width={outer} height={outer}>
+          {/* Outer halo ring */}
           <Circle
-            cx={size / 2}
-            cy={size / 2}
-            r={size / 2 - borderWidth / 2}
-            fill="#ffffff"
-            stroke="rgba(0,70,222,0.25)"
-            strokeWidth={borderWidth}
+            cx={outer / 2}
+            cy={outer / 2}
+            r={outer / 2 - 1}
+            fill="rgba(0,70,222,0.18)"
+          />
+          {/* Inner solid fill */}
+          <Circle
+            cx={outer / 2}
+            cy={outer / 2}
+            r={innerR}
+            fill={colors.primary[500]}
           />
         </Svg>
         <View
@@ -232,8 +236,8 @@ export function ClusterMarker({ count }: { count: number }) {
             position: 'absolute',
             top: 0,
             left: 0,
-            width: size,
-            height: size,
+            width: outer,
+            height: outer,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -241,7 +245,7 @@ export function ClusterMarker({ count }: { count: number }) {
           <Text style={{
             fontSize,
             fontWeight: '700',
-            color: colors.primary[500],
+            color: '#ffffff',
             letterSpacing: -0.5,
           }}>
             {count > 99 ? '99+' : String(count)}
