@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Platform, Text, View } from 'react-native'
-import MapView, { Marker, type MarkerPressEvent, type Region } from 'react-native-maps'
+import MapView, { Marker, PROVIDER_GOOGLE, type MarkerPressEvent, type Region } from 'react-native-maps'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useTranslation } from 'react-i18next'
@@ -57,15 +57,19 @@ function spreadToRegion(
   }
 }
 
-// ─── Map styles (Android — hide POI/transit icons & labels on Google Maps) ───
+// ─── Map styles (Android — custom Google Maps style) ─────────────────────────
 
-const POI_OFF_STYLE = [
+const MAP_STYLE_LIGHT = [
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c8d8e8' }] },
+  { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#f2f2ed' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#e0dcd8' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#e8e8e2' }] },
+  { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#f0f0ec' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#4a4a5a' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#f8f8f5' }] },
 ]
-
-const MAP_STYLE_LIGHT = POI_OFF_STYLE
-
 // Multi-tone dark style — preserves the spatial hierarchy of the light map:
 // land < roads < highways, parks tinted green, vivid water, readable labels.
 const MAP_STYLE_DARK = [
@@ -127,7 +131,6 @@ function WishlistMarker({
       <PinMarker
         color={TYPE_COLORS[item.type]}
         icon={TYPE_ICONS[item.type]}
-        isSelected={isSelected}
       />
     </Marker>
   )
@@ -218,11 +221,23 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
 
   const mapRef = useRef<MapView>(null)
   const hasCenteredRef = useRef(false)
+  const mapReadyRef = useRef(false)
 
-  useEffect(() => {
+  const centerOnItems = () => {
     if (hasCenteredRef.current || locatedItems.length === 0) return
     hasCenteredRef.current = true
     mapRef.current?.setCamera(initialCamera)
+  }
+
+  const handleMapReady = () => {
+    mapReadyRef.current = true
+    centerOnItems()
+  }
+
+  useEffect(() => {
+    if (!mapReadyRef.current) return
+    centerOnItems()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locatedItems, initialCamera])
 
   useEffect(() => {
@@ -241,11 +256,13 @@ export function WishlistMap({ items, onItemPress }: WishlistMapProps) {
     <View style={{ flex: 1 }}>
       <MapView
         ref={mapRef}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
         style={{ flex: 1 }}
         mapType="standard"
         userInterfaceStyle={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
         customMapStyle={Platform.OS === 'android' ? (isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT) : undefined}
         camera={initialCamera}
+        onMapReady={handleMapReady}
         onRegionChangeComplete={setCurrentRegion}
         onPress={() => setSelectedId(null)}
         showsCompass={false}

@@ -1,5 +1,5 @@
 POLÍTICA DE PRIVACIDAD — PINGO
-Última actualización: 16 de junio de 2025
+Última actualización: 17 de junio de 2026
 
 
 En PinGo nos tomamos muy en serio la privacidad de nuestros usuarios. Esta Política de Privacidad explica qué datos personales recogemos, cómo los utilizamos, con quién los compartimos y qué derechos tienes sobre ellos.
@@ -33,6 +33,7 @@ Documentos subidos            | Centralizar documentación del viaje (PDFs, imá
 Datos de gastos               | Calcular y liquidar gastos compartidos entre viajeros         | No
 Ubicaciones de experiencias   | Guardar el lugar de actividades del viaje                     | No
 Lista de deseos (Wishlist)    | Guardar lugares y experiencias personales                     | No
+Estado de suscripción Pro     | Gestionar el acceso a funciones del Plan Pro                  | No
 
 Importante: PinGo NO accede a la ubicación GPS de tu dispositivo. Las ubicaciones que aparecen en la app son introducidas manualmente por el usuario mediante búsqueda de texto.
 
@@ -58,6 +59,7 @@ Prestar el servicio de gestión de viajes colaborativa        | Ejecución del c
 Gestionar tu cuenta de usuario                               | Ejecución del contrato (Art. 6.1.b)
 Permitir la colaboración entre viajeros                      | Ejecución del contrato (Art. 6.1.b)
 Enviarte comunicaciones esenciales del servicio              | Interés legítimo (Art. 6.1.f)
+Gestionar suscripciones y acceso al Plan Pro                 | Ejecución del contrato (Art. 6.1.b)
 
 No utilizamos tus datos para publicidad, marketing ni los cedemos a terceros con fines comerciales.
 
@@ -74,6 +76,9 @@ Supabase               | Infraestructura: base de datos, autenticación y almace
 Google Maps / Places   | Autocompletado de búsquedas de ubicación                       | Texto de búsqueda (sin datos personales) | policies.google.com/privacy
 Google Sign-In         | Autenticación mediante cuenta de Google                        | Nombre y email en el momento del login | policies.google.com/privacy
 Apple Sign-In          | Autenticación mediante Apple ID (solo iOS)                     | Nombre y email en el momento del login | apple.com/legal/privacy
+Apple App Store        | Procesador de pagos para compras en app (iOS)                  | Datos de pago y transacción (PinGo no recibe datos de tarjeta) | apple.com/legal/privacy
+Google Play Billing    | Procesador de pagos para compras en app (Android)              | Datos de pago y transacción (PinGo no recibe datos de tarjeta) | policies.google.com/privacy
+RevenueCat             | Gestión de suscripciones y entitlements (integración pendiente) | Identificador de usuario anónimo e historial de transacciones | revenuecat.com/privacy
 
 No vendemos, alquilamos ni cedemos tus datos personales a ningún otro tercero.
 

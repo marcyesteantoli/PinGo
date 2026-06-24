@@ -34,6 +34,7 @@ import { useUploadDocument } from '@features/documents/hooks/useUploadDocument'
 import { useAddDocumentLink } from '@features/documents/hooks/useAddDocumentLink'
 import { useAddDocumentPass } from '@features/documents/hooks/useAddDocumentPass'
 import { useDeleteDocument } from '@features/documents/hooks/useDeleteDocument'
+import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 import { useErrorToast } from '@lib/errorToast'
 import type { UploadDocumentFormData, AddLinkFormData } from '@features/documents/types'
 
@@ -285,6 +286,7 @@ export default function DocumentsScreen() {
   const [pendingPassAsset, setPendingPassAsset] = useState<DocumentPicker.DocumentPickerAsset | null>(null)
   const [selectedDocument, setSelectedDocument] = useState<DocumentWithExperience | null>(null)
   const [documentToDelete, setDocumentToDelete] = useState<DocumentWithExperience | null>(null)
+  const [paywallVisible, setPaywallVisible] = useState(false)
 
   const insets = useSafeAreaInsets()
   const scrollY = useSharedValue(0)
@@ -362,7 +364,14 @@ export default function DocumentsScreen() {
       await uploadDocument.mutateAsync({ ...data, tripId, asset: pendingAsset ?? undefined })
       setUploadSheetVisible(false)
       setPendingAsset(null)
-    } catch {}
+    } catch (err: any) {
+      if (err?.code === 'LIMIT_REACHED') {
+        setUploadSheetVisible(false)
+        setPendingAsset(null)
+        uploadDocument.reset()
+        setPaywallVisible(true)
+      }
+    }
   }
 
   const handleAddLink = async (data: AddLinkFormData) => {
@@ -494,6 +503,13 @@ export default function DocumentsScreen() {
           onClose={() => setDocumentToDelete(null)}
           onConfirm={handleDeleteConfirm}
           isLoading={deleteDocument.isPending}
+        />
+
+        <ProPaywallSheet
+          visible={paywallVisible}
+          onClose={() => setPaywallVisible(false)}
+          feature="documents"
+          isLimitReached
         />
       </View>
 

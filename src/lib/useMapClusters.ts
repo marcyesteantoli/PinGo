@@ -42,7 +42,7 @@ export function useMapClusters<T>(
   getExpansionRegion: (clusterId: number) => Region | null
 } {
   const scRef = useRef(
-    new Supercluster<{ id: string; data: T }>({ radius: 30, maxZoom: 14 })
+    new Supercluster<{ id: string; data: T }>({ radius: 25, maxZoom: 13 })
   )
 
   const features = useMemo(

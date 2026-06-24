@@ -16,6 +16,7 @@ import { ItineraryMockup } from './ItineraryMockup'
 import { ExpenseSplitMockup } from './ExpenseSplitMockup'
 import { PhotoMemoriesMockup } from './PhotoMemoriesMockup'
 import { WishlistMapMockup } from './WishlistMapMockup'
+import { ProFeatureList } from './ProFeatureList'
 
 interface OnboardingSlideProps {
   slide: OnboardingSlideData
@@ -104,6 +105,14 @@ export function OnboardingSlide({ slide, width, isActive }: OnboardingSlideProps
 
   const isProblem = slide.type === 'problem'
 
+  if (slide.type === 'pro_awareness') {
+    return (
+      <View style={[styles.slide, { width }, styles.proSlide]}>
+        <ProFeatureList isActive={isActive} />
+      </View>
+    )
+  }
+
   return (
     <View style={[styles.slide, { width }]}>
       <View style={styles.spacerTop} />
@@ -185,6 +194,10 @@ const styles = StyleSheet.create({
   logoImage: {
     width: 160,
     height: 160,
+  },
+  proSlide: {
+    justifyContent: 'center',
+    paddingVertical: 20,
   },
   gap32: { height: 32 },
   gap16: { height: 16 },

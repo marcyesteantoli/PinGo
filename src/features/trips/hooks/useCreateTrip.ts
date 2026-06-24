@@ -1,8 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { maybePromptRating } from '@/hooks/useRatingPrompt'
 import type { CreateTripFormData } from '../types'
 import type { Trip } from '@app-types/index'
+
+export class ActiveTripLimitReachedError extends Error {
+  constructor() {
+    super('active_trip_limit_reached')
+    this.name = 'ActiveTripLimitReachedError'
+  }
+}
 
 export function useCreateTrip() {
   const queryClient = useQueryClient()
@@ -18,12 +26,20 @@ export function useCreateTrip() {
         })
         .single()
 
-      if (tripError) throw new Error(tripError.message)
+      if (tripError) {
+        if (tripError.message.includes('active_trip_limit_reached')) {
+          throw new ActiveTripLimitReachedError()
+        }
+        throw new Error(tripError.message)
+      }
 
       return trip as Trip
     },
     onSuccess: () => {
+      const currentTrips = queryClient.getQueryData<Trip[]>(queryKeys.trips.list())
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.list() })
+      const newCount = (currentTrips?.length ?? 0) + 1
+      if (newCount >= 2) maybePromptRating()
     },
   })
 }

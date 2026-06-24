@@ -7,7 +7,10 @@ export function useCurrentUser() {
     queryKey: queryKeys.auth.currentUser(),
     queryFn: async () => {
       const { data: { user }, error } = await supabase.auth.getUser()
-      if (error) throw new Error(error.message)
+      if (error) {
+        if (error.message === 'Auth session missing!') return null
+        throw new Error(error.message)
+      }
       return user
     },
     staleTime: Infinity,

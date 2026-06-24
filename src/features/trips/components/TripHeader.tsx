@@ -26,9 +26,14 @@ const COLLAPSE_THRESHOLD = 60
 
 interface TripHeaderProps {
   scrollY?: SharedValue<number>
+  rightAction?: {
+    icon: React.ComponentProps<typeof Ionicons>['name']
+    onPress: () => void
+    accessibilityLabel: string
+  }
 }
 
-export function TripHeader({ scrollY }: TripHeaderProps) {
+export function TripHeader({ scrollY, rightAction }: TripHeaderProps) {
   const router = useRouter()
   const { trip, activeCollaborators } = useTripContext()
   const { data: user } = useCurrentUser()
@@ -105,6 +110,17 @@ export function TripHeader({ scrollY }: TripHeaderProps) {
           >
             {trip.title}
           </Animated.Text>
+
+          {rightAction && (
+            <TouchableOpacity
+              onPress={rightAction.onPress}
+              className="w-8 h-8 items-center justify-center shrink-0"
+              accessibilityRole="button"
+              accessibilityLabel={rightAction.accessibilityLabel}
+            >
+              <Ionicons name={rightAction.icon} size={22} color={colors.primary[500]} />
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             onPress={() => router.push('/(app)/profile')}

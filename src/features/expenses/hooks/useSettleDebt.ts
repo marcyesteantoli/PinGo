@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { maybePromptRating } from '@/hooks/useRatingPrompt'
 import type { Settlement } from '@app-types/index'
 
 interface SettleDebtParams {
@@ -48,6 +49,17 @@ export function useSettleDebt(tripId: string) {
         ]
       )
       return { snapshot }
+    },
+    onSuccess: (_, variables) => {
+      maybePromptRating()
+      supabase.functions.invoke('send-notification', {
+        body: {
+          event: 'debt_settled',
+          trip_id: tripId,
+          source_id: null,
+          context: { to_user_id: variables.toUserId, amount: variables.amount },
+        },
+      }).catch(() => {})
     },
     onError: (_, __, ctx) => {
       if (ctx?.snapshot) {

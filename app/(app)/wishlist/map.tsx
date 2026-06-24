@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
@@ -10,6 +11,9 @@ import { WishlistMap } from '@features/wishlist/components/WishlistMap'
 import { useWishlistItems } from '@features/wishlist/hooks/useWishlistItems'
 import { useTheme } from '@lib/theme'
 import { EASE_OUT } from '@lib/animations'
+import { useIsPro } from '@features/premium/hooks/useIsPro'
+import { LockedMapPreview } from '@features/premium/components/LockedMapPreview'
+import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 
 function BackButton({ onPress, top }: { onPress: () => void; top: number }) {
   const { isDark } = useTheme()
@@ -43,6 +47,8 @@ export default function WishlistMapScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { data: items = [] } = useWishlistItems()
+  const { isPro, isLoading } = useIsPro()
+  const [paywallVisible, setPaywallVisible] = useState(false)
 
   return (
     <View style={{ flex: 1 }}>
@@ -50,7 +56,16 @@ export default function WishlistMapScreen() {
         items={items}
         onItemPress={(itemId) => router.push({ pathname: '/wishlist/[itemId]' as never, params: { itemId } })}
       />
+      <LockedMapPreview
+        visible={!isPro || isLoading}
+        onUnlockPress={() => setPaywallVisible(true)}
+      />
       <BackButton onPress={() => router.back()} top={insets.top + 8} />
+      <ProPaywallSheet
+        visible={paywallVisible}
+        onClose={() => setPaywallVisible(false)}
+        feature="maps"
+      />
     </View>
   )
 }

@@ -262,13 +262,6 @@ export function DocumentViewer({ document, visible, onClose }: DocumentViewerPro
       return
     }
 
-    // Android WebView can't render PDFs from file:// URIs — use HTTPS URL directly for Google Docs viewer
-    if (Platform.OS === 'android' && document.document_type !== 'pass') {
-      setLocalUri(document.file_url)
-      setLoading(false)
-      return
-    }
-
     const ext = document.document_type === 'pass' ? 'pkpass' : 'pdf'
     const localPath = `${FileSystem.cacheDirectory}tripsync_doc_${document.id}.${ext}`
 
@@ -540,10 +533,37 @@ export function DocumentViewer({ document, visible, onClose }: DocumentViewerPro
             isImage ? (
               <Image source={{ uri: localUri }} style={{ flex: 1 }} resizeMode="contain" />
             ) : Platform.OS === 'android' ? (
-              <WebView
-                source={{ uri: `https://docs.google.com/gviewer?embedded=true&url=${encodeURIComponent(localUri)}` }}
-                style={{ flex: 1, backgroundColor: bg }}
-              />
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 20 }}>
+                <Ionicons name="document-text" size={72} color={isDark ? colors.neutral[600] : colors.neutral[300]} />
+                <Text style={{ color: titleColor, fontSize: 17, fontWeight: '600', textAlign: 'center' }}>
+                  {currentDoc.name}
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  onPress={async () => {
+                    if (!localUri) return
+                    const available = await Sharing.isAvailableAsync()
+                    if (available) {
+                      await Sharing.shareAsync(localUri, {
+                        mimeType: 'application/pdf',
+                        dialogTitle: currentDoc.name ?? 'Documento',
+                      })
+                    }
+                  }}
+                  style={{
+                    backgroundColor: colors.primary[500],
+                    borderRadius: 14,
+                    paddingHorizontal: 28,
+                    paddingVertical: 14,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <Ionicons name="open-outline" size={18} color="#fff" />
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Abrir en visor de PDF</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <WebView
                 source={{ uri: localUri }}

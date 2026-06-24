@@ -8,9 +8,10 @@ interface Props {
   destinations: TripDestination[]
   onManage: () => void
   onDestinationPress?: (dest: TripDestination) => void
+  onExportPdf?: () => void
 }
 
-export function DestinationChipsStrip({ destinations, onManage }: Props) {
+export function DestinationChipsStrip({ destinations, onManage, onExportPdf }: Props) {
   const { t } = useTranslation()
 
   const label =
@@ -19,7 +20,7 @@ export function DestinationChipsStrip({ destinations, onManage }: Props) {
       : t('destinations_add')
 
   return (
-    <View className="px-5 pt-1.5 pb-2">
+    <View className="px-5 pt-1.5 pb-2 flex-row items-center justify-between">
       <TouchableOpacity
         onPress={onManage}
         activeOpacity={0.7}
@@ -37,6 +38,19 @@ export function DestinationChipsStrip({ destinations, onManage }: Props) {
           <Ionicons name="chevron-forward" size={12} color={colors.neutral[400]} />
         )}
       </TouchableOpacity>
+
+      {onExportPdf && (
+        <TouchableOpacity
+          onPress={onExportPdf}
+          activeOpacity={0.7}
+          className="flex-row items-center gap-1 bg-neutral-200/80 dark:bg-neutral-700 rounded-full px-3 py-1.5"
+        >
+          <Ionicons name="document-text-outline" size={13} color={colors.neutral[400]} />
+          <Text className="text-[13px] font-medium text-neutral-600 dark:text-neutral-300">
+            PDF
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }

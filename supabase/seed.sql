@@ -1,5 +1,5 @@
 -- ============================================================
--- TripSync — Test Seed Data for Thesis Demonstration
+-- PinGo — Test Seed Data for Thesis Demonstration
 -- All users password: Tripsync2024!
 --
 -- Users:

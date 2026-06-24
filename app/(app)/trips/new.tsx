@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Controller, useForm } from 'react-hook-form'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -11,23 +11,30 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@components/ui/Button'
 import { DateRangePicker } from '@components/ui/DateRangePicker'
 import { Input } from '@components/ui/Input'
-import { useCreateTrip } from '@features/trips/hooks/useCreateTrip'
+import { ActiveTripLimitReachedError, useCreateTrip } from '@features/trips/hooks/useCreateTrip'
 import { buildCreateTripSchema, type CreateTripFormData } from '@features/trips/types'
 import { SUPPORTED_CURRENCIES } from '@utils/currencies'
 import { colors } from '@lib/colors'
 import { cardShadow, ctaShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
+import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 
 export default function NewTripScreen() {
   const router = useRouter()
   const createTrip = useCreateTrip()
   const showError = useErrorToast()
   const { t } = useTranslation()
+  const [paywallVisible, setPaywallVisible] = useState(false)
 
   const schema = useMemo(() => buildCreateTripSchema(), [t])
 
   useEffect(() => {
-    if (createTrip.error) showError(createTrip.error.message)
+    if (!createTrip.error) return
+    if (createTrip.error instanceof ActiveTripLimitReachedError) {
+      setPaywallVisible(true)
+      return
+    }
+    showError(createTrip.error.message)
   }, [createTrip.error])
 
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm<CreateTripFormData>({
@@ -174,6 +181,13 @@ export default function NewTripScreen() {
           </View>
         </View>
       </KeyboardAwareScrollView>
+
+      <ProPaywallSheet
+        visible={paywallVisible}
+        onClose={() => { setPaywallVisible(false); createTrip.reset() }}
+        feature="trips"
+        isLimitReached
+      />
     </SafeAreaView>
   )
 }

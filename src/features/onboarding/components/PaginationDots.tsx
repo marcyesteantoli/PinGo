@@ -2,16 +2,14 @@ import { useEffect } from 'react'
 import { StyleSheet, View } from 'react-native'
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { DURATION, EASE_OUT } from '@lib/animations'
-import { ALL_SLIDES } from '../slides'
-
-const ACCENT_COLORS = ALL_SLIDES.map((slide) => slide.accentColor)
 
 interface PaginationDotsProps {
   total: number
   activeIndex: number
+  accentColors: string[]
 }
 
-function Dot({ index, activeIndex }: { index: number; activeIndex: number }) {
+function Dot({ index, activeIndex, accentColors }: { index: number; activeIndex: number; accentColors: string[] }) {
   const width = useSharedValue(8)
   const opacity = useSharedValue(index === 0 ? 1 : 0.35)
 
@@ -22,7 +20,7 @@ function Dot({ index, activeIndex }: { index: number; activeIndex: number }) {
   }, [activeIndex])
 
   const style = useAnimatedStyle(() => {
-    const colors = ACCENT_COLORS.length > 1 ? ACCENT_COLORS : [ACCENT_COLORS[0], ACCENT_COLORS[0]]
+    const colors = accentColors.length > 1 ? accentColors : [accentColors[0], accentColors[0]]
     const color = interpolateColor(
       activeIndex,
       colors.map((_, i) => i),
@@ -38,11 +36,11 @@ function Dot({ index, activeIndex }: { index: number; activeIndex: number }) {
   return <Animated.View style={[styles.dot, style]} />
 }
 
-export function PaginationDots({ total, activeIndex }: PaginationDotsProps) {
+export function PaginationDots({ total, activeIndex, accentColors }: PaginationDotsProps) {
   return (
     <View style={styles.row}>
       {Array.from({ length: total }).map((_, i) => (
-        <Dot key={i} index={i} activeIndex={activeIndex} />
+        <Dot key={i} index={i} activeIndex={activeIndex} accentColors={accentColors} />
       ))}
     </View>
   )

@@ -38,6 +38,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-secure-store',
     'expo-font',
     [
+      'expo-notifications',
+      {
+        color: '#0046de',
+        iosDisplayInForeground: true,
+      },
+    ],
+    [
       'expo-image-picker',
       { photosPermission: 'La app necesita acceso a tus fotos para añadir recuerdos.' },
     ],
@@ -76,6 +83,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           ] satisfies [string, { iosUrlScheme: string }],
         ]
       : []),
+    [
+      '@sentry/react-native/expo',
+      {
+        organization: 'pingo-nq',
+        project: 'pingo',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
