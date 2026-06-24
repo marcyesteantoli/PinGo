@@ -33,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY_ANDROID,
       },
     },
+    blockedPermissions: ['android.permission.READ_MEDIA_VIDEO'],
   },
   plugins: [
     'expo-router',
