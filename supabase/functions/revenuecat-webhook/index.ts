@@ -7,6 +7,7 @@ const GRANT_EVENTS = new Set([
   'TRANSFER',
   'NON_RENEWING_PURCHASE',
   'TRIAL_STARTED',
+  'PRODUCT_CHANGED',
 ])
 
 const REVOKE_EVENTS = new Set([
