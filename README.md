@@ -1,38 +1,9 @@
 # PinGo 📍✈️
 
-**PinGo** es una aplicación móvil colaborativa diseñada para simplificar la gestión y organización de viajes en grupo, sin descuidar la experiencia individual del viajero.
+**PinGo** es una aplicación móvil colaborativa para la gestión integral de viajes en grupo. Centraliza en un único espacio todo lo que un grupo de viajeros necesita: planificación del itinerario, control de gastos compartidos, documentación del viaje y una galería de recuerdos colectiva — eliminando la fragmentación habitual entre chats, hojas de cálculo y carpetas dispersas.
 
-## 🚀 Funcionalidades Principales
+Más allá del viaje en curso, PinGo también cuida la experiencia individual: permite guardar y visualizar en el mapa los lugares favoritos de viajes anteriores, y construir una lista de deseos personal con destinos, restaurantes y actividades pendientes.
 
-### 👥 Viajes en Grupo (Colaborativo)
-* **Itinerarios dinámicos (Timeline):** Planificación y organización del viaje día a día con actividades, transporte, alojamiento y restaurantes. Incluye valoración de experiencias (1-10) con atributos específicos por tipo (confort, calidad, etc.) y exportación del itinerario a PDF.
-* **Gestión de gastos:** Registro de gastos compartidos con cálculo automático de balances y liquidaciones entre participantes.
-* **Documentación centralizada:** Adjuntos (PDF, imágenes) y reservas accesibles por experiencia. Soporta compartir documentos directamente desde otras apps (correo, navegador…) mediante Share Intent.
-* **Galería de recuerdos:** Espacio colaborativo para subir fotos con pie de foto y revivir el viaje.
-* **Notificaciones push:** Alertas automáticas a los miembros del viaje ante eventos relevantes (nuevo gasto, nuevo miembro, memoria subida, recordatorios de viaje próximo o en curso con deudas pendientes).
-
-### 👤 Experiencia Individual (Personal)
-* **Mapa de experiencias guardadas:** Guarda, organiza y visualiza en el mapa tus lugares favoritos y recomendaciones de viajes anteriores.
-* **Lista de deseos (Wishlist):** Planifica tus próximos destinos, restaurantes y actividades pendientes con soporte de mapa y filtros por tipo.
-
-### 🌍 Transversal
-* **Internacionalización:** Interfaz disponible en 6 idiomas: español, inglés, alemán, francés, italiano y portugués.
-
----
-
-## Plan gratuito vs Pro
-
-Las funcionalidades de mapa y ciertos límites de uso están restringidos al plan Pro, gestionado mediante RevenueCat. Los límites se aplican tanto en cliente como en servidor (función RPC `create_trip` en Supabase).
-
-| Feature | Gratuito | Pro |
-|---------|:--------:|:---:|
-| Viajes activos simultáneos | 2 | Ilimitados |
-| Fotos por viaje | 10 | 100 |
-| Documentos por viaje | 2 | 30 |
-| Mapa de experiencias guardadas | ❌ | ✅ |
-| Mapa de wishlist | ❌ | ✅ |
-
----
 
 ## Stack tecnológico
 
@@ -54,10 +25,10 @@ Las funcionalidades de mapa y ciertos límites de uso están restringidos al pla
 ## Servicios externos
 
 ### RevenueCat
-Gestión de suscripciones in-app (iOS + Android). Ofrece planes mensual, anual y lifetime. Al completar una compra, un webhook de RevenueCat actualiza el campo `profiles.is_pro` en Supabase para reflejar el estado Pro en tiempo real.
+Gestión de suscripciones in-app (iOS + Android). Ofrece planes mensual, anual y lifetime. Al completar una compra, un webhook de RevenueCat actualiza el campo en Supabase para reflejar el estado Pro en tiempo real.
 
 ### Sentry
-Monitorización de errores y crashes en producción. Captura stack traces, sesiones de usuario y contexto de autenticación. Activo únicamente en builds de producción (`enabled: !__DEV__`).
+Monitorización de errores y crashes en producción. Captura stack traces, sesiones de usuario y contexto de autenticación. Activo únicamente en builds de producción.
 
 ### Google Places API (New)
 Autocompletado de ubicaciones al añadir experiencias al timeline. Usa session tokens para optimizar el coste de billing. Extrae coordenadas, nombre y localidad del lugar seleccionado.
@@ -143,6 +114,24 @@ features/<nombre>/
 ```
 
 Módulos disponibles: `auth` · `trips` · `timeline` · `expenses` · `documents` · `memories` · `wishlist` · `saved` · `onboarding`
+
+---
+
+## 🚀 Funcionalidades Principales
+
+### 👥 Viajes en Grupo (Colaborativo)
+* **Itinerarios dinámicos (Timeline):** Planificación y organización del viaje día a día con actividades, transporte, alojamiento y restaurantes. Incluye valoración de experiencias (1-10) con atributos específicos por tipo (confort, calidad, etc.) y exportación del itinerario a PDF.
+* **Gestión de gastos:** Registro de gastos compartidos con cálculo automático de balances y liquidaciones entre participantes.
+* **Documentación centralizada:** Adjuntos (PDF, imágenes) y reservas accesibles por experiencia. Soporta compartir documentos directamente desde otras apps (correo, navegador…) mediante Share Intent.
+* **Galería de recuerdos:** Espacio colaborativo para subir fotos con pie de foto y revivir el viaje.
+* **Notificaciones push:** Alertas automáticas a los miembros del viaje ante eventos relevantes (nuevo gasto, nuevo miembro, memoria subida, recordatorios de viaje próximo o en curso con deudas pendientes).
+
+### 👤 Experiencia Individual (Personal)
+* **Mapa de experiencias guardadas:** Guarda, organiza y visualiza en el mapa tus lugares favoritos y recomendaciones de viajes anteriores.
+* **Lista de deseos (Wishlist):** Planifica tus próximos destinos, restaurantes y actividades pendientes con soporte de mapa y filtros por tipo.
+
+### 🌍 Transversal
+* **Internacionalización:** Interfaz disponible en 6 idiomas: español, inglés, alemán, francés, italiano y portugués.
 
 ---
 
