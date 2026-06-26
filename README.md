@@ -135,6 +135,15 @@ Módulos disponibles: `auth` · `trips` · `timeline` · `expenses` · `document
 
 ---
 
+## Recursos
+
+| | |
+|---|---|
+| 📊 Presentación TFM | [Ver presentación](https://drive.google.com/file/d/1YLdASxtIepMr6HtHkxXb7BlLRbbYf5QQ/view?usp=sharing) |
+| 🎬 Demo en vídeo | *Próximamente* |
+| 📦 Descargar APK | [GitHub Releases](https://github.com/marcyesteantoli/PinGo/releases/latest) |
+
+
 ## Usuario de prueba
 
 | Campo | Valor |
