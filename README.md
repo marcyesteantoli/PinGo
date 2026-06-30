@@ -80,6 +80,24 @@ El APK está disponible en [GitHub Releases](https://github.com/marcyesteantoli/
 
 ---
 
+## Despliegue (Android)
+
+Build y publicación gestionados con **EAS** (Expo Application Services).
+
+1. **Subir versión** en [app.config.ts](app.config.ts): incrementar `android.versionCode` (y `version` si aplica) antes de cada release.
+2. **Generar el build** (perfil `production` definido en [eas.json](eas.json), genera un `.aab`):
+   ```bash
+   eas build --platform android --profile production
+   ```
+3. **Subir a Play Store** con el build más reciente:
+   ```bash
+   eas submit --platform android --latest
+   ```
+   Sube automáticamente a la pista **internal testing** en Google Play Console (credenciales del service account configuradas en EAS). Próximamente se promoverá a **closed testing** y, finalmente, a **production**.
+4. **Publicar APK en GitHub Releases** (distribución de prueba al margen de Play Store): generar build con `eas build --platform android --profile preview` y adjuntar el `.apk` resultante al release de GitHub.
+
+---
+
 ## Estructura del proyecto
 El proyecto utiliza una arquitectura híbrida basada en **rutas por archivos** (Expo Router) y organización **por módulos/dominios** (*feature-based*) dentro de `src/`.
 ```
@@ -140,7 +158,7 @@ Módulos disponibles: `auth` · `trips` · `timeline` · `expenses` · `document
 | | |
 |---|---|
 | 📊 Presentación TFM | [Ver presentación](https://drive.google.com/file/d/1YLdASxtIepMr6HtHkxXb7BlLRbbYf5QQ/view?usp=sharing) |
-| 🎬 Demo en vídeo | *Próximamente* |
+| 🎬 Demo en vídeo | [Ver vídeo](https://drive.google.com/file/d/1HTaMjk57v-2U5Y1Ju12eVKYi-_NzWJ-9/view?usp=sharing) |
 | 📦 Descargar APK | [GitHub Releases](https://github.com/marcyesteantoli/PinGo/releases/latest) |
 
 
