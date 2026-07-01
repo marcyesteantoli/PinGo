@@ -4,6 +4,7 @@ import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { compressImage } from '@utils/image'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 import type { ImagePickerAsset } from 'expo-image-picker'
 
 export function useUploadSavedCoverPhoto(experienceId: string) {
@@ -36,7 +37,7 @@ export function useUploadSavedCoverPhoto(experienceId: string) {
         .from('saved-photos')
         .upload(storagePath, bytes, { contentType: 'image/jpeg', upsert: false })
 
-      if (uploadError) throw new Error(uploadError.message)
+      if (uploadError) throw mapSupabaseError(uploadError)
 
       // 4. Persist path in DB
       const { error: dbError } = await (supabase as any)
@@ -48,7 +49,7 @@ export function useUploadSavedCoverPhoto(experienceId: string) {
       if (dbError) {
         // Clean up orphan upload
         await supabase.storage.from('saved-photos').remove([storagePath])
-        throw new Error(dbError.message)
+        throw mapSupabaseError(dbError)
       }
 
       // 5. Remove old file now that DB is updated

@@ -8,6 +8,7 @@ import { compressImage } from '@utils/image'
 import { LIMITS } from '@/config/limits'
 import { fetchUserProStatus } from '@features/premium/hooks/useIsPro'
 import { maybePromptRating } from '@/hooks/useRatingPrompt'
+import { AppError } from '@lib/errors'
 import type { MemoryWithUrl } from './useMemories'
 
 function notifyMemoryAdded(memoryId: string, tripId: string) {
@@ -31,11 +32,6 @@ export type AddMemoriesParams = {
   tripId: string
   assets: ImagePicker.ImagePickerAsset[]
 }
-
-export type AddMemoryError =
-  | { code: 'LIMIT_REACHED'; message: string }
-  | { code: 'UPLOAD_FAILED'; message: string }
-  | { code: 'DB_FAILED'; message: string }
 
 async function uploadMemory(
   asset: ImagePicker.ImagePickerAsset,
@@ -65,12 +61,7 @@ async function uploadMemory(
     .from('memories')
     .upload(storagePath, byteArray, { contentType: 'image/jpeg', upsert: false })
 
-  if (uploadError) {
-    throw {
-      code: 'UPLOAD_FAILED',
-      message: 'Error al subir la foto. Inténtalo de nuevo.',
-    } satisfies AddMemoryError
-  }
+  if (uploadError) throw new AppError('unexpected', uploadError)
 
   // 4. Insertar en BD con storage path — si falla, limpiar el archivo subido
   // Guardamos el path (no la URL pública) para generar signed URLs al leer
@@ -83,10 +74,7 @@ async function uploadMemory(
   if (dbError) {
     // Limpieza: borrar el archivo huérfano de Storage
     await supabase.storage.from('memories').remove([storagePath])
-    throw {
-      code: 'DB_FAILED',
-      message: 'Error al guardar el recuerdo. Inténtalo de nuevo.',
-    } satisfies AddMemoryError
+    throw new AppError('unexpected', dbError)
   }
 
   return { ...data, cacheKey: data.image_url }
@@ -101,24 +89,20 @@ export function useAddMemories() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user)
-        throw { code: 'DB_FAILED', message: 'No hay sesión activa.' } satisfies AddMemoryError
+      if (!user) throw new AppError('no_session')
 
       const { count, error: countError } = await supabase
         .from('memories')
         .select('*', { count: 'exact', head: true })
         .eq('trip_id', tripId)
 
-      if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' } satisfies AddMemoryError
+      if (countError) throw new AppError('unexpected', countError)
 
       const isUserPro = await fetchUserProStatus(user.id)
       const cap = isUserPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
 
       if ((count ?? 0) + assets.length > cap) {
-        throw {
-          code: 'LIMIT_REACHED',
-          message: `Este viaje ha alcanzado el límite de ${cap} fotos.`,
-        } satisfies AddMemoryError
+        throw new AppError('photo_limit_reached')
       }
 
       setProgress({ done: 0, total: assets.length })
@@ -152,7 +136,7 @@ export function useAddMemory() {
   return useMutation({
     mutationFn: async ({ tripId, caption, asset }: AddMemoryParams): Promise<MemoryWithUrl> => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw { code: 'DB_FAILED', message: 'No hay sesión activa.' } satisfies AddMemoryError
+      if (!user) throw new AppError('no_session')
 
       // Double-check del límite antes del upload (el screen ya lo verifica antes de abrir el picker)
       const { count, error: countError } = await supabase
@@ -160,20 +144,17 @@ export function useAddMemory() {
         .select('*', { count: 'exact', head: true })
         .eq('trip_id', tripId)
 
-      if (countError) throw { code: 'DB_FAILED', message: 'Error al verificar el límite de fotos.' } satisfies AddMemoryError
+      if (countError) throw new AppError('unexpected', countError)
 
       const isUserPro = await fetchUserProStatus(user.id)
       const cap = isUserPro ? LIMITS.PRO_MAX_PHOTOS_PER_TRIP : LIMITS.FREE_MAX_PHOTOS_PER_TRIP
 
       if ((count ?? 0) >= cap) {
-        throw {
-          code: 'LIMIT_REACHED',
-          message: `Este viaje ha alcanzado el límite de ${cap} fotos.`,
-        } satisfies AddMemoryError
+        throw new AppError('photo_limit_reached')
       }
 
       // El asset llega ya seleccionado desde el screen
-      if (!asset) throw { code: 'DB_FAILED', message: 'No se ha seleccionado ninguna imagen.' } satisfies AddMemoryError
+      if (!asset) throw new AppError('unexpected')
 
       return uploadMemory(asset, tripId, user.id, caption)
     },

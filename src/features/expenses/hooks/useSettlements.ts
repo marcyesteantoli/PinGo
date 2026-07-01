@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { Settlement } from '@app-types/index'
 
 export function useSettlements(tripId: string) {
@@ -12,7 +13,7 @@ export function useSettlements(tripId: string) {
         .select('*')
         .eq('trip_id', tripId)
         .order('created_at', { ascending: false })
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return data ?? []
     },
     staleTime: 0,

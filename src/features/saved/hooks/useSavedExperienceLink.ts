@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 
 export type SavedExperienceLink = { experienceId: string } | null
 
@@ -19,7 +20,7 @@ export function useSavedExperienceLink(tripExperienceId: string) {
         .eq('source_experience_id', tripExperienceId)
         .maybeSingle()
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return data ? { experienceId: data.experience_id } : null
     },
     enabled: !!userId && !!tripExperienceId,

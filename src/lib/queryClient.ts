@@ -1,9 +1,11 @@
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
 import { Sentry } from '@lib/sentry'
+import { AppError } from '@lib/errors'
 
 function reportToSentry(error: Error, context?: Record<string, unknown>) {
   Sentry.withScope((scope) => {
     if (context) scope.setContext('query', context)
+    if (error instanceof AppError && error.cause) scope.setExtra('cause', error.cause)
     Sentry.captureException(error)
   })
 }

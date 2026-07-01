@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { AppError } from '@lib/errors'
 
 type Params = {
   tripId: string
@@ -17,7 +18,7 @@ export function useUploadSharedDocument() {
   return useMutation({
     mutationFn: async ({ tripId, experienceId, name, fileUri, mimeType, fileName }: Params) => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('No hay sesión activa')
+      if (!user) throw new AppError('no_session')
 
       const ext = fileName.split('.').pop() ?? 'pdf'
       const filename = `${user.id}_${Date.now()}.${ext}`
@@ -30,7 +31,7 @@ export function useUploadSharedDocument() {
         .from('documents')
         .upload(storagePath, blob, { upsert: false })
 
-      if (uploadError) throw new Error('Error al subir el archivo. Inténtalo de nuevo.')
+      if (uploadError) throw new AppError('unexpected', uploadError)
 
       const { error: dbError } = await supabase.from('documents').insert({
         trip_id: tripId,
@@ -43,7 +44,7 @@ export function useUploadSharedDocument() {
 
       if (dbError) {
         await supabase.storage.from('documents').remove([storagePath])
-        throw new Error('Error al guardar el documento. Inténtalo de nuevo.')
+        throw new AppError('unexpected', dbError)
       }
     },
     onSuccess: (_, variables) => {

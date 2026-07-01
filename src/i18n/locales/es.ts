@@ -666,6 +666,29 @@ export const es = {
   premium_restore_error_message: 'No se pudo restaurar la compra. Inténtalo de nuevo.',
   premium_paywall_load_error: 'No se pudieron cargar los planes. Inténtalo de nuevo.',
   premium_paywall_retry: 'Reintentar',
+
+  // ─── ERRORS ──────────────────────────────────────────────────────────────
+  error_unexpected: 'Ha ocurrido un error. Inténtalo de nuevo.',
+  error_network: 'Problema de conexión. Revisa tu internet e inténtalo de nuevo.',
+  error_duplicate: 'Esto ya existe.',
+  error_validation: 'Parte de la información no es válida.',
+  error_overlap_error: 'Estas fechas se solapan con otra etapa. Ajusta las fechas para que no coincidan.',
+  error_not_authorized: 'No tienes permiso para hacer esto.',
+  error_delete_error: 'No se ha podido eliminar. Inténtalo de nuevo.',
+  error_invalid_join_code: 'Código de viaje no encontrado.',
+  error_already_member: 'Ya eres colaborador de este viaje.',
+  error_active_trip_limit_reached: 'Has alcanzado el límite de viajes activos de tu plan.',
+  error_debt_already_settled: 'Esta deuda ya está saldada o el importe supera lo que se debe.',
+  error_debt_not_involved: 'Solo el deudor o el acreedor pueden registrar este pago.',
+  error_invalid_credentials: 'Email o contraseña incorrectos.',
+  error_email_not_confirmed: 'Confirma tu email antes de iniciar sesión.',
+  error_user_already_exists: 'Ya existe una cuenta con este email.',
+  error_weak_password: 'La contraseña es demasiado débil. Usa al menos 6 caracteres.',
+  error_rate_limited: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+  error_purchase_failed: 'No se ha podido procesar la compra. Inténtalo de nuevo.',
+  error_no_session: 'Tu sesión ha caducado. Inicia sesión de nuevo.',
+  error_document_limit_reached: 'Este viaje ha alcanzado el límite de documentos del plan gratuito.',
+  error_photo_limit_reached: 'Este viaje ha alcanzado el límite de fotos del plan gratuito.',
 } as const
 
 export type TranslationKeys = keyof typeof es

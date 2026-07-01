@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { ExpenseWithSplits, Settlement } from '@app-types/index'
 
 interface DeleteExpenseArgs {
@@ -15,7 +16,7 @@ export function useDeleteExpense(tripId: string) {
       const { error } = await supabase.rpc('delete_expense_safe', {
         p_expense_id: expenseId,
       })
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onMutate: async ({ expenseId }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.expenses.all(tripId) })

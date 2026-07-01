@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 
 export function useIsSaved(experienceId: string) {
   const { data: user } = useCurrentUser()
@@ -17,7 +18,7 @@ export function useIsSaved(experienceId: string) {
         .eq('experience_id', experienceId)
         .maybeSingle()
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return data !== null
     },
     enabled: !!userId && !!experienceId,

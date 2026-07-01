@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
+import { mapAuthError, mapSupabaseError } from '@lib/errors'
 
 export function useDeleteAccount() {
   const queryClient = useQueryClient()
@@ -7,10 +8,10 @@ export function useDeleteAccount() {
   return useMutation({
     mutationFn: async () => {
       const { error: rpcError } = await supabase.rpc('request_account_deletion')
-      if (rpcError) throw new Error(rpcError.message)
+      if (rpcError) throw mapSupabaseError(rpcError)
 
       const { error: signOutError } = await supabase.auth.signOut()
-      if (signOutError) throw new Error(signOutError.message)
+      if (signOutError) throw mapAuthError(signOutError)
     },
     onSuccess: () => {
       queryClient.clear()

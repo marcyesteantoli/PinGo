@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { AppError, mapSupabaseError } from '@lib/errors'
 import { splitEquallyAll } from '@utils/currency'
 import type { CreateExpenseFormData } from '../types'
 import type { Collaborator, ExpenseWithSplits } from '@app-types/index'
@@ -22,7 +23,7 @@ export function useCreateExpense(tripId: string, collaborators: Collaborator[] =
   return useMutation({
     mutationFn: async (formData: CreateExpenseFormData) => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('No hay sesión activa')
+      if (!user) throw new AppError('no_session')
 
       const payerId = formData.payer_id ?? user.id
 
@@ -36,7 +37,7 @@ export function useCreateExpense(tripId: string, collaborators: Collaborator[] =
         p_currency: currency,
       })
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return expenseId
     },
     onMutate: async (formData) => {

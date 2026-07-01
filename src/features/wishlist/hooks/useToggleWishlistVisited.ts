@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { maybePromptRating } from '@/hooks/useRatingPrompt'
+import { mapSupabaseError } from '@lib/errors'
 import type { WishlistItem } from '@app-types/index'
 
 export function useToggleWishlistVisited() {
@@ -16,7 +17,7 @@ export function useToggleWishlistVisited() {
         .update({ visited_at: newValue })
         .eq('id', itemId)
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return newValue
     },
     onMutate: async ({ itemId, currentVisitedAt }) => {

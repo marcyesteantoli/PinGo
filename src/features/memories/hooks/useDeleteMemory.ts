@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { AppError } from '@lib/errors'
 import type { MemoryWithUrl } from './useMemories'
 
 type DeleteMemoryParams = { memoryId: string; tripId: string }
@@ -14,8 +15,8 @@ export function useDeleteMemory() {
         .from('memories')
         .delete({ count: 'exact' })
         .eq('id', memoryId)
-      if (error) throw new Error(error.message)
-      if (count === 0) throw new Error('not_authorized')
+      if (error) throw new AppError('delete_error', error)
+      if (count === 0) throw new AppError('not_authorized')
     },
     onMutate: async ({ memoryId, tripId }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.memories.all(tripId) })

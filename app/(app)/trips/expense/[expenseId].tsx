@@ -15,6 +15,7 @@ import { Avatar } from '@components/ui/Avatar'
 import { ConfirmDeleteSheet } from '@components/ui/ConfirmDeleteSheet'
 import { DetailActionBar } from '@components/ui/DetailActionBar'
 import { queryKeys } from '@lib/queryKeys'
+import { getErrorMessage } from '@lib/errors'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import { useTheme } from '@lib/theme'
@@ -299,7 +300,7 @@ export default function ExpenseDetailScreen() {
         onClose={() => setEditSheetVisible(false)}
         onSubmit={handleEditSubmit}
         isLoading={updateExpense.isPending}
-        error={updateExpense.error?.message}
+        error={updateExpense.error ? getErrorMessage(updateExpense.error, t) : undefined}
         currentUserId={currentUser?.id}
         collaborators={collaborators}
         experiences={experiences ?? []}

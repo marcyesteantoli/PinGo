@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
 import { supabase } from '@lib/supabase'
+import { AppError, mapAuthError } from '@lib/errors'
 
 export function useSignInWithGoogle() {
   return useMutation({
@@ -28,10 +29,10 @@ export function useSignInWithGoogle() {
       if (!isSuccessResponse(response)) return null
 
       const idToken = response.data.idToken
-      if (!idToken) throw new Error('No se pudo obtener el token de Google')
+      if (!idToken) throw new AppError('unexpected')
 
       const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
-      if (error) throw new Error(error.message)
+      if (error) throw mapAuthError(error)
       return idToken
     },
   })

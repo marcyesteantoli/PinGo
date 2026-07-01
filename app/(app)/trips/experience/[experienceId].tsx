@@ -34,6 +34,7 @@ import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import { formatDateWithWeekday } from '@utils/date'
 import { formatCurrency } from '@utils/currency'
+import { getErrorMessage } from '@lib/errors'
 import type { Document } from '@app-types/index'
 import type { BadgeVariant } from '@components/ui/Badge'
 
@@ -564,7 +565,7 @@ export default function ExperienceDetailScreen() {
           setEditSheetVisible(false)
         }}
         isLoading={updateExperience.isPending}
-        error={updateExperience.error?.message}
+        error={updateExperience.error ? getErrorMessage(updateExperience.error, t) : undefined}
         initialValues={{
           title: experience.title,
           type: experience.type,

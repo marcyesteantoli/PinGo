@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import { splitEquallyAll } from '@utils/currency'
 import type { CreateExpenseFormData } from '../types'
 import type { Collaborator, ExpenseWithSplits } from '@app-types/index'
@@ -24,7 +25,7 @@ export function useUpdateExpense(tripId: string, collaborators: Collaborator[] =
         p_participant_ids: formData.participant_ids,
       })
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onMutate: async ({ expenseId, formData }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.expenses.all(tripId) })

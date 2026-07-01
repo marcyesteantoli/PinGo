@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 import type { SavedExperienceItem } from '@app-types/index'
 
 interface SavedMeta {
@@ -35,7 +36,7 @@ export function useUpsertSavedMeta(experienceId: string) {
         .eq('user_id', user!.id)
         .eq('experience_id', experienceId)
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onMutate: async (meta) => {
       await Promise.all([

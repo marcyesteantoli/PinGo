@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { AppError } from '@lib/errors'
 
 interface DeleteDocumentParams {
   documentId: string
@@ -22,8 +23,8 @@ export function useDeleteDocument() {
       }
 
       const { data, error } = await supabase.from('documents').delete().eq('id', documentId).select('id')
-      if (error) throw new Error('delete_error')
-      if (!data || data.length === 0) throw new Error('not_authorized')
+      if (error) throw new AppError('delete_error', error)
+      if (!data || data.length === 0) throw new AppError('not_authorized')
     },
     onSuccess: (_data, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.all(tripId) })

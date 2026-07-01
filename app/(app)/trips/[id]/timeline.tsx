@@ -32,6 +32,7 @@ import { queryKeys } from '@lib/queryKeys'
 import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
 import { useErrorToast } from '@lib/errorToast'
+import { getErrorMessage } from '@lib/errors'
 import { groupByDate, UNDATED_SENTINEL, type Section } from '@features/timeline/utils/groupByDate'
 import { buildItineraryHtml } from '@features/timeline/utils/itineraryHtml'
 import { useExportItineraryPdf } from '@features/timeline/hooks/useExportItineraryPdf'
@@ -476,7 +477,7 @@ export default function TimelineScreen() {
         onClose={() => setSheetVisible(false)}
         onSubmit={handleCreate}
         isLoading={createExperience.isPending}
-        error={createExperience.error?.message}
+        error={createExperience.error ? getErrorMessage(createExperience.error, t) : undefined}
         minDate={trip?.start_date ? (() => { const [y, m, d] = trip.start_date.split('-').map(Number); return new Date(y, m - 1, d) })() : undefined}
         maxDate={trip?.end_date ? (() => { const [y, m, d] = trip.end_date.split('-').map(Number); return new Date(y, m - 1, d) })() : undefined}
         destinations={destinations}
@@ -494,7 +495,7 @@ export default function TimelineScreen() {
         onClose={() => setEditExperience(null)}
         onSubmit={handleUpdate}
         isLoading={updateExperience.isPending}
-        error={updateExperience.error?.message}
+        error={updateExperience.error ? getErrorMessage(updateExperience.error, t) : undefined}
         initialValues={editExperience ? experienceToFormData(editExperience) : undefined}
         mode="edit"
         destinations={destinations}

@@ -17,6 +17,7 @@ import { SUPPORTED_CURRENCIES } from '@utils/currencies'
 import { colors } from '@lib/colors'
 import { cardShadow, ctaShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
+import { getErrorMessage } from '@lib/errors'
 import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 
 export default function NewTripScreen() {
@@ -34,7 +35,7 @@ export default function NewTripScreen() {
       setPaywallVisible(true)
       return
     }
-    showError(createTrip.error.message)
+    showError(getErrorMessage(createTrip.error, t))
   }, [createTrip.error])
 
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm<CreateTripFormData>({

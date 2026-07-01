@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { AppError, mapSupabaseError } from '@lib/errors'
 import type { AttributeRatingsData } from '@app-types/index'
 
 export function useUpsertAttributeRating(experienceId: string) {
@@ -10,7 +11,7 @@ export function useUpsertAttributeRating(experienceId: string) {
   return useMutation({
     mutationFn: async ({ attribute, value }: { attribute: string; value: number }) => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('No hay sesión activa')
+      if (!user) throw new AppError('no_session')
 
       const { error } = await (supabase as any)
         .from('experience_attribute_ratings')
@@ -19,7 +20,7 @@ export function useUpsertAttributeRating(experienceId: string) {
           { onConflict: 'experience_id,user_id,attribute' }
         )
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onMutate: async ({ attribute, value }) => {
       await queryClient.cancelQueries({ queryKey: qKey })

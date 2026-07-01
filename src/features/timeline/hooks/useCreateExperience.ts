@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { AppError, mapSupabaseError } from '@lib/errors'
 import type { CreateExperienceFormData } from '../types'
 import type { Experience } from '@app-types/index'
 
@@ -21,7 +22,7 @@ export function useCreateExperience(tripId: string) {
   return useMutation({
     mutationFn: async (formData: CreateExperienceFormData) => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('No hay sesión activa')
+      if (!user) throw new AppError('no_session')
 
       const { data, error } = await supabase
         .from('experiences')
@@ -40,7 +41,7 @@ export function useCreateExperience(tripId: string) {
         .select()
         .single()
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return data as Experience
     },
     onMutate: async (formData) => {

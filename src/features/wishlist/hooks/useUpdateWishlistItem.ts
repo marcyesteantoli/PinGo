@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { WishlistItem, WishlistItemType } from '@app-types/index'
 
 interface UpdateWishlistItemInput {
@@ -40,7 +41,7 @@ export function useUpdateWishlistItem(itemId: string) {
         })
         .eq('id', itemId)
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: listKey })

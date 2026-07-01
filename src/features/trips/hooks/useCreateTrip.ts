@@ -2,12 +2,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { maybePromptRating } from '@/hooks/useRatingPrompt'
+import { AppError, mapSupabaseError } from '@lib/errors'
 import type { CreateTripFormData } from '../types'
 import type { Trip } from '@app-types/index'
 
-export class ActiveTripLimitReachedError extends Error {
-  constructor() {
-    super('active_trip_limit_reached')
+export class ActiveTripLimitReachedError extends AppError {
+  constructor(rawError?: unknown) {
+    super('active_trip_limit_reached', rawError)
     this.name = 'ActiveTripLimitReachedError'
   }
 }
@@ -27,10 +28,11 @@ export function useCreateTrip() {
         .single()
 
       if (tripError) {
-        if (tripError.message.includes('active_trip_limit_reached')) {
-          throw new ActiveTripLimitReachedError()
+        const mapped = mapSupabaseError(tripError)
+        if (mapped.key === 'active_trip_limit_reached') {
+          throw new ActiveTripLimitReachedError(tripError)
         }
-        throw new Error(tripError.message)
+        throw mapped
       }
 
       return trip as Trip

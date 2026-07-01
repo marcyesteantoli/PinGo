@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 import type { Experience } from '@app-types/index'
 
 export type SavedExperienceDetail = {
@@ -50,9 +51,9 @@ export function useSavedExperienceDetail(experienceId: string) {
           .eq('user_id', userId),
       ])
 
-      if (savedError) throw new Error(savedError.message)
-      if (expError) throw new Error(expError.message)
-      if (attrError) throw new Error(attrError.message)
+      if (savedError) throw mapSupabaseError(savedError)
+      if (expError) throw mapSupabaseError(expError)
+      if (attrError) throw mapSupabaseError(attrError)
       if (!exp) return null
 
       let tripName: string | null = null

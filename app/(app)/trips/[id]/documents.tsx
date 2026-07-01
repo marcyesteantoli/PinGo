@@ -36,6 +36,7 @@ import { useAddDocumentPass } from '@features/documents/hooks/useAddDocumentPass
 import { useDeleteDocument } from '@features/documents/hooks/useDeleteDocument'
 import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 import { useErrorToast } from '@lib/errorToast'
+import { AppError, getErrorMessage } from '@lib/errors'
 import type { UploadDocumentFormData, AddLinkFormData } from '@features/documents/types'
 
 type ActionSheetOption = 'file' | 'link' | 'pass'
@@ -364,8 +365,8 @@ export default function DocumentsScreen() {
       await uploadDocument.mutateAsync({ ...data, tripId, asset: pendingAsset ?? undefined })
       setUploadSheetVisible(false)
       setPendingAsset(null)
-    } catch (err: any) {
-      if (err?.code === 'LIMIT_REACHED') {
+    } catch (err) {
+      if (err instanceof AppError && err.key === 'document_limit_reached') {
         setUploadSheetVisible(false)
         setPendingAsset(null)
         uploadDocument.reset()
@@ -479,7 +480,7 @@ export default function DocumentsScreen() {
           onClose={() => setUploadSheetVisible(false)}
           onSubmit={handleUpload}
           isLoading={uploadDocument.isPending}
-          error={uploadDocument.error?.message}
+          error={uploadDocument.error ? getErrorMessage(uploadDocument.error, t) : undefined}
         />
 
         <AddLinkSheet
@@ -487,7 +488,7 @@ export default function DocumentsScreen() {
           onClose={() => setLinkSheetVisible(false)}
           onSubmit={handleAddLink}
           isLoading={addLink.isPending}
-          error={addLink.error?.message}
+          error={addLink.error ? getErrorMessage(addLink.error, t) : undefined}
         />
 
         <AddPassSheet

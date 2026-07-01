@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { Experience } from '@app-types/index'
 
 export function useDeleteExperience(tripId: string) {
@@ -13,7 +14,7 @@ export function useDeleteExperience(tripId: string) {
         .delete()
         .eq('id', experienceId)
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onMutate: async (experienceId) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.experiences.all(tripId) })

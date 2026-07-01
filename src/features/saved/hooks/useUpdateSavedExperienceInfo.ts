@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { Experience } from '@app-types/index'
 
 interface PickedLocation {
@@ -39,7 +40,7 @@ export function useUpdateSavedExperienceInfo(experienceId: string) {
         })
         .eq('id', experienceId)
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.savedExperiences.detail(experienceId) })

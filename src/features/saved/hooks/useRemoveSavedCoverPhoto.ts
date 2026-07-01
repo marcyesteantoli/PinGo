@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 
 export function useRemoveSavedCoverPhoto(experienceId: string) {
   const { data: user } = useCurrentUser()
@@ -26,7 +27,7 @@ export function useRemoveSavedCoverPhoto(experienceId: string) {
         .eq('user_id', userId)
         .eq('experience_id', experienceId)
 
-      if (dbError) throw new Error(dbError.message)
+      if (dbError) throw mapSupabaseError(dbError)
 
       await supabase.storage.from('saved-photos').remove([storagePath])
     },

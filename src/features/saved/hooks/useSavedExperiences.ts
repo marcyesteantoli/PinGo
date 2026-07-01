@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 import type { SavedExperienceItem } from '@app-types/index'
 
 export function useSavedExperiences() {
@@ -18,7 +19,7 @@ export function useSavedExperiences() {
         .eq('user_id', userId!)
         .order('saved_at', { ascending: false })
 
-      if (savedError) throw new Error(savedError.message)
+      if (savedError) throw mapSupabaseError(savedError)
       if (!savedRows || savedRows.length === 0) return []
 
       const experienceIds = savedRows.map((r) => r.experience_id)
@@ -37,8 +38,8 @@ export function useSavedExperiences() {
             .eq('user_id', userId!),
         ])
 
-      if (expError) throw new Error(expError.message)
-      if (attrError) throw new Error(attrError.message)
+      if (expError) throw mapSupabaseError(expError)
+      if (attrError) throw mapSupabaseError(attrError)
 
       // 3. Assemble maps
       const expMap = new Map((experiences ?? []).map((e) => [e.id, e]))

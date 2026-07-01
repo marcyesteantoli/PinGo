@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import * as AppleAuthentication from 'expo-apple-authentication'
 import { supabase } from '@lib/supabase'
+import { AppError, mapAuthError } from '@lib/errors'
 
 export function useSignInWithApple() {
   return useMutation({
@@ -17,13 +18,13 @@ export function useSignInWithApple() {
         if (err instanceof Error && 'code' in err && err.code === 'ERR_REQUEST_CANCELED') return null
         throw err
       }
-      if (!credential.identityToken) throw new Error('No se pudo obtener el token de Apple')
+      if (!credential.identityToken) throw new AppError('unexpected')
 
       const { error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: credential.identityToken,
       })
-      if (error) throw new Error(error.message)
+      if (error) throw mapAuthError(error)
       return credential.identityToken
     },
   })

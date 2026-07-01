@@ -21,6 +21,7 @@ import { buildRegisterSchema, type RegisterFormData } from '@features/auth/types
 import { colors } from '@lib/colors'
 import { cardShadow, ctaShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
+import { getErrorMessage } from '@lib/errors'
 import { LEGAL_URLS } from '@/config/legal'
 
 export default function RegisterScreen() {
@@ -36,15 +37,15 @@ export default function RegisterScreen() {
   const schema = useMemo(() => buildRegisterSchema(), [t])
 
   useEffect(() => {
-    if (signUp.error) showError(signUp.error.message)
+    if (signUp.error) showError(getErrorMessage(signUp.error, t))
   }, [signUp.error])
 
   useEffect(() => {
-    if (signInWithGoogle.error) showError(signInWithGoogle.error.message)
+    if (signInWithGoogle.error) showError(getErrorMessage(signInWithGoogle.error, t))
   }, [signInWithGoogle.error])
 
   useEffect(() => {
-    if (signInWithApple.error) showError(signInWithApple.error.message)
+    if (signInWithApple.error) showError(getErrorMessage(signInWithApple.error, t))
   }, [signInWithApple.error])
 
   const [termsAccepted, setTermsAccepted] = useState(false)

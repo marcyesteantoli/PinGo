@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import { maybePromptRating } from '@/hooks/useRatingPrompt'
 import type { Settlement } from '@app-types/index'
 
@@ -23,11 +24,7 @@ export function useSettleDebt(tripId: string) {
         p_amount: amount,
         p_settled_by: settledBy,
       })
-      if (error) {
-        if (error.message.includes('already_settled')) throw new Error('La deuda ya está saldada o el importe supera lo que se debe.')
-        if (error.message.includes('not_involved')) throw new Error('Solo el deudor o el acreedor pueden registrar el pago.')
-        throw new Error(error.message)
-      }
+      if (error) throw mapSupabaseError(error)
     },
     onMutate: async ({ fromUserId, toUserId, amount, settledBy }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.settlements.all(tripId) })

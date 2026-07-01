@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
+import { AppError, mapAuthError } from '@lib/errors'
 import type { RegisterFormData } from '../types'
 
 export function useSignUp() {
@@ -10,8 +11,8 @@ export function useSignUp() {
         password,
         options: { data: { name } },
       })
-      if (error) throw new Error(error.message)
-      if (!data.user) throw new Error('No se pudo crear la cuenta')
+      if (error) throw mapAuthError(error)
+      if (!data.user) throw new AppError('unexpected')
       return { needsEmailConfirmation: !data.session }
     },
   })

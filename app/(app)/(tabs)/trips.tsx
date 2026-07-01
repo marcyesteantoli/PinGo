@@ -36,6 +36,7 @@ import type { TripWithCollaborators } from '@features/trips/hooks/useTrips'
 import { useIsPro } from '@features/premium/hooks/useIsPro'
 import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 import { LIMITS } from '@/config/limits'
+import { getErrorMessage } from '@lib/errors'
 
 //TODO: monitorizacion de la app reel insta 
 
@@ -207,7 +208,7 @@ export default function TripsScreen() {
           <EmptyState
             icon="warning-outline"
             title={t('trips_error_title')}
-            subtitle={error.message}
+            subtitle={getErrorMessage(error, t)}
           />
           <View className="items-center mt-4">
             <Button onPress={() => refetch()} variant="ghost">{t('common_retry')}</Button>
@@ -346,7 +347,7 @@ export default function TripsScreen() {
             )}
           />
           {joinTrip.error && (
-            <Text className="text-[13px] text-error">{joinTrip.error.message}</Text>
+            <Text className="text-[13px] text-error">{getErrorMessage(joinTrip.error, t)}</Text>
           )}
           <View style={ctaShadow}>
             <Button onPress={handleSubmit(onJoinSubmit)} isLoading={joinTrip.isPending}>

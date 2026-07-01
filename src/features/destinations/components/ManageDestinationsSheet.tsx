@@ -8,6 +8,7 @@ import { useDestinations } from '../hooks/useDestinations'
 import { useDeleteDestination } from '../hooks/useDeleteDestination'
 import { useUpsertDestination } from '../hooks/useUpsertDestination'
 import { useTheme } from '@lib/theme'
+import { getErrorMessage } from '@lib/errors'
 import { colors } from '@lib/colors'
 import { formatShortDate } from '@utils/date'
 import type { TripDestination } from '@app-types/index'
@@ -136,7 +137,7 @@ export function ManageDestinationsSheet({
           onSave={handleSave}
           onCancel={handleBackToList}
           isLoading={upsert.isPending}
-          error={upsert.error?.message ?? null}
+          error={upsert.error ? getErrorMessage(upsert.error, t) : null}
         />
       ) : (
         <View>

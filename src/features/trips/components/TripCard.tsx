@@ -18,6 +18,7 @@ import { useUpdateTrip } from '../hooks/useUpdateTrip'
 import { colors } from '@lib/colors'
 import { cardShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
+import { getErrorMessage } from '@lib/errors'
 
 interface TripCardProps {
   trip: TripWithCollaborators
@@ -62,7 +63,7 @@ export const TripCard = memo(function TripCard({ trip, onPress }: TripCardProps)
   const showError = useErrorToast()
 
   useEffect(() => {
-    if (updateTrip.error) showError(updateTrip.error.message)
+    if (updateTrip.error) showError(getErrorMessage(updateTrip.error, t))
   }, [updateTrip.error])
 
   const [containerWidth, setContainerWidth] = useState(() => Dimensions.get('window').width - 40)

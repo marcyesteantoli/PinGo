@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { Memory } from '@app-types/index'
 
 // `cacheKey` is the stable storage path (or http url for seed data) — used so
@@ -17,7 +18,7 @@ export function useMemories(tripId: string) {
         .eq('trip_id', tripId)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) throw mapSupabaseError(error)
       if (!data.length) return data
 
       // Only sign storage paths — skip full URLs (e.g. seed data from picsum.photos)
@@ -35,7 +36,7 @@ export function useMemories(tripId: string) {
         const { data: signed, error: signError } = await supabase.storage
           .from('memories')
           .createSignedUrls(storagePaths, 3600)
-        if (signError) throw signError
+        if (signError) throw mapSupabaseError(signError)
         storageIndices.forEach((idx, j) => {
           signedMap[idx] = signed[j]?.signedUrl ?? data[idx].image_url
         })

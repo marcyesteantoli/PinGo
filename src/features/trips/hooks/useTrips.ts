@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { Trip, Collaborator } from '@app-types/index'
 
 export type TripWithCollaborators = Trip & { collaborators: Collaborator[] }
@@ -14,7 +15,7 @@ export function useTrips() {
         .select('*, trip_collaborators(user_id, role, status, joined_at, profiles(name, avatar_url))')
         .order('start_date', { ascending: true })
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return (data ?? []).map(({ trip_collaborators, ...trip }) => ({
         ...trip,
         collaborators: (trip_collaborators ?? [])

@@ -26,6 +26,7 @@ import { useErrorToast } from '@lib/errorToast'
 import { colors } from '@lib/colors'
 import { useIsPro } from '@features/premium/hooks/useIsPro'
 import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
+import { AppError, getErrorMessage } from '@lib/errors'
 import type { Memory } from '@app-types/index'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -183,8 +184,8 @@ export default function MemoriesScreen() {
       addMemories.mutate(
         { tripId, assets: result.assets },
         {
-          onError: (err: any) => {
-            if (err?.code === 'LIMIT_REACHED') setPaywallVisible(true)
+          onError: (err) => {
+            if (err instanceof AppError && err.key === 'photo_limit_reached') setPaywallVisible(true)
             else Alert.alert(t('common_error'), t('memories_upload_error'))
           },
         }
@@ -197,8 +198,8 @@ export default function MemoriesScreen() {
       await addMemory.mutateAsync({ tripId, caption, asset: pendingAsset ?? undefined })
       setCaptionSheetVisible(false)
       setPendingAsset(null)
-    } catch (err: any) {
-      if (err?.code === 'LIMIT_REACHED') {
+    } catch (err) {
+      if (err instanceof AppError && err.key === 'photo_limit_reached') {
         handleCloseSheet()
         setPaywallVisible(true)
       }
@@ -212,12 +213,7 @@ export default function MemoriesScreen() {
     addMemory.reset()
   }
 
-  const errorMessage = (() => {
-    const err = addMemory.error as any
-    if (!err) return null
-    if (err.code === 'LIMIT_REACHED') return err.message
-    return err.message ?? t('common_error')
-  })()
+  const errorMessage = addMemory.error ? getErrorMessage(addMemory.error, t) : null
 
   const fillPct = Math.min(count / displayCap, 1) * 100
 

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 
 interface UpdateTripParams {
   tripId: string
@@ -23,7 +24,7 @@ export function useUpdateTrip() {
         .from('trips')
         .update(updates)
         .eq('id', tripId)
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onSuccess: (_, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.list() })

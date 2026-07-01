@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import { i18n } from '@/i18n'
 import type { Expense, Experience, ExpenseSplit, Profile, ExpenseWithSplits } from '@app-types/index'
 
@@ -20,7 +21,7 @@ export function useExpenses(tripId: string) {
         .eq('trip_id', tripId)
         .order('created_at', { ascending: false })
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
 
       return (data ?? [] as ExpenseRow[]).map((e) => ({
         ...e,

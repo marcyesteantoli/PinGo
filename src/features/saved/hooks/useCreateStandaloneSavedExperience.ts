@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { Experience } from '@app-types/index'
 
 interface PickedLocation {
@@ -40,7 +41,7 @@ export function useCreateStandaloneSavedExperience() {
         p_price_paid: input.price_paid ?? null,
       })
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return data
     },
     onSuccess: () => {

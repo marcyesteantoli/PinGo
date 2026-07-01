@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { AppError, mapSupabaseError } from '@lib/errors'
 import type { AddLinkFormData } from '../types'
 
 type AddLinkParams = AddLinkFormData & { tripId: string }
@@ -11,7 +12,7 @@ export function useAddDocumentLink() {
   return useMutation({
     mutationFn: async ({ name, url, experience_id, tripId }: AddLinkParams) => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('No hay sesión activa')
+      if (!user) throw new AppError('no_session')
 
       const { error } = await supabase.from('documents').insert({
         trip_id: tripId,
@@ -22,7 +23,7 @@ export function useAddDocumentLink() {
         uploaded_by: user.id,
       })
 
-      if (error) throw new Error('Error al guardar el enlace. Inténtalo de nuevo.')
+      if (error) throw mapSupabaseError(error)
     },
     onSuccess: (_data, { tripId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.documents.all(tripId) })

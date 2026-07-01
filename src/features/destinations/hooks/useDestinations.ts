@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { TripDestination } from '@app-types/index'
 
 export function useDestinations(tripId: string) {
@@ -13,7 +14,7 @@ export function useDestinations(tripId: string) {
         .eq('trip_id', tripId)
         .order('start_date', { ascending: true })
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return data ?? []
     },
     staleTime: 1000 * 60 * 5,

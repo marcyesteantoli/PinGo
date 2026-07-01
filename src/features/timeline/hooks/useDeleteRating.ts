@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { AppError, mapSupabaseError } from '@lib/errors'
 import type { RatingsData } from './useRatings'
 import type { TripRatingsMap } from './useRatingsForTrip'
 
@@ -12,7 +13,7 @@ export function useDeleteRating(experienceId: string, tripId?: string) {
   return useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('No hay sesión activa')
+      if (!user) throw new AppError('no_session')
 
       const { error } = await supabase
         .from('experience_ratings')
@@ -20,7 +21,7 @@ export function useDeleteRating(experienceId: string, tripId?: string) {
         .eq('experience_id', experienceId)
         .eq('user_id', user.id)
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: qKey })

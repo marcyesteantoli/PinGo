@@ -13,6 +13,7 @@ import { ExperiencePicker } from './ExperiencePicker'
 import { TripPicker } from './TripPicker'
 import { useUploadSharedDocument } from '../hooks/useUploadSharedDocument'
 import { useErrorToast } from '@lib/errorToast'
+import { getErrorMessage } from '@lib/errors'
 import { i18n } from '@/i18n'
 
 function buildShareDocumentSchema() {
@@ -49,7 +50,7 @@ export function ShareDocumentSheet({
   const schema = useMemo(() => buildShareDocumentSchema(), [t])
 
   useEffect(() => {
-    if (upload.error) showError(upload.error.message)
+    if (upload.error) showError(getErrorMessage(upload.error, t))
   }, [upload.error])
 
   const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>({

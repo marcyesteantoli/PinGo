@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 import type { AttributeRatingsData } from '@app-types/index'
 
 export function useAttributeRatings(experienceId: string) {
@@ -20,7 +21,7 @@ export function useAttributeRatings(experienceId: string) {
         .eq('experience_id', experienceId)
         .eq('user_id', userId)
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
 
       const rows: Row[] = rawData ?? []
       const userValues: Record<string, number> = {}

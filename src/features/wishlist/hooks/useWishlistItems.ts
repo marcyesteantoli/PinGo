@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 import type { WishlistItem } from '@app-types/index'
 
 export function useWishlistItems() {
@@ -16,7 +17,7 @@ export function useWishlistItems() {
         .eq('user_id', user!.id)
         .order('added_at', { ascending: false })
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return (data ?? []) as WishlistItem[]
     },
     enabled: !!user?.id,

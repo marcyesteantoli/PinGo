@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
 import { useCurrentUser } from '@features/auth/hooks/useCurrentUser'
+import { mapSupabaseError } from '@lib/errors'
 import type { ExperienceRating } from '@app-types/index'
 
 export type RatingWithProfile = ExperienceRating & {
@@ -27,7 +28,7 @@ export function useRatings(experienceId: string) {
         .select('*, profiles(name, avatar_url)')
         .eq('experience_id', experienceId)
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
 
       const ratings = (data ?? []) as RatingWithProfile[]
       const count = ratings.length

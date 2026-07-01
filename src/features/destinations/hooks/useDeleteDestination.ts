@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 
 export function useDeleteDestination(tripId: string) {
   const queryClient = useQueryClient()
@@ -12,7 +13,7 @@ export function useDeleteDestination(tripId: string) {
         .delete()
         .eq('id', destinationId)
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.destinations.byTrip(tripId) })

@@ -3,6 +3,7 @@ import type { DocumentPickerAsset } from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { AppError } from '@lib/errors'
 
 type AddPassParams = {
   name: string
@@ -17,7 +18,7 @@ export function useAddDocumentPass() {
   return useMutation({
     mutationFn: async ({ name, experience_id, tripId, asset }: AddPassParams) => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('No hay sesión activa')
+      if (!user) throw new AppError('no_session')
 
       const filename = `${user.id}_${Date.now()}.pkpass`
       const storagePath = `documents/${tripId}/${experience_id}/${filename}`
@@ -36,7 +37,7 @@ export function useAddDocumentPass() {
           contentType: 'application/vnd.apple.pkpass',
         })
 
-      if (uploadError) throw new Error('Error al subir el boarding pass. Inténtalo de nuevo.')
+      if (uploadError) throw new AppError('unexpected', uploadError)
 
       const { error: dbError } = await supabase.from('documents').insert({
         trip_id: tripId,
@@ -50,7 +51,7 @@ export function useAddDocumentPass() {
 
       if (dbError) {
         await supabase.storage.from('documents').remove([storagePath])
-        throw new Error('Error al guardar el boarding pass. Inténtalo de nuevo.')
+        throw new AppError('unexpected', dbError)
       }
     },
     onSuccess: (_data, { tripId }) => {

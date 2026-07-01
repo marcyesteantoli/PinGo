@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { TripDestination } from '@app-types/index'
 
 export type DestinationFormData = {
@@ -33,7 +34,7 @@ export function useUpsertDestination(tripId: string) {
           .select()
           .single()
 
-        if (error) throw new Error(error.message)
+        if (error) throw mapSupabaseError(error)
         return data as TripDestination
       }
 
@@ -51,7 +52,7 @@ export function useUpsertDestination(tripId: string) {
         .select()
         .single()
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return data as TripDestination
     },
     onSettled: () => {

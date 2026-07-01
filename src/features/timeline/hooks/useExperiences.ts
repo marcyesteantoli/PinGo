@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { Experience } from '@app-types/index'
 
 export function useExperiences(tripId: string) {
@@ -14,7 +15,7 @@ export function useExperiences(tripId: string) {
         .order('date', { ascending: true, nullsFirst: false })
         .order('start_time', { ascending: true, nullsFirst: true })
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return data ?? []
     },
     staleTime: 1000 * 60 * 5,

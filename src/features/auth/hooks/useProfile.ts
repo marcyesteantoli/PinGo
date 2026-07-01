@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 
 export type Profile = {
   id: string
@@ -20,7 +21,7 @@ export function useProfile(userId?: string) {
         .select('*')
         .eq('id', userId!)
         .single()
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
       return data as Profile
     },
     enabled: !!userId,

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 import type { Document } from '@app-types/index'
 
 export type DocumentWithExperience = Document & {
@@ -22,7 +23,7 @@ export function useDocuments(tripId: string) {
         .eq('trip_id', tripId)
         .order('created_at', { ascending: false })
 
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
 
       const rows = (data ?? []) as DocumentRow[]
       if (!rows.length) return []
@@ -44,7 +45,7 @@ export function useDocuments(tripId: string) {
           .from('documents')
           .createSignedUrls(paths, 15 * 60)
 
-        if (signError) throw signError
+        if (signError) throw mapSupabaseError(signError)
         storageRows.forEach((d, i) => {
           signedMap[d.id] = signed[i]?.signedUrl ?? ''
         })

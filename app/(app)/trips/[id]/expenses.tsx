@@ -43,6 +43,8 @@ import { useStaggerEnter } from '@lib/useStaggerEnter'
 import { useFabScroll } from '@lib/useFabScroll'
 import { EASE_OUT, DURATION } from '@lib/animations'
 import { formatCurrency } from '@utils/currency'
+import { useErrorToast } from '@lib/errorToast'
+import { getErrorMessage } from '@lib/errors'
 import {
   getExpenseCategory,
   CATEGORY_ORDER,
@@ -186,6 +188,11 @@ export default function ExpensesScreen() {
   const deleteExpense = useDeleteExpense(tripId)
   const settleDebt = useSettleDebt(tripId)
   const { data: settlements } = useSettlements(tripId)
+  const showError = useErrorToast()
+
+  useEffect(() => {
+    if (settleDebt.error) showError(getErrorMessage(settleDebt.error, t))
+  }, [settleDebt.error])
   const [sheetVisible, setSheetVisible] = useState(false)
   const [editingExpense, setEditingExpense] = useState<ExpenseWithSplits | null>(null)
   const [deletingExpense, setDeletingExpense] = useState<ExpenseWithSplits | null>(null)
@@ -510,7 +517,13 @@ export default function ExpensesScreen() {
         onClose={handleSheetClose}
         onSubmit={handleSubmit}
         isLoading={createExpense.isPending || updateExpense.isPending}
-        error={createExpense.error?.message ?? updateExpense.error?.message}
+        error={
+          createExpense.error
+            ? getErrorMessage(createExpense.error, t)
+            : updateExpense.error
+            ? getErrorMessage(updateExpense.error, t)
+            : undefined
+        }
         currentUserId={currentUser?.id}
         collaborators={activeCollaborators}
         experiences={experiences ?? []}

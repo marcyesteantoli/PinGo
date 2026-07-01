@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@lib/supabase'
 import { queryKeys } from '@lib/queryKeys'
+import { mapSupabaseError } from '@lib/errors'
 
 async function cleanTripStorage(tripId: string) {
   for (const bucket of ['memories', 'documents'] as const) {
@@ -35,7 +36,7 @@ export function useLeaveTrip() {
       }
 
       const { error } = await supabase.rpc('leave_trip', { p_trip_id: tripId })
-      if (error) throw new Error(error.message)
+      if (error) throw mapSupabaseError(error)
     },
     onSuccess: (_, tripId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.list() })

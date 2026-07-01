@@ -20,6 +20,7 @@ import { buildLoginSchema, type LoginFormData } from '@features/auth/types'
 import { colors } from '@lib/colors'
 import { cardShadow, ctaShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
+import { getErrorMessage } from '@lib/errors'
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -33,15 +34,15 @@ export default function LoginScreen() {
   const schema = useMemo(() => buildLoginSchema(), [t])
 
   useEffect(() => {
-    if (signIn.error) showError(signIn.error.message)
+    if (signIn.error) showError(getErrorMessage(signIn.error, t))
   }, [signIn.error])
 
   useEffect(() => {
-    if (signInWithGoogle.error) showError(signInWithGoogle.error.message)
+    if (signInWithGoogle.error) showError(getErrorMessage(signInWithGoogle.error, t))
   }, [signInWithGoogle.error])
 
   useEffect(() => {
-    if (signInWithApple.error) showError(signInWithApple.error.message)
+    if (signInWithApple.error) showError(getErrorMessage(signInWithApple.error, t))
   }, [signInWithApple.error])
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
