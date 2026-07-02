@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
 import { supabase } from '@lib/supabase'
-import { AppError, mapAuthError } from '@lib/errors'
+import { AppError, mapAuthError, toAppError } from '@lib/errors'
 
 export function useSignInWithGoogle() {
   return useMutation({
@@ -24,7 +24,7 @@ export function useSignInWithGoogle() {
         response = await GoogleSignin.signIn()
       } catch (err) {
         if (isErrorWithCode(err) && err.code === statusCodes.SIGN_IN_CANCELLED) return null
-        throw err
+        throw toAppError(err)
       }
       if (!isSuccessResponse(response)) return null
 

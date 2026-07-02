@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "supabase:types": "supabase gen types typescript --local > src/types/database.ts",
+    "build:android": "eas build --platform android --profile production",
+    "submit:android": "eas submit --platform android --profile production",
     "test": "node node_modules/jest/bin/jest.js",
     "test:watch": "node node_modules/jest/bin/jest.js --watch",
     "test:coverage": "node node_modules/jest/bin/jest.js --coverage"
