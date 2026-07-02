@@ -174,6 +174,14 @@ export const es = {
   newTrip_currency_label: 'Divisa del viaje',
   newTrip_submit: 'Crear viaje',
 
+  // ─── DATE RANGE PICKER ────────────────────────────────────────────────────
+  dateRangePicker_label: 'Fechas del viaje',
+  dateRangePicker_placeholder: 'Seleccionar fechas',
+  dateRangePicker_confirm: 'Confirmar',
+  dateRangePicker_hint_start: 'Toca para seleccionar la fecha de inicio',
+  dateRangePicker_hint_end: 'Ahora selecciona la fecha de fin',
+  dateRangePicker_calendar_today: 'Hoy',
+
   // ─── TIMELINE ─────────────────────────────────────────────────────────────
   timeline_title: 'Viajes',
   timeline_empty_title: 'Sin experiencias',

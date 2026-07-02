@@ -174,6 +174,14 @@ export const en = {
   newTrip_currency_label: 'Trip currency',
   newTrip_submit: 'Create trip',
 
+  // ─── DATE RANGE PICKER ────────────────────────────────────────────────────
+  dateRangePicker_label: 'Trip dates',
+  dateRangePicker_placeholder: 'Select dates',
+  dateRangePicker_confirm: 'Confirm',
+  dateRangePicker_hint_start: 'Tap to select the start date',
+  dateRangePicker_hint_end: 'Now select the end date',
+  dateRangePicker_calendar_today: 'Today',
+
   // ─── TIMELINE ─────────────────────────────────────────────────────────────
   timeline_title: 'Trips',
   timeline_empty_title: 'No experiences yet',

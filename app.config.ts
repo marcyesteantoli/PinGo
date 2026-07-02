@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'PinGo',
   slug: 'pin-go',
-  version: '1.0.2',
+  version: '1.0.4',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'pingo',
@@ -22,7 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    versionCode: 3,
+    versionCode: 4,
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
       backgroundColor: '#ffffff',

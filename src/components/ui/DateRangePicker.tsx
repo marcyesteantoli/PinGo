@@ -2,17 +2,35 @@ import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { Calendar, DateData, LocaleConfig } from 'react-native-calendars'
+import { useTranslation } from 'react-i18next'
 import { colors } from '@lib/colors'
 import { useTheme } from '@lib/theme'
+import { formatDate } from '@utils/date'
 
-LocaleConfig.locales['es'] = {
-  monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-  monthNamesShort: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
-  dayNames: ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],
-  dayNamesShort: ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],
-  today: 'Hoy',
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
 }
-LocaleConfig.defaultLocale = 'es'
+
+function registerCalendarLocale(lang: string, todayLabel: string) {
+  if (!LocaleConfig.locales[lang]) {
+    const monthNames = Array.from({ length: 12 }, (_, i) =>
+      capitalize(new Intl.DateTimeFormat(lang, { month: 'long' }).format(new Date(2000, i, 1)))
+    )
+    const monthNamesShort = Array.from({ length: 12 }, (_, i) =>
+      capitalize(new Intl.DateTimeFormat(lang, { month: 'short' }).format(new Date(2000, i, 1)))
+    )
+    const dayNames = Array.from({ length: 7 }, (_, i) =>
+      capitalize(new Intl.DateTimeFormat(lang, { weekday: 'long' }).format(new Date(2000, 0, 2 + i)))
+    )
+    const dayNamesShort = Array.from({ length: 7 }, (_, i) =>
+      capitalize(new Intl.DateTimeFormat(lang, { weekday: 'short' }).format(new Date(2000, 0, 2 + i)))
+    )
+    LocaleConfig.locales[lang] = { monthNames, monthNamesShort, dayNames, dayNamesShort, today: todayLabel }
+  } else {
+    LocaleConfig.locales[lang].today = todayLabel
+  }
+  LocaleConfig.defaultLocale = lang
+}
 
 interface DateRangePickerProps {
   startDate?: string
@@ -22,13 +40,6 @@ interface DateRangePickerProps {
   startError?: string
   endError?: string
   minDate?: string
-}
-
-const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
-
-function formatShort(s: string): string {
-  const [y, m, d] = s.split('-')
-  return `${parseInt(d)} ${MONTHS[parseInt(m) - 1]} ${y}`
 }
 
 function toLocalDateString(d: Date): string {
@@ -80,9 +91,12 @@ export function DateRangePicker({
   minDate,
 }: DateRangePickerProps) {
   const { isDark } = useTheme()
+  const { t, i18n } = useTranslation()
   const [show, setShow] = useState(false)
   const [tempStart, setTempStart] = useState<string | null>(null)
   const [tempEnd, setTempEnd] = useState<string | null>(null)
+
+  registerCalendarLocale(i18n.language, t('dateRangePicker_calendar_today'))
 
   const error = startError || endError
   const bgColor = isDark ? colors.surface[800] : colors.white
@@ -120,9 +134,9 @@ export function DateRangePicker({
 
   const displayText =
     startDate && endDate
-      ? `${formatShort(startDate)}  →  ${formatShort(endDate)}`
+      ? `${formatDate(startDate, i18n.language)}  →  ${formatDate(endDate, i18n.language)}`
       : startDate
-        ? formatShort(startDate)
+        ? formatDate(startDate, i18n.language)
         : undefined
 
   const calendarTheme = {
@@ -141,7 +155,7 @@ export function DateRangePicker({
 
   return (
     <View className="gap-1">
-      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Fechas del viaje</Text>
+      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('dateRangePicker_label')}</Text>
       <Pressable
         onPress={openPicker}
         className={`border rounded-xl px-4 flex-row items-center justify-between bg-white dark:bg-surface-800 ${error ? 'border-error' : 'border-neutral-200 dark:border-surface-600'}`}
@@ -151,7 +165,7 @@ export function DateRangePicker({
           className="text-base"
           style={{ color: displayText ? (isDark ? colors.neutral[50] : colors.neutral[900]) : colors.neutral[400] }}
         >
-          {displayText ?? 'Seleccionar fechas'}
+          {displayText ?? t('dateRangePicker_placeholder')}
         </Text>
         <Ionicons name="calendar-outline" size={18} color={colors.neutral[400]} />
       </Pressable>
@@ -163,14 +177,14 @@ export function DateRangePicker({
             {/* Header */}
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4 }}>
               <TouchableOpacity onPress={handleCancel}>
-                <Text style={{ fontSize: 16, color: colors.neutral[400] }}>Cancelar</Text>
+                <Text style={{ fontSize: 16, color: colors.neutral[400] }}>{t('common_cancel')}</Text>
               </TouchableOpacity>
               <Text style={{ fontSize: 16, fontWeight: '600', color: isDark ? colors.neutral[50] : colors.neutral[900] }}>
-                Fechas del viaje
+                {t('dateRangePicker_label')}
               </Text>
               <TouchableOpacity onPress={handleConfirm} disabled={confirmDisabled}>
                 <Text style={{ fontSize: 16, fontWeight: '600', color: confirmDisabled ? colors.neutral[300] : colors.primary[500] }}>
-                  Confirmar
+                  {t('dateRangePicker_confirm')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -179,15 +193,15 @@ export function DateRangePicker({
             <View style={{ paddingVertical: 8, paddingHorizontal: 20 }}>
               {!tempStart ? (
                 <Text style={{ fontSize: 13, color: colors.neutral[400], textAlign: 'center' }}>
-                  Toca para seleccionar la fecha de inicio
+                  {t('dateRangePicker_hint_start')}
                 </Text>
               ) : !tempEnd ? (
                 <Text style={{ fontSize: 13, color: colors.neutral[400], textAlign: 'center' }}>
-                  Ahora selecciona la fecha de fin
+                  {t('dateRangePicker_hint_end')}
                 </Text>
               ) : (
                 <Text style={{ fontSize: 13, fontWeight: '500', color: colors.primary[500], textAlign: 'center' }}>
-                  {formatShort(tempStart)}  →  {formatShort(tempEnd)}
+                  {formatDate(tempStart, i18n.language)}  →  {formatDate(tempEnd, i18n.language)}
                 </Text>
               )}
             </View>
