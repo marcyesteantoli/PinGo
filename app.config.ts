@@ -71,12 +71,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         androidIntentFilters: ['image/*', '*/*'],
       },
     ],
-    // Sign in with Google requires EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME to be set (Google Cloud Console
-    // OAuth iOS client reversed-client-id) — the plugin throws at config-eval time without it.
-    // TODO(android-google): Create Android OAuth client in Google Cloud Console.
-    //   1. Run `eas credentials --platform android` to get the debug SHA-1 keystore fingerprint.
-    //   2. After first production build, add the production SHA-1 to the same Android client.
-    //   3. Both SHA-1s can coexist in one client — no extra env var needed.
     ...(process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME
       ? [
           [

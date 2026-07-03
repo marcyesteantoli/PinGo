@@ -38,8 +38,6 @@ import { ProPaywallSheet } from '@features/premium/components/ProPaywallSheet'
 import { LIMITS } from '@/config/limits'
 import { getErrorMessage } from '@lib/errors'
 
-//TODO: monitorizacion de la app reel insta 
-
 type Segment = 'upcoming' | 'past'
 
 function StaggeredTripCard({
