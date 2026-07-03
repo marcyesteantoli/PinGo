@@ -12,6 +12,7 @@ import { queryClient } from '@lib/queryClient'
 import { queryKeys } from '@lib/queryKeys'
 import { supabase } from '@lib/supabase'
 import { ThemeProvider, useTheme } from '@lib/theme'
+import { SessionProvider } from '@lib/session'
 import { LanguageProvider } from '@lib/language'
 import { ErrorToastProvider, ErrorToastPortal } from '@lib/errorToast'
 import { getLastActiveTripId } from '@lib/lastActiveTrip'
@@ -105,12 +106,11 @@ function AppShell({ onAppReady }: { onAppReady: () => void }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       Sentry.setUser(session?.user ? { id: session.user.id } : null)
       const inAuthGroup = segmentsRef.current[0] === '(auth)'
-      const isPublicRoute = inAuthGroup || segmentsRef.current[0] === 'intro' || segmentsRef.current.length === 0
 
-      if (!session && !isPublicRoute) {
+      if (!session) {
+        // Entry into (app) without a session is blocked by the guard in app/(app)/_layout.tsx.
         callOnAppReady()
-        router.replace('/(auth)/login')
-      } else if (session && inAuthGroup) {
+      } else if (inAuthGroup) {
         queryClient.clear()
         ;(async () => {
           const [completed] = await Promise.all([
@@ -120,11 +120,9 @@ function AppShell({ onAppReady }: { onAppReady: () => void }) {
           router.replace(completed ? '/(app)/(tabs)/trips' : '/(app)/onboarding')
           callOnAppReady()
         })()
-      } else if (session) {
+      } else {
         queryClient.prefetchQuery({ queryKey: queryKeys.trips.list(), queryFn: fetchTrips })
           .then(() => callOnAppReady())
-      } else {
-        callOnAppReady()
       }
     })
     return () => subscription.unsubscribe()
@@ -165,13 +163,15 @@ function RootLayout() {
         <SentryErrorBoundary>
           <ShareIntentProvider options={{ scheme: 'pingo' }}>
             <QueryClientProvider client={queryClient}>
-              <ThemeProvider>
-                <LanguageProvider>
-                  <ErrorToastProvider>
-                    <AppShell onAppReady={() => setAppReady(true)} />
-                  </ErrorToastProvider>
-                </LanguageProvider>
-              </ThemeProvider>
+              <SessionProvider>
+                <ThemeProvider>
+                  <LanguageProvider>
+                    <ErrorToastProvider>
+                      <AppShell onAppReady={() => setAppReady(true)} />
+                    </ErrorToastProvider>
+                  </LanguageProvider>
+                </ThemeProvider>
+              </SessionProvider>
             </QueryClientProvider>
           </ShareIntentProvider>
         </SentryErrorBoundary>

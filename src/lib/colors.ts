@@ -4,6 +4,7 @@ export const colors = {
     400: '#3375ff',
     500: '#0046de',
     600: '#0037b0',
+    800: '#001d5e',
   },
   tertiary: {
     400: '#FCAF45',

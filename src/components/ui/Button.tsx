@@ -17,33 +17,47 @@ interface ButtonProps {
   className?: string
 }
 
-const variantClasses: Record<ButtonVariant, { container: string; text: string; spinner: string }> = {
+const variantClasses: Record<ButtonVariant, {
+  container: string
+  text: string
+  spinner: string
+  disabledContainer: string
+  disabledText: string
+}> = {
   primary: {
     container: 'bg-primary-500',
     text: 'text-white',
     spinner: colors.white,
+    disabledContainer: 'bg-primary-300 dark:bg-primary-800',
+    disabledText: 'text-primary-100 dark:text-primary-400',
   },
   ghost: {
     container: 'border border-neutral-300 bg-transparent dark:border-neutral-600',
     text: 'text-neutral-700 dark:text-neutral-200',
     spinner: colors.neutral[600],
+    disabledContainer: 'border border-neutral-200 bg-transparent dark:border-neutral-700',
+    disabledText: 'text-neutral-400 dark:text-neutral-500',
   },
   outline: {
     container: 'border-2 border-primary-500 bg-white dark:bg-surface-900',
     text: 'text-primary-500',
     spinner: colors.primary[500],
+    disabledContainer: 'border-2 border-primary-200 bg-white dark:border-primary-800 dark:bg-surface-900',
+    disabledText: 'text-primary-300 dark:text-primary-700',
   },
   destructive: {
     container: 'bg-error',
     text: 'text-white',
     spinner: colors.white,
+    disabledContainer: 'bg-error-300 dark:bg-error-800',
+    disabledText: 'text-error-100 dark:text-error-400',
   },
 }
 
-const sizeClasses: Record<ButtonSize, { container: string; text: string }> = {
-  sm: { container: 'px-4 py-2 rounded-full', text: 'text-[15px] font-medium' },
-  md: { container: 'px-5 py-2.5 rounded-xl', text: 'text-[17px] font-semibold' },
-  lg: { container: 'px-6 py-3.5 rounded-2xl', text: 'text-[17px] font-semibold' },
+const sizeClasses: Record<ButtonSize, { container: string; text: string; lineHeight: number }> = {
+  sm: { container: 'px-4 py-2 rounded-full', text: 'text-[15px] font-medium', lineHeight: 20 },
+  md: { container: 'px-5 py-2.5 rounded-xl', text: 'text-[17px] font-semibold', lineHeight: 22 },
+  lg: { container: 'px-6 py-3.5 rounded-2xl', text: 'text-[17px] font-semibold', lineHeight: 22 },
 }
 
 export function Button({
@@ -81,12 +95,17 @@ export function Button({
     >
       <Animated.View
         style={animStyle}
-        className={`flex-row items-center justify-center ${v.container} ${s.container} ${isDisabled ? 'opacity-50' : ''} ${className}`}
+        className={`flex-row items-center justify-center ${isDisabled ? v.disabledContainer : v.container} ${s.container} ${className}`}
       >
         {isLoading ? (
           <ActivityIndicator size="small" color={v.spinner} />
         ) : typeof children === 'string' ? (
-          <Text className={`${v.text} ${s.text}`}>{children}</Text>
+          <Text
+            className={`${isDisabled ? v.disabledText : v.text} ${s.text}`}
+            style={{ includeFontPadding: false, lineHeight: s.lineHeight }}
+          >
+            {children}
+          </Text>
         ) : (
           children
         )}

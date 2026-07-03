@@ -22,6 +22,7 @@ import { colors } from '@lib/colors'
 import { cardShadow, ctaShadow } from '@lib/shadows'
 import { useErrorToast } from '@lib/errorToast'
 import { getErrorMessage } from '@lib/errors'
+import { useTheme } from '@lib/theme'
 import { LEGAL_URLS } from '@/config/legal'
 
 export default function RegisterScreen() {
@@ -33,6 +34,7 @@ export default function RegisterScreen() {
   const passwordRef = useRef<TextInput>(null)
   const showError = useErrorToast()
   const { t } = useTranslation()
+  const { isDark } = useTheme()
 
   const schema = useMemo(() => buildRegisterSchema(), [t])
 
@@ -56,10 +58,8 @@ export default function RegisterScreen() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      const result = await signUp.mutateAsync(data)
-      if (!result.needsEmailConfirmation) {
-        router.replace('/(app)/(tabs)/trips')
-      }
+      await signUp.mutateAsync(data)
+      // Navigation (trips or onboarding) is handled by the auth listener in app/_layout.tsx
     } catch {
       // error shown via signUp.error
     }
@@ -70,7 +70,7 @@ export default function RegisterScreen() {
       <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
         <View className="flex-1 items-center justify-center px-6 gap-6">
           <LinearGradient
-            colors={['#0046de', '#f43f5e']}
+            colors={isDark ? [colors.primary[600], colors.primary[800]] : [colors.primary[400], colors.primary[600]]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{ width: 80, height: 80, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
@@ -207,14 +207,14 @@ export default function RegisterScreen() {
                 {t('auth_register_consent_prefix')}{' '}
                 <Text
                   onPress={() => Linking.openURL(LEGAL_URLS.terms)}
-                  className="text-secondary-600 dark:text-secondary-400 font-semibold"
+                  className="text-primary-600 dark:text-primary-400 font-semibold"
                 >
                   {t('auth_register_consent_terms')}
                 </Text>
                 {' '}{t('auth_register_consent_and')}{' '}
                 <Text
                   onPress={() => Linking.openURL(LEGAL_URLS.privacy)}
-                  className="text-secondary-600 dark:text-secondary-400 font-semibold"
+                  className="text-primary-600 dark:text-primary-400 font-semibold"
                 >
                   {t('auth_register_consent_privacy')}
                 </Text>
@@ -273,7 +273,7 @@ export default function RegisterScreen() {
           <View className="flex-row items-center justify-center mt-8 gap-1">
             <Text className="text-sm text-neutral-500 dark:text-neutral-400">{t('auth_register_hasAccount')}</Text>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text className="text-sm font-semibold text-secondary-600 dark:text-secondary-400">{t('auth_register_loginLink')}</Text>
+              <Text className="text-sm font-semibold text-primary-600 dark:text-primary-400">{t('auth_register_loginLink')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

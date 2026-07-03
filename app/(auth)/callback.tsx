@@ -8,6 +8,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@components/ui/Button'
 import { supabase } from '@lib/supabase'
+import { colors } from '@lib/colors'
+import { useTheme } from '@lib/theme'
 
 function parseCallbackParams(url: string) {
   const query = url.includes('?') ? (url.split('?')[1]?.split('#')[0] ?? '') : ''
@@ -21,6 +23,7 @@ export default function AuthCallbackScreen() {
   const { t } = useTranslation()
   const url = Linking.useURL()
   const [hasError, setHasError] = useState(false)
+  const { isDark } = useTheme()
 
   useEffect(() => {
     if (!url) return
@@ -42,7 +45,7 @@ export default function AuthCallbackScreen() {
     return (
       <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
         <View className="flex-1 items-center justify-center px-6 gap-6">
-          <Ionicons name="alert-circle-outline" size={48} color="#ef233c" />
+          <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
           <View className="items-center gap-2">
             <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 text-center">
               {t('auth_callback_error_title')}
@@ -63,7 +66,7 @@ export default function AuthCallbackScreen() {
     <SafeAreaView className="flex-1 bg-neutral-100 dark:bg-surface-900" edges={['top']}>
       <View className="flex-1 items-center justify-center px-6 gap-6">
         <LinearGradient
-          colors={['#0046de', '#f43f5e']}
+          colors={isDark ? [colors.primary[600], colors.primary[800]] : [colors.primary[400], colors.primary[600]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={{ width: 80, height: 80, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}

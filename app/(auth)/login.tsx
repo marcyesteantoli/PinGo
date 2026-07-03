@@ -52,7 +52,7 @@ export default function LoginScreen() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await signIn.mutateAsync(data)
-      router.replace('/(app)/(tabs)/trips')
+      // Navigation (trips or onboarding) is handled by the auth listener in app/_layout.tsx
     } catch {
       // error shown via signIn.error
     }
@@ -180,7 +180,7 @@ export default function LoginScreen() {
           <View className="flex-row items-center justify-center mt-8 gap-1">
             <Text className="text-sm text-neutral-500 dark:text-neutral-400">{t('auth_login_noAccount')}</Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-              <Text className="text-sm font-semibold text-secondary-600 dark:text-secondary-400">{t('auth_login_registerLink')}</Text>
+              <Text className="text-sm font-semibold text-primary-600 dark:text-primary-400">{t('auth_login_registerLink')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
