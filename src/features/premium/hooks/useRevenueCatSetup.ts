@@ -22,12 +22,13 @@ export function useRevenueCatSetup() {
   useEffect(() => {
     if (!userId) return
 
-    const listener = Purchases.addCustomerInfoUpdateListener(() => {
+    const listener = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile(userId) })
-    })
+    }
+    Purchases.addCustomerInfoUpdateListener(listener)
 
     return () => {
-      listener.remove()
+      Purchases.removeCustomerInfoUpdateListener(listener)
     }
   }, [userId, queryClient])
 }
