@@ -115,7 +115,7 @@ export default function MemoriesScreen() {
   const handleBulkDownload = async () => {
     if (selectedIds.size === 0 || !memories) return
 
-    const { status } = await MediaLibrary.requestPermissionsAsync()
+    const { status } = await MediaLibrary.requestPermissionsAsync(true)
     if (status !== 'granted') {
       Alert.alert(t('memories_permission_denied_title'), t('memories_permission_denied_body'))
       return

@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'PinGo',
   slug: 'pin-go',
-  version: '1.0.6',
+  version: '1.0.7',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'pingo',
@@ -22,7 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    versionCode: 6,
+    versionCode: 7,
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
       backgroundColor: '#ffffff',
@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY_ANDROID,
       },
     },
-    blockedPermissions: ['android.permission.READ_MEDIA_VIDEO'],
+    blockedPermissions: ['android.permission.READ_MEDIA_IMAGES', 'android.permission.READ_MEDIA_VIDEO'],
   },
   plugins: [
     'expo-router',
@@ -57,6 +57,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         savePhotosPermission: 'PinGo necesita permiso para guardar fotos en tu galería.',
         isAccessMediaLocationEnabled: true,
         audioPermission: false,
+        granularPermissions: [],
       },
     ],
     '@react-native-community/datetimepicker',

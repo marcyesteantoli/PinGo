@@ -331,7 +331,7 @@ export function DocumentViewer({ document, visible, onClose }: DocumentViewerPro
     setDownloading(true)
     try {
       if (document?.file_type?.includes('image')) {
-        const { status } = await MediaLibrary.requestPermissionsAsync()
+        const { status } = await MediaLibrary.requestPermissionsAsync(true)
         if (status !== 'granted') {
           Alert.alert('Permiso requerido', 'Permite el acceso a la galería para guardar imágenes.')
           return

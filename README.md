@@ -57,9 +57,16 @@ Tokens de dispositivo registrados en Supabase. Las notificaciones se envían des
 
 ---
 
-El APK está disponible en [GitHub Releases](https://github.com/marcyesteantoli/PinGo/releases/latest) — descarga directa sin necesidad de cuenta.
+La app ya está publicada en Google Play. También sigue disponible el APK directo para instalación manual o pruebas en emulador.
 
-### Opción A — Dispositivo Android físico
+### Opción A — Google Play Store (recomendado)
+
+1. Descargar e instalar desde [Google Play](https://play.google.com/store/apps/details?id=io.pingo.app).
+2. Iniciar sesión con el usuario de prueba (ver sección [Usuario de prueba](#usuario-de-prueba)).
+
+---
+
+### Opción B — APK en dispositivo Android físico
 
 **Requisitos:** dispositivo Android 10+ con "Fuentes desconocidas" activado en Ajustes → Seguridad.
 
@@ -69,7 +76,7 @@ El APK está disponible en [GitHub Releases](https://github.com/marcyesteantoli/
 
 ---
 
-### Opción B — Emulador Android (sin dispositivo físico)
+### Opción C — APK en emulador Android (sin dispositivo físico)
 
 **Requisitos:** [Android Studio](https://developer.android.com/studio) instalado con un AVD (Android Virtual Device) configurado.
 
@@ -159,6 +166,7 @@ Módulos disponibles: `auth` · `trips` · `timeline` · `expenses` · `document
 |---|---|
 | 📊 Presentación TFM | [Ver presentación](https://drive.google.com/file/d/1YLdASxtIepMr6HtHkxXb7BlLRbbYf5QQ/view?usp=sharing) |
 | 🎬 Demo en vídeo | [Ver vídeo](https://drive.google.com/file/d/1HTaMjk57v-2U5Y1Ju12eVKYi-_NzWJ-9/view?usp=sharing) |
+| 📱 Google Play | [Ver en Play Store](https://play.google.com/store/apps/details?id=io.pingo.app) |
 | 📦 Descargar APK | [GitHub Releases](https://github.com/marcyesteantoli/PinGo/releases/latest) |
 
 
