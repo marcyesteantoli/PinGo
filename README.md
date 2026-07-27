@@ -100,7 +100,7 @@ Build y publicación gestionados con **EAS** (Expo Application Services).
    ```bash
    eas submit --platform android --latest
    ```
-   Sube automáticamente a la pista **internal testing** en Google Play Console (credenciales del service account configuradas en EAS). Próximamente se promoverá a **closed testing** y, finalmente, a **production**.
+   Sube automáticamente a la pista **internal testing** en Google Play Console (credenciales del service account configuradas en EAS).
 4. **Publicar APK en GitHub Releases** (distribución de prueba al margen de Play Store): generar build con `eas build --platform android --profile preview` y adjuntar el `.apk` resultante al release de GitHub.
 
 ---
