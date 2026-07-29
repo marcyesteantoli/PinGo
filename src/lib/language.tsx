@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, ReactNode, useContext, useState } from 'react'
+import { supabase } from '@lib/supabase'
 import { i18n, LANGUAGE_KEY, SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n'
 
 export type { SupportedLanguage }
@@ -10,7 +11,7 @@ interface LanguageContextValue {
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
-  language: 'es',
+  language: 'en',
   changeLanguage: async () => {},
 })
 
@@ -23,6 +24,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     await i18n.changeLanguage(lang)
     setLanguage(lang)
     await AsyncStorage.setItem(LANGUAGE_KEY, lang)
+
+    const { data } = await supabase.auth.getUser()
+    if (data.user) {
+      await supabase.from('profiles').update({ locale: lang }).eq('id', data.user.id)
+    }
   }
 
   return (

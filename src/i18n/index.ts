@@ -14,11 +14,11 @@ export const SUPPORTED_LANGUAGES = ['es', 'en', 'fr', 'de', 'pt', 'it'] as const
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
 
 function getDeviceLanguage(): SupportedLanguage {
-  const tag = Localization.getLocales()[0]?.languageTag ?? 'es'
+  const tag = Localization.getLocales()[0]?.languageTag ?? 'en'
   const lang = tag.split('-')[0]
   return (SUPPORTED_LANGUAGES as readonly string[]).includes(lang)
     ? (lang as SupportedLanguage)
-    : 'es'
+    : 'en'
 }
 
 export async function initI18n(): Promise<void> {

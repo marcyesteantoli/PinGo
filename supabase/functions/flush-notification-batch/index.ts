@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
     const tokens = tokenMap.get(batch.recipient_id) ?? []
     if (!tokens.length) continue
 
-    const locale = localeMap.get(batch.recipient_id) ?? 'es'
+    const locale = localeMap.get(batch.recipient_id) ?? 'en'
     const copy = COPY_EXPENSE[locale] ?? COPY_EXPENSE['en']
     const actorName = actorNameMap.get(batch.actor_id) ?? 'Alguien'
 

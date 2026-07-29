@@ -137,7 +137,7 @@ async function fanOut(
     const localeMap = new Map(profiles?.map((p) => [p.id, p.locale]) ?? [])
 
     for (const row of tokenRows ?? []) {
-      const locale = localeMap.get(row.user_id) ?? 'es'
+      const locale = localeMap.get(row.user_id) ?? 'en'
       const copy = COPY[event]?.[locale] ?? COPY[event]?.['en']
       const vars = { trip: trip.title }
 

@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import Purchases, { PurchasesErrorCode } from 'react-native-purchases'
+import Purchases, { PURCHASES_ERROR_CODE } from 'react-native-purchases'
 import { useTranslation } from 'react-i18next'
 import { useErrorToast } from '@lib/errorToast'
 import { AppError, getErrorMessage, toAppError } from '@lib/errors'
@@ -38,7 +38,7 @@ export function usePurchase() {
       onClose?.()
     },
     onError: (error: any) => {
-      if (error?.code === PurchasesErrorCode.PurchaseCancelledError) return
+      if (error?.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) return
       showError(getErrorMessage(toAppError(error, 'purchase_failed'), t))
     },
   })

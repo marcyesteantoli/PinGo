@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@lib/supabase'
+import { i18n } from '@/i18n'
 
 interface SessionContextValue {
   session: Session | null
@@ -14,9 +15,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession)
       setIsLoading(false)
+      if (event === 'SIGNED_IN' && newSession) {
+        supabase.from('profiles').update({ locale: i18n.language }).eq('id', newSession.user.id)
+      }
     })
     return () => subscription.unsubscribe()
   }, [])

@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
     .in('id', eligibleIds)
 
   const localeMap = new Map<string, string>(
-    recipientProfiles?.map((p: { id: string; locale: string | null }) => [p.id, p.locale ?? 'es']) ?? []
+    recipientProfiles?.map((p: { id: string; locale: string | null }) => [p.id, p.locale ?? 'en']) ?? []
   )
 
   const tripTitle = trip?.title ?? ''
@@ -255,7 +255,7 @@ Deno.serve(async (req) => {
 
   // Build messages
   const messages = (tokenRows ?? []).map((row) => {
-    const locale = localeMap.get(row.user_id) ?? 'es'
+    const locale = localeMap.get(row.user_id) ?? 'en'
     const copy = COPY[event]?.[locale] ?? COPY[event]?.['en'] ?? { title: '', body: '' }
 
     const vars: Record<string, string> = {

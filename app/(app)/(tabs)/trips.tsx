@@ -327,6 +327,7 @@ export default function TripsScreen() {
         visible={joinSheetVisible}
         onClose={() => { setJoinSheetVisible(false); reset(); joinTrip.reset() }}
         title={t('trips_join_sheet_title')}
+        scrollable
       >
         <View className="gap-4">
           <Controller
