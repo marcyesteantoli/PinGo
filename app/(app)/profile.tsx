@@ -198,6 +198,7 @@ export default function ProfileScreen() {
     { key: 'de', label: t('lang_de'), native: 'Deutsch' },
     { key: 'pt', label: t('lang_pt'), native: 'Português' },
     { key: 'it', label: t('lang_it'), native: 'Italiano' },
+    { key: 'ru', label: t('lang_ru'), native: 'Русский' },
   ]
 
   return (

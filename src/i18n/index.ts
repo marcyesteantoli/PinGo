@@ -8,9 +8,10 @@ import { es } from './locales/es'
 import { fr } from './locales/fr'
 import { it } from './locales/it'
 import { pt } from './locales/pt'
+import { ru } from './locales/ru'
 
 export const LANGUAGE_KEY = '@pingo/language'
-export const SUPPORTED_LANGUAGES = ['es', 'en', 'fr', 'de', 'pt', 'it'] as const
+export const SUPPORTED_LANGUAGES = ['es', 'en', 'fr', 'de', 'pt', 'it', 'ru'] as const
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
 
 function getDeviceLanguage(): SupportedLanguage {
@@ -38,6 +39,7 @@ export async function initI18n(): Promise<void> {
       de: { translation: de },
       pt: { translation: pt },
       it: { translation: it },
+      ru: { translation: ru },
     },
     interpolation: { escapeValue: false },
     compatibilityJSON: 'v4',

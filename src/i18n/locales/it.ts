@@ -107,6 +107,7 @@ export const it = {
   lang_de: 'Tedesco',
   lang_pt: 'Portoghese',
   lang_it: 'Italiano',
+  lang_ru: 'Russo',
 
   // ─── TABS (main) ──────────────────────────────────────────────────────────
   tabs_trips: 'Viaggi',

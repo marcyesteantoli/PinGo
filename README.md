@@ -16,7 +16,7 @@ Más allá del viaje en curso, PinGo también cuida la experiencia individual: p
 | Backend | Supabase (PostgreSQL + Auth + Storage + Edge Functions) |
 | Animaciones | React Native Reanimated 4 + Gesture Handler |
 | Mapas | react-native-maps + Supercluster |
-| Internacionalización | i18next + react-i18next (6 idiomas) |
+| Internacionalización | i18next + react-i18next (7 idiomas) |
 | Suscripciones | RevenueCat SDK |
 | Monitorización | Sentry React Native SDK |
 
@@ -156,7 +156,7 @@ Módulos disponibles: `auth` · `trips` · `timeline` · `expenses` · `document
 * **Lista de deseos (Wishlist):** Planifica tus próximos destinos, restaurantes y actividades pendientes con soporte de mapa y filtros por tipo.
 
 ### 🌍 Transversal
-* **Internacionalización:** Interfaz disponible en 6 idiomas: español, inglés, alemán, francés, italiano y portugués.
+* **Internacionalización:** Interfaz disponible en 7 idiomas: español, inglés, alemán, francés, italiano, portugués y ruso.
 
 ---
 

@@ -23,6 +23,7 @@ const COPY: Record<ReminderEvent, Record<string, { title: string; body: string }
     fr: { title: '{{trip}} commence demain!', body: 'Ton aventure commence dans moins de 24h.' },
     it: { title: '{{trip}} inizia domani!', body: 'La tua avventura inizia in meno di 24h.' },
     pt: { title: '{{trip}} começa amanhã!', body: 'Sua aventura começa em menos de 24h.' },
+    ru: { title: '{{trip}} начинается завтра!', body: 'Твоё приключение начнётся меньше чем через 24 часа.' },
   },
   trip_starts_today: {
     es: { title: '¡Hoy empieza {{trip}}! ✈️', body: '¡Que tengas un viaje increíble!' },
@@ -31,6 +32,7 @@ const COPY: Record<ReminderEvent, Record<string, { title: string; body: string }
     fr: { title: '{{trip}} commence aujourd\'hui! ✈️', body: 'Bon voyage!' },
     it: { title: '{{trip}} inizia oggi! ✈️', body: 'Buon viaggio!' },
     pt: { title: '{{trip}} começa hoje! ✈️', body: 'Boa viagem!' },
+    ru: { title: '{{trip}} начинается сегодня! ✈️', body: 'Хорошей поездки!' },
   },
   trip_ends_tomorrow: {
     es: { title: 'Último día completo en {{trip}}', body: '¡Aprovéchalo! No olvides saldar los gastos.' },
@@ -39,6 +41,7 @@ const COPY: Record<ReminderEvent, Record<string, { title: string; body: string }
     fr: { title: 'Dernier jour complet à {{trip}}', body: 'Profites-en! N\'oublie pas de régler les dépenses.' },
     it: { title: 'Ultimo giorno completo a {{trip}}', body: 'Sfruttalo! Non dimenticare di saldare le spese.' },
     pt: { title: 'Último dia completo em {{trip}}', body: 'Aproveite! Não se esqueça de acertar as despesas.' },
+    ru: { title: 'Последний полный день в {{trip}}', body: 'Не упусти его! Не забудь закрыть все расчёты по расходам.' },
   },
   trip_ended_1day: {
     es: { title: '¿Cómo fue {{trip}}?', body: 'Añade tus últimos recuerdos antes de que se desvanezcan.' },
@@ -47,6 +50,7 @@ const COPY: Record<ReminderEvent, Record<string, { title: string; body: string }
     fr: { title: 'Comment était {{trip}}?', body: 'Ajoutez vos souvenirs avant qu\'ils ne s\'effacent.' },
     it: { title: 'Com\'era {{trip}}?', body: 'Aggiungi i tuoi ricordi prima che svaniscano.' },
     pt: { title: 'Como foi {{trip}}?', body: 'Adicione suas memórias antes que elas desapareçam.' },
+    ru: { title: 'Как прошла {{trip}}?', body: 'Добавь последние воспоминания, пока они не исчезли.' },
   },
   unsettled_debts: {
     es: { title: 'Gastos pendientes en {{trip}}', body: 'Aún tienes saldos por liquidar.' },
@@ -55,6 +59,7 @@ const COPY: Record<ReminderEvent, Record<string, { title: string; body: string }
     fr: { title: 'Dépenses en attente dans {{trip}}', body: 'Tu as encore des soldes à régler.' },
     it: { title: 'Spese in sospeso in {{trip}}', body: 'Hai ancora saldi da saldare.' },
     pt: { title: 'Despesas pendentes em {{trip}}', body: 'Você ainda tem saldos pendentes para liquidar.' },
+    ru: { title: 'Незавершённые расходы в {{trip}}', body: 'У тебя остались незакрытые балансы.' },
   },
 }
 

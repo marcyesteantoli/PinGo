@@ -36,6 +36,11 @@ const COPY_EXPENSE: Record<string, { title: string; body_single: string; body_mu
     body_single: '{{description}} em {{trip}}',
     body_multi: 'em {{trip}}',
   },
+  ru: {
+    title: '{{actor}} добавил новые расходы ({{count}})',
+    body_single: '{{description}} в поездке {{trip}}',
+    body_multi: 'в поездке {{trip}}',
+  },
 }
 
 function interpolate(template: string, vars: Record<string, string>): string {

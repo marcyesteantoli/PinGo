@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'PinGo',
   slug: 'pin-go',
-  version: '1.0.7',
+  version: '1.0.8',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'pingo',
@@ -22,7 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    versionCode: 7,
+    versionCode: 8,
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
       backgroundColor: '#ffffff',
@@ -62,6 +62,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     '@react-native-community/datetimepicker',
     'expo-apple-authentication',
+    [
+      'expo-build-properties',
+      {
+        android: {
+          enableProguardInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
+        },
+      },
+    ],
     [
       'expo-share-intent',
       {

@@ -34,6 +34,7 @@ const COPY: Record<string, Record<string, { title: string; body: string }>> = {
     fr: { title: '{{actor}} t\'a remboursé', body: '{{amount}} {{currency}} dans {{trip}}' },
     it: { title: '{{actor}} ti ha rimborsato', body: '{{amount}} {{currency}} in {{trip}}' },
     pt: { title: '{{actor}} pagou você', body: '{{amount}} {{currency}} em {{trip}}' },
+    ru: { title: '{{actor}} вернул тебе деньги', body: '{{amount}} {{currency}} в поездке {{trip}}' },
   },
   member_joined: {
     es: { title: '{{actor}} se unió a {{trip}}', body: '¡Tu grupo de viaje ha crecido!' },
@@ -42,6 +43,7 @@ const COPY: Record<string, Record<string, { title: string; body: string }>> = {
     fr: { title: '{{actor}} a rejoint {{trip}}', body: 'Votre groupe de voyage s\'est agrandi!' },
     it: { title: '{{actor}} si è unito a {{trip}}', body: 'Il tuo gruppo di viaggio è cresciuto!' },
     pt: { title: '{{actor}} entrou em {{trip}}', body: 'Seu grupo de viagem cresceu!' },
+    ru: { title: '{{actor}} присоединился к поездке {{trip}}', body: 'Ваша команда путешественников выросла!' },
   },
   member_left: {
     es: { title: '{{actor}} abandonó {{trip}}', body: 'El grupo ha cambiado.' },
@@ -50,6 +52,7 @@ const COPY: Record<string, Record<string, { title: string; body: string }>> = {
     fr: { title: '{{actor}} a quitté {{trip}}', body: 'Le groupe a changé.' },
     it: { title: '{{actor}} ha lasciato {{trip}}', body: 'Il gruppo è cambiato.' },
     pt: { title: '{{actor}} saiu de {{trip}}', body: 'O grupo mudou.' },
+    ru: { title: '{{actor}} покинул поездку {{trip}}', body: 'Состав группы изменился.' },
   },
   experience_added: {
     es: { title: '{{actor}} añadió una actividad', body: '{{title}} en {{trip}}' },
@@ -58,6 +61,7 @@ const COPY: Record<string, Record<string, { title: string; body: string }>> = {
     fr: { title: '{{actor}} a ajouté une activité', body: '{{title}} dans {{trip}}' },
     it: { title: '{{actor}} ha aggiunto un\'attività', body: '{{title}} in {{trip}}' },
     pt: { title: '{{actor}} adicionou uma atividade', body: '{{title}} em {{trip}}' },
+    ru: { title: '{{actor}} добавил новое событие', body: '{{title}} в поездке {{trip}}' },
   },
   memory_added: {
     es: { title: '{{actor}} compartió una foto', body: 'Nueva foto en {{trip}}' },
@@ -66,6 +70,7 @@ const COPY: Record<string, Record<string, { title: string; body: string }>> = {
     fr: { title: '{{actor}} a partagé une photo', body: 'Nouvelle photo dans {{trip}}' },
     it: { title: '{{actor}} ha condiviso una foto', body: 'Nuova foto in {{trip}}' },
     pt: { title: '{{actor}} compartilhou uma foto', body: 'Nova foto em {{trip}}' },
+    ru: { title: '{{actor}} поделился фото', body: 'Новое фото в поездке {{trip}}' },
   },
 }
 
